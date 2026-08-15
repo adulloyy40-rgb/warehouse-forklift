@@ -39,6 +39,7 @@ import '../../../data/repositories/storage_location_repository_impl.dart';
 import '../../../domain/entities/storage_location.dart';
 import '../../../domain/entities/stock_pallet.dart';
 
+import '../storage/storage_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -61,6 +62,8 @@ class DashboardPage extends StatefulWidget {
 // ============================================================
 
 class _DashboardPageState extends State<DashboardPage> {
+  int _selectedNavigationIndex = 0;
+
   // ==========================================================
   // REPOSITORY
   // ==========================================================
@@ -395,44 +398,57 @@ class _DashboardPageState extends State<DashboardPage> {
                   childAspectRatio: 1.35,
 
                   children: [
+                    // ==================================================
+                    // MASTER BARANG
+                    // ==================================================
                     _MenuCard(
                       icon: Icons.inventory_2_rounded,
-
                       title: 'Master Barang',
-
                       subtitle: 'Data produk',
-
-                      onTap: () {},
+                      onTap: () {
+                        // Belum dihubungkan.
+                      },
                     ),
 
+                    // ==================================================
+                    // STORAGE
+                    // ==================================================
                     _MenuCard(
                       icon: Icons.location_on_rounded,
-
                       title: 'Storage',
-
                       subtitle: 'Lokasi rak',
-
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StoragePage(),
+                          ),
+                        );
+                      },
                     ),
 
+                    // ==================================================
+                    // PUTAWAY
+                    // ==================================================
                     _MenuCard(
                       icon: Icons.precision_manufacturing_rounded,
-
                       title: 'Putaway',
-
                       subtitle: 'Simpan pallet',
-
-                      onTap: () {},
+                      onTap: () {
+                        // Belum dihubungkan.
+                      },
                     ),
 
+                    // ==================================================
+                    // PICKING
+                    // ==================================================
                     _MenuCard(
                       icon: Icons.local_shipping_rounded,
-
                       title: 'Picking',
-
                       subtitle: 'Ambil barang',
-
-                      onTap: () {},
+                      onTap: () {
+                        // Belum dihubungkan.
+                      },
                     ),
                   ],
                 ),
@@ -617,38 +633,51 @@ class _DashboardPageState extends State<DashboardPage> {
       // BOTTOM NAVIGATION
       // ========================================================
       bottomNavigationBar: NavigationBar(
-        selectedIndex: 0,
+        selectedIndex: _selectedNavigationIndex,
+
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedNavigationIndex = index;
+          });
+
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const StoragePage()),
+            ).then((_) {
+              if (!mounted) {
+                return;
+              }
+
+              setState(() {
+                _selectedNavigationIndex = 0;
+              });
+            });
+          }
+        },
 
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-
             selectedIcon: Icon(Icons.dashboard_rounded),
-
             label: 'Home',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
-
             selectedIcon: Icon(Icons.inventory_2_rounded),
-
             label: 'Stock',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.local_shipping_outlined),
-
             selectedIcon: Icon(Icons.local_shipping_rounded),
-
             label: 'Operation',
           ),
 
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
-
             selectedIcon: Icon(Icons.settings_rounded),
-
             label: 'More',
           ),
         ],
@@ -656,7 +685,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
-
 // ============================================================
 // MENU CARD
 // ============================================================
