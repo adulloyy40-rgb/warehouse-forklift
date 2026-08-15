@@ -6,19 +6,21 @@
 // FUNGSI:
 // Halaman Master Storage Location.
 //
-// Data lokasi berasal dari:
-// StorageLocationRepository
+// ALUR:
+// Dashboard
+//    ↓
+// Storage
+//    ↓
+// Daftar Location
+//    ↓
+// Klik Location
+//    ↓
+// Storage Detail Page
 //
-// Status lokasi berasal dari:
-// StockPalletRepository
+// STATUS LOCATION:
+// AVAILABLE
+// OCCUPIED
 //
-// STATUS:
-// 🟢 AVAILABLE
-// 🔴 OCCUPIED
-//
-// CATATAN:
-// Tidak ada data lokasi yang di-hard-code di halaman ini.
-// Seluruh lokasi dibaca dari repository.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -27,6 +29,8 @@ import '../../../data/repositories/stock_pallet_repository_impl.dart';
 import '../../../data/repositories/storage_location_repository_impl.dart';
 import '../../../domain/entities/stock_pallet.dart';
 import '../../../domain/entities/storage_location.dart';
+import '../../../domain/repositories/stock_pallet_repository.dart';
+import 'storage_detail_page.dart';
 
 // ============================================================
 // STORAGE PAGE
@@ -69,7 +73,7 @@ class _StoragePageState extends State<StoragePage> {
   String _searchQuery = '';
 
   // ==========================================================
-  // FILTER RACK
+  // RACK FILTER
   // ==========================================================
 
   int? _selectedRack;
@@ -99,18 +103,6 @@ class _StoragePageState extends State<StoragePage> {
 
   // ==========================================================
   // LOAD STORAGE DATA
-  // ==========================================================
-  //
-  // Mengambil:
-  //
-  // 1. Seluruh lokasi storage.
-  // 2. Seluruh pallet.
-  //
-  // Kemudian UI menentukan lokasi:
-  //
-  // AVAILABLE
-  // atau
-  // OCCUPIED
   // ==========================================================
 
   Future<void> _loadStorageData() async {
@@ -150,13 +142,7 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
-  // GET OCCUPIED LOCATION CODES
-  // ==========================================================
-  //
-  // Membuat Set kode lokasi yang sedang ditempati pallet.
-  //
-  // Set digunakan supaya pencarian cepat dan aman terhadap
-  // data duplikat.
+  // OCCUPIED LOCATION CODES
   // ==========================================================
 
   Set<String> get _occupiedLocationCodes {
@@ -172,7 +158,7 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
-  // TOTAL OCCUPIED
+  // OCCUPIED LOCATION
   // ==========================================================
 
   int get _occupiedLocation {
@@ -180,7 +166,7 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
-  // TOTAL AVAILABLE
+  // AVAILABLE LOCATION
   // ==========================================================
 
   int get _availableLocation {
@@ -190,27 +176,13 @@ class _StoragePageState extends State<StoragePage> {
   // ==========================================================
   // FILTERED LOCATIONS
   // ==========================================================
-  //
-  // Filter berdasarkan:
-  //
-  // 1. Search code
-  // 2. Rack
-  // ==========================================================
 
   List<StorageLocation> get _filteredLocations {
     final query = _searchQuery.trim().toLowerCase();
 
     return _locations.where((location) {
-      // --------------------------------------------------------
-      // FILTER SEARCH
-      // --------------------------------------------------------
-
       final matchesSearch =
           query.isEmpty || location.code.toLowerCase().contains(query);
-
-      // --------------------------------------------------------
-      // FILTER RACK
-      // --------------------------------------------------------
 
       final matchesRack =
           _selectedRack == null || location.rack == _selectedRack;
@@ -220,12 +192,7 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
-  // GET RACK LIST
-  // ==========================================================
-  //
-  // Mengambil daftar rack dari data repository.
-  //
-  // Tidak menggunakan daftar rack hard-code.
+  // RACK LIST
   // ==========================================================
 
   List<int> get _rackList {
@@ -284,30 +251,18 @@ class _StoragePageState extends State<StoragePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ====================================
-                      // SUMMARY
-                      // ====================================
                       _buildSummary(theme),
 
                       const SizedBox(height: 24),
 
-                      // ====================================
-                      // SEARCH
-                      // ====================================
                       _buildSearchField(theme),
 
                       const SizedBox(height: 12),
 
-                      // ====================================
-                      // RACK FILTER
-                      // ====================================
                       _buildRackFilter(theme),
 
                       const SizedBox(height: 20),
 
-                      // ====================================
-                      // RESULT COUNT
-                      // ====================================
                       Text(
                         '${_filteredLocations.length} lokasi ditemukan',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -318,9 +273,6 @@ class _StoragePageState extends State<StoragePage> {
 
                       const SizedBox(height: 12),
 
-                      // ====================================
-                      // LOCATION LIST
-                      // ====================================
                       _buildLocationList(theme),
                     ],
                   ),
@@ -400,9 +352,6 @@ class _StoragePageState extends State<StoragePage> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          // ----------------------------------------------------
-          // ALL RACK
-          // ----------------------------------------------------
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
@@ -416,9 +365,6 @@ class _StoragePageState extends State<StoragePage> {
             ),
           ),
 
-          // ----------------------------------------------------
-          // RACK DARI REPOSITORY
-          // ----------------------------------------------------
           ..._rackList.map((rack) {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -466,7 +412,8 @@ class _StoragePageState extends State<StoragePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Coba ubah kata pencarian atau filter rack.',
+                  'Coba ubah kata pencarian '
+                  'atau filter rack.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.grey.shade600,
@@ -489,7 +436,11 @@ class _StoragePageState extends State<StoragePage> {
 
         final isOccupied = _occupiedLocationCodes.contains(location.code);
 
-        return _LocationCard(location: location, isOccupied: isOccupied);
+        return _LocationCard(
+          location: location,
+          isOccupied: isOccupied,
+          stockPalletRepository: _palletRepository,
+        );
       },
     );
   }
@@ -516,9 +467,13 @@ class _StoragePageState extends State<StoragePage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            Text(_errorMessage ?? '', textAlign: TextAlign.center),
+            const Text(
+              'Terjadi masalah ketika '
+              'memuat data lokasi.',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
-            FilledButton.icon(
+            ElevatedButton.icon(
               onPressed: _loadStorageData,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Coba Lagi'),
@@ -542,7 +497,9 @@ class _SummaryCard extends StatelessWidget {
   });
 
   final IconData icon;
+
   final String title;
+
   final String value;
 
   @override
@@ -584,10 +541,17 @@ class _SummaryCard extends StatelessWidget {
 // ============================================================
 
 class _LocationCard extends StatelessWidget {
-  const _LocationCard({required this.location, required this.isOccupied});
+  const _LocationCard({
+    required this.location,
+    required this.isOccupied,
+    required this.stockPalletRepository,
+  });
 
   final StorageLocation location;
+
   final bool isOccupied;
+
+  final StockPalletRepository stockPalletRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -605,15 +569,20 @@ class _LocationCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          _showLocationDetail(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StorageDetailPage(
+                location: location,
+                stockPalletRepository: stockPalletRepository,
+              ),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // =================================================
-              // LOCATION ICON
-              // =================================================
               Container(
                 width: 46,
                 height: 46,
@@ -626,9 +595,6 @@ class _LocationCard extends StatelessWidget {
 
               const SizedBox(width: 14),
 
-              // =================================================
-              // LOCATION INFORMATION
-              // =================================================
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,9 +605,7 @@ class _LocationCard extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-
                     const SizedBox(height: 5),
-
                     Text(
                       'Rack ${location.rack} • '
                       'Bay ${location.bay}',
@@ -649,7 +613,6 @@ class _LocationCard extends StatelessWidget {
                         color: Colors.grey.shade600,
                       ),
                     ),
-
                     if (location.shelving != null ||
                         location.level != null ||
                         location.position != null) ...[
@@ -667,9 +630,6 @@ class _LocationCard extends StatelessWidget {
 
               const SizedBox(width: 8),
 
-              // =================================================
-              // STATUS
-              // =================================================
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 decoration: BoxDecoration(
@@ -691,7 +651,6 @@ class _LocationCard extends StatelessWidget {
       ),
     );
   }
-
   // ==========================================================
   // POSITION TEXT
   // ==========================================================
@@ -700,7 +659,10 @@ class _LocationCard extends StatelessWidget {
     final parts = <String>[];
 
     if (location.shelving != null) {
-      parts.add('Shelving ${location.shelving}');
+      parts.add(
+        'Shelving '
+        '${location.shelving}',
+      );
     }
 
     if (location.level != null) {
@@ -712,95 +674,5 @@ class _LocationCard extends StatelessWidget {
     }
 
     return parts.join(' • ');
-  }
-
-  // ==========================================================
-  // LOCATION DETAIL
-  // ==========================================================
-
-  void _showLocationDetail(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Detail Location',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                ),
-
-                const SizedBox(height: 18),
-
-                _DetailRow(label: 'Location Code', value: location.code),
-
-                _DetailRow(label: 'Rack', value: location.rack.toString()),
-
-                _DetailRow(label: 'Bay', value: location.bay.toString()),
-
-                _DetailRow(
-                  label: 'Shelving',
-                  value: location.shelving?.toString() ?? '-',
-                ),
-
-                _DetailRow(
-                  label: 'Level',
-                  value: location.level?.toString() ?? '-',
-                ),
-
-                _DetailRow(
-                  label: 'Position',
-                  value: location.position?.toString() ?? '-',
-                ),
-
-                _DetailRow(
-                  label: 'Status',
-                  value: isOccupied ? 'OCCUPIED' : 'AVAILABLE',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-// ============================================================
-// DETAIL ROW
-// ============================================================
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(label, style: TextStyle(color: Colors.grey.shade600)),
-          ),
-          const Text(': '),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
