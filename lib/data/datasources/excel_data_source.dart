@@ -26,6 +26,7 @@
 import 'dart:io';
 
 import 'package:excel/excel.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 // ============================================================
 // CLASS: ExcelDataSource
@@ -71,23 +72,58 @@ class ExcelDataSource {
   // Satu Map = satu barang.
   // ==========================================================
 
-  Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
-    // --------------------------------------------------------
-    // 1. Memastikan file Excel tersedia.
-    // --------------------------------------------------------
+Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
+  // --------------------------------------------------------
+  // 1. Membaca file Excel.
+  //
+  // Ada dua kemungkinan sumber file:
+  //
+  // A. Filesystem
+  //    Digunakan ketika menjalankan test/development.
+  //
+  // B. Flutter Asset
+  //    Digunakan ketika aplikasi berjalan di Android.
+  //
+  // Kita mencoba filesystem terlebih dahulu.
+  // Jika tidak ditemukan, kita mencoba Flutter Asset.
+  // --------------------------------------------------------
 
-    final file = File(filePath);
+  List<int> bytes;
 
-    if (!await file.exists()) {
-      throw Exception('File Excel tidak ditemukan: $filePath');
+  final file = File(filePath);
+
+  // --------------------------------------------------------
+  // Jika file tersedia di filesystem,
+  // baca menggunakan File.
+  // --------------------------------------------------------
+
+  if (await file.exists()) {
+    bytes = await file.readAsBytes();
+  } else {
+    // ------------------------------------------------------
+    // Jika file tidak tersedia sebagai filesystem,
+    // coba baca sebagai Flutter Asset.
+    // ------------------------------------------------------
+
+    try {
+      final assetData = await rootBundle.load(filePath);
+
+      bytes = assetData.buffer.asUint8List(
+        assetData.offsetInBytes,
+        assetData.lengthInBytes,
+      );
+    } catch (e) {
+      throw Exception(
+        'File Excel tidak ditemukan sebagai file maupun asset: $filePath',
+      );
     }
+  }
 
-    // --------------------------------------------------------
-    // 2. Membaca file Excel menjadi bytes.
-    // --------------------------------------------------------
+  // --------------------------------------------------------
+  // 2. Membuka file Excel dari bytes.
+  // --------------------------------------------------------
 
-    final bytes = await file.readAsBytes();
-
+  
     // --------------------------------------------------------
     // 3. Membuka file Excel.
     // --------------------------------------------------------
