@@ -1,38 +1,17 @@
 // ============================================================
 // FILE:
 // lib/data/models/stock_pallet_model.dart
-// ============================================================
 //
 // FUNGSI:
 // Model untuk data StockPallet.
 //
-// Model ini menjadi penghubung antara:
+// TANGGUNG JAWAB:
+// 1. Mengubah Entity → Model
+// 2. Mengubah Map → Model
+// 3. Mengubah Model → Map
+// 4. Mengubah Model → Map untuk export Excel
 //
-// Data Layer
-//      ↓
-// StockPallet Entity
-//
-// Model menyediakan fungsi:
-// - fromEntity()
-// - fromMap()
-// - toMap()
-// - toExportMap()
-//
-// FORMAT EXPORT EXCEL:
-//
-// No
-// Location Code
-// PLU
-// CONV2
-// Description
-// Tear Aktual
-// Stack Aktual
-// Qty CTN
-// Qty PCS
-// Expired Date
-// Input Date
-// Operator NIK
-// Sesuai Master
+// MODEL INI TIDAK BERISI LOGIKA DATABASE.
 // ============================================================
 
 import '../../domain/entities/stock_pallet.dart';
@@ -41,10 +20,11 @@ import '../../domain/entities/stock_pallet.dart';
 // CLASS: StockPalletModel
 // ============================================================
 //
-// Model mewarisi Entity StockPallet.
+// StockPalletModel mewarisi StockPallet.
 //
-// Dengan cara ini data domain tetap dapat digunakan
-// oleh Data Layer tanpa membuat struktur data berbeda.
+// Dengan demikian seluruh field dari Entity dapat digunakan
+// oleh Data Layer.
+//
 // ============================================================
 
 class StockPalletModel extends StockPallet {
@@ -55,12 +35,16 @@ class StockPalletModel extends StockPallet {
   const StockPalletModel({
     required super.locationCode,
     required super.plu,
+    required super.barcode,
     required super.description,
+    required super.price,
+    required super.returHari,
+    required super.conv2,
+    required super.type,
     required super.tear,
     required super.stack,
     required super.qtyCtn,
     required super.qtyPcs,
-    required super.conv2,
     required super.expiredDate,
     required super.inputDate,
     required super.operatorNik,
@@ -68,25 +52,33 @@ class StockPalletModel extends StockPallet {
   });
 
   // ==========================================================
-  // fromEntity()
+  // FROM ENTITY
   // ==========================================================
   //
-  // FUNGSI:
-  // Mengubah StockPallet Entity menjadi StockPalletModel.
+  // Mengubah:
   //
-  // Digunakan ketika data dari Domain masuk ke Data Layer.
+  // StockPallet Entity
+  //        ↓
+  // StockPalletModel
+  //
+  // Digunakan ketika data dari Domain perlu diproses
+  // oleh Data Layer.
   // ==========================================================
 
   factory StockPalletModel.fromEntity(StockPallet entity) {
     return StockPalletModel(
       locationCode: entity.locationCode,
       plu: entity.plu,
+      barcode: entity.barcode,
       description: entity.description,
+      price: entity.price,
+      returHari: entity.returHari,
+      conv2: entity.conv2,
+      type: entity.type,
       tear: entity.tear,
       stack: entity.stack,
       qtyCtn: entity.qtyCtn,
       qtyPcs: entity.qtyPcs,
-      conv2: entity.conv2,
       expiredDate: entity.expiredDate,
       inputDate: entity.inputDate,
       operatorNik: entity.operatorNik,
@@ -95,97 +87,84 @@ class StockPalletModel extends StockPallet {
   }
 
   // ==========================================================
-  // fromMap()
+  // FROM MAP
   // ==========================================================
   //
-  // FUNGSI:
-  // Membuat StockPalletModel dari Map.
+  // Mengubah:
   //
-  // Nantinya berguna untuk:
-  // - database
-  // - local storage
+  // Map<String, dynamic>
+  //        ↓
+  // StockPalletModel
+  //
+  // Berguna untuk:
   // - JSON
-  // - pembacaan data
+  // - local storage
+  // - import data
+  // - database adapter
   // ==========================================================
 
   factory StockPalletModel.fromMap(Map<String, dynamic> map) {
     return StockPalletModel(
       locationCode: map['locationCode']?.toString() ?? '',
-
       plu: map['plu']?.toString() ?? '',
-
+      barcode: map['barcode']?.toString() ?? '',
       description: map['description']?.toString() ?? '',
-
-      tear: _toInt(map['tear']),
-
-      stack: _toInt(map['stack']),
-
-      qtyCtn: _toInt(map['qtyCtn']),
-
-      qtyPcs: _toInt(map['qtyPcs']),
-
+      price: _toDouble(map['price']),
+      returHari: _toInt(map['returHari']),
       conv2: _toInt(map['conv2']),
-
+      type: map['type']?.toString() ?? '',
+      tear: _toInt(map['tear']),
+      stack: _toInt(map['stack']),
+      qtyCtn: _toInt(map['qtyCtn']),
+      qtyPcs: _toInt(map['qtyPcs']),
       expiredDate: _toDateTime(map['expiredDate']),
-
       inputDate: _toDateTime(map['inputDate']),
-
       operatorNik: map['operatorNik']?.toString() ?? '',
-
       sesuaiMaster: _toBool(map['sesuaiMaster']),
     );
   }
 
   // ==========================================================
-  // toMap()
+  // TO MAP
   // ==========================================================
   //
-  // FUNGSI:
-  // Mengubah StockPalletModel menjadi Map.
-  //
-  // Digunakan untuk penyimpanan data.
-  //
-  // Contoh:
+  // Mengubah:
   //
   // StockPalletModel
-  //       ↓
-  //     toMap()
-  //       ↓
+  //        ↓
   // Map<String, dynamic>
+  //
+  // Digunakan untuk penyimpanan data lokal / JSON.
   // ==========================================================
 
   Map<String, dynamic> toMap() {
     return {
       'locationCode': locationCode,
       'plu': plu,
-      'conv2': conv2,
+      'barcode': barcode,
       'description': description,
+      'price': price,
+      'returHari': returHari,
+      'conv2': conv2,
+      'type': type,
       'tear': tear,
       'stack': stack,
       'qtyCtn': qtyCtn,
       'qtyPcs': qtyPcs,
-
-      // DateTime disimpan sebagai String ISO 8601
-      // supaya mudah disimpan ke database/JSON.
       'expiredDate': expiredDate.toIso8601String(),
-
       'inputDate': inputDate.toIso8601String(),
-
       'operatorNik': operatorNik,
-
       'sesuaiMaster': sesuaiMaster,
     };
   }
 
   // ==========================================================
-  // toExportMap()
+  // TO EXPORT MAP
   // ==========================================================
   //
-  // FUNGSI:
-  // Mengubah data pallet menjadi format yang siap
-  // digunakan oleh Excel Export.
+  // Format khusus untuk export Excel.
   //
-  // URUTAN KOLOM SUDAH DIKUNCI:
+  // URUTAN KOLOM:
   //
   // No
   // Location Code
@@ -201,53 +180,76 @@ class StockPalletModel extends StockPallet {
   // Operator NIK
   // Sesuai Master
   //
-  // No bukan bagian dari Entity.
-  // No hanya digunakan saat membuat laporan Excel.
+  // "No" tidak disimpan di Entity.
+  // Nomor hanya digunakan untuk laporan/export.
   // ==========================================================
 
   Map<String, dynamic> toExportMap({required int no}) {
     return {
       'No': no,
-
       'Location Code': locationCode,
-
       'PLU': plu,
-
       'CONV2': conv2,
-
       'Description': description,
-
       'Tear Aktual': tear,
-
       'Stack Aktual': stack,
-
       'Qty CTN': qtyCtn,
-
       'Qty PCS': qtyPcs,
-
       'Expired Date': expiredDate.toIso8601String(),
-
       'Input Date': inputDate.toIso8601String(),
-
       'Operator NIK': operatorNik,
-
       'Sesuai Master': sesuaiMaster ? 'YA' : 'TIDAK',
     };
   }
 
   // ==========================================================
-  // _toInt()
+  // PRIVATE HELPER: TO DOUBLE
   // ==========================================================
   //
-  // FUNGSI:
-  // Mengubah nilai menjadi integer.
+  // Mengubah berbagai tipe data menjadi double.
   //
-  // Mendukung:
-  // 10
-  // 10.0
-  // "10"
-  // "10.0"
-  // null
+  // Contoh:
+  // 10       → 10.0
+  // 10.5     → 10.5
+  // "10"     → 10.0
+  // "10.5"   → 10.5
+  // null     → 0.0
+  // ==========================================================
+
+  static double _toDouble(dynamic value) {
+    if (value == null) {
+      return 0.0;
+    }
+
+    if (value is double) {
+      return value;
+    }
+
+    if (value is int) {
+      return value.toDouble();
+    }
+
+    final text = value.toString().trim();
+
+    if (text.isEmpty) {
+      return 0.0;
+    }
+
+    return double.tryParse(text) ?? 0.0;
+  }
+
+  // ==========================================================
+  // PRIVATE HELPER: TO INT
+  // ==========================================================
+  //
+  // Mengubah berbagai tipe data menjadi integer.
+  //
+  // Contoh:
+  // 10       → 10
+  // 10.0     → 10
+  // "10"     → 10
+  // "10.0"   → 10
+  // null     → 0
   // ==========================================================
 
   static int _toInt(dynamic value) {
@@ -285,14 +287,25 @@ class StockPalletModel extends StockPallet {
   }
 
   // ==========================================================
-  // _toBool()
+  // PRIVATE HELPER: TO BOOL
   // ==========================================================
   //
-  // FUNGSI:
-  // Mengubah berbagai bentuk nilai menjadi boolean.
+  // Mendukung:
   //
+  // true
+  // false
+  // "true"
+  // "false"
+  // "YA"
+  // "TIDAK"
+  // "yes"
+  // "no"
+  // "1"
+  // "0"
+  //
+  // Hasil:
   // YA / true / yes / 1 → true
-  // TIDAK / false / no / 0 → false
+  // selain itu           → false
   // ==========================================================
 
   static bool _toBool(dynamic value) {
@@ -306,14 +319,15 @@ class StockPalletModel extends StockPallet {
   }
 
   // ==========================================================
-  // _toDateTime()
+  // PRIVATE HELPER: TO DATETIME
   // ==========================================================
   //
-  // FUNGSI:
   // Mengubah nilai menjadi DateTime.
   //
-  // Jika data tanggal tidak valid,
-  // digunakan nilai fallback epoch.
+  // Jika nilai tidak valid:
+  // digunakan Unix Epoch sebagai fallback.
+  //
+  // 1970-01-01 00:00:00
   // ==========================================================
 
   static DateTime _toDateTime(dynamic value) {
@@ -323,8 +337,10 @@ class StockPalletModel extends StockPallet {
 
     final text = value?.toString().trim() ?? '';
 
-    final result = DateTime.tryParse(text);
+    if (text.isEmpty) {
+      return DateTime.fromMillisecondsSinceEpoch(0);
+    }
 
-    return result ?? DateTime.fromMillisecondsSinceEpoch(0);
+    return DateTime.tryParse(text) ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 }

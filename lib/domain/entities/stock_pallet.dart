@@ -1,59 +1,124 @@
-// File:
+// ============================================================
+// FILE:
 // lib/domain/entities/stock_pallet.dart
+//
+// FUNGSI:
+// Entity domain untuk merepresentasikan satu pallet barang.
+//
+// CATATAN:
+// Entity ini tidak mengetahui Drift, SQLite, DAO, atau database.
+//
+// Struktur:
+// Domain Entity
+//      ↓
+// StockPalletRepository
+// ============================================================
 
-// Entity StockPallet mewakili satu pallet barang
-// yang tersimpan pada satu lokasi rak.
 class StockPallet {
+  // ----------------------------------------------------------
+  // LOCATION
+  // ----------------------------------------------------------
+
   // Kode lokasi pallet.
-  // Contoh: 8001101.
+  //
+  // Contoh:
+  // 8001101
   final String locationCode;
 
-  // PLU barang yang berada di pallet.
+  // ----------------------------------------------------------
+  // MASTER BARANG
+  // ----------------------------------------------------------
+
+  // PLU barang.
   final String plu;
 
-  // Description barang.
+  // Barcode barang.
+  final String barcode;
+
+  // Deskripsi barang.
   final String description;
 
-  // Tear aktual yang dimasukkan operator berdasarkan kondisi fisik pallet.
-  final int tear;
+  // Harga barang.
+  final double price;
 
-  // Stack aktual yang dimasukkan operator berdasarkan kondisi fisik pallet.
-  final int stack;
+  // Retur hari dari master barang.
+  final int returHari;
 
-  // Jumlah CTN aktual pada pallet.
-  // Rumus: tear × stack.
-  final int qtyCtn;
-
-  // Jumlah PCS aktual pada pallet.
-  // Rumus: qtyCtn × conv2.
-  final int qtyPcs;
-
-  // Conv2 dari Master Barang.
+  // Konversi CTN → PCS.
   final int conv2;
 
-  // Tanggal expired barang pada pallet.
+  // Tipe barang.
+  final String type;
+
+  // ----------------------------------------------------------
+  // DATA FISIK PALLET
+  // ----------------------------------------------------------
+
+  // Tear aktual pallet.
+  final int tear;
+
+  // Stack aktual pallet.
+  final int stack;
+
+  // Jumlah CTN.
+  //
+  // Rumus:
+  //
+  // tear × stack
+  final int qtyCtn;
+
+  // Jumlah PCS.
+  //
+  // Rumus:
+  //
+  // qtyCtn × conv2
+  final int qtyPcs;
+
+  // ----------------------------------------------------------
+  // TANGGAL
+  // ----------------------------------------------------------
+
+  // Tanggal expired barang.
   final DateTime expiredDate;
 
-  // Tanggal dan waktu saat data dimasukkan ke aplikasi.
+  // Tanggal/waktu pallet pertama kali dimasukkan.
   final DateTime inputDate;
 
-  // NIK operator yang melakukan input.
+  // ----------------------------------------------------------
+  // OPERATOR
+  // ----------------------------------------------------------
+
+  // NIK operator yang melakukan proses.
   final String operatorNik;
 
-  // True jika tear dan stack aktual sama dengan master.
-  // False jika berbeda.
+  // ----------------------------------------------------------
+  // VALIDASI MASTER
+  // ----------------------------------------------------------
+
+  // true:
+  // Tear dan Stack aktual sesuai dengan master.
+  //
+  // false:
+  // berbeda dari master.
   final bool sesuaiMaster;
 
-  // Constructor StockPallet.
+  // ==========================================================
+  // CONSTRUCTOR
+  // ==========================================================
+
   const StockPallet({
     required this.locationCode,
     required this.plu,
+    required this.barcode,
     required this.description,
+    required this.price,
+    required this.returHari,
+    required this.conv2,
+    required this.type,
     required this.tear,
     required this.stack,
     required this.qtyCtn,
     required this.qtyPcs,
-    required this.conv2,
     required this.expiredDate,
     required this.inputDate,
     required this.operatorNik,

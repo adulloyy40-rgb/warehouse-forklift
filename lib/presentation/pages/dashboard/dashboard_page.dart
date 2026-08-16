@@ -34,8 +34,8 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../data/repositories/stock_pallet_repository_impl.dart';
-import '../../../data/repositories/storage_location_repository_impl.dart';
+import '../../../core/di/app_dependencies.dart';
+
 import '../../../domain/entities/storage_location.dart';
 import '../../../domain/entities/stock_pallet.dart';
 
@@ -77,21 +77,23 @@ class _DashboardPageState extends State<DashboardPage> {
   // TOTAL LOCATION = 1.860
   // ==========================================================
 
-  final StorageLocationRepositoryImpl _storageLocationRepository =
-      const StorageLocationRepositoryImpl();
+ 
+ // ==========================================================
+// DEPENDENCY
+// ==========================================================
+//
+// Dashboard menggunakan repository dari AppDependencies.
+//
+// Keuntungannya:
+// - tidak membuat AppDatabase baru
+// - tidak membuat repository baru
+// - seluruh halaman menggunakan database yang sama
+// ==========================================================
+final _storageLocationRepository =
+    AppDependencies.instance.storageLocationRepository;
 
-  // ==========================================================
-  // STOCK PALLET REPOSITORY
-  // ==========================================================
-  //
-  // Repository ini sementara masih menggunakan memory.
-  //
-  // Nanti akan kita ganti / hubungkan dengan database lokal.
-  // ==========================================================
-
-  final StockPalletRepositoryImpl _stockPalletRepository =
-      StockPalletRepositoryImpl();
-
+final _stockPalletRepository =
+    AppDependencies.instance.stockPalletRepository; 
   // ==========================================================
   // DASHBOARD DATA
   // ==========================================================

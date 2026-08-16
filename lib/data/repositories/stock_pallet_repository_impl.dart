@@ -1,213 +1,343 @@
 // ============================================================
 // FILE:
 // lib/data/repositories/stock_pallet_repository_impl.dart
-// ============================================================
 //
 // FUNGSI:
-// Implementasi StockPalletRepository.
+// Implementasi StockPalletRepository menggunakan database lokal.
 //
-// File ini berada di DATA layer.
+// ALUR:
 //
-// Tugas:
-// - Menyimpan StockPallet.
-// - Mengambil seluruh StockPallet.
-// - Mencari pallet berdasarkan Location Code.
-// - Memperbarui pallet.
-// - Menghapus pallet.
+// Domain Repository
+//        ↓
+// StockPalletRepositoryImpl
+//        ↓
+// StockPalletDao
+//        ↓
+// AppDatabase
+//        ↓
+// SQLite
 //
-// PENTING:
-// Tahap ini menggunakan penyimpanan memory (in-memory).
+// Repository bertugas menjadi jembatan antara:
 //
-// Belum menggunakan:
-// - Hive
-// - Isar
-// - SQLite
-// - Excel
-// - UI
-//
-// Tujuannya adalah memastikan kontrak Repository sudah benar
-// sebelum kita memasang database lokal permanen.
+// Domain Entity
+//        ↕
+// Database/Drift
 // ============================================================
 
-import '../../domain/entities/stock_pallet.dart';
+import 'package:drift/drift.dart' show Value;
+
+import '../../domain/entities/stock_pallet.dart' as domain;
 import '../../domain/repositories/stock_pallet_repository.dart';
 
+import '../database/app_database.dart' as database;
+import '../database/daos/stock_pallet_dao.dart';
+
 // ============================================================
-// CLASS: StockPalletRepositoryImpl
-// ============================================================
-//
-// Implementasi konkret dari:
-//
-// StockPalletRepository
-//
-// Repository ini nantinya dapat diganti dengan implementasi
-// database tanpa mengubah Domain layer.
+// CLASS
 // ============================================================
 
 class StockPalletRepositoryImpl implements StockPalletRepository {
-  // ==========================================================
-  // STORAGE SEMENTARA
-  // ==========================================================
+  // ----------------------------------------------------------
+  // DAO DATABASE
+  // ----------------------------------------------------------
   //
-  // List ini hanya digunakan sebagai penyimpanan sementara
-  // selama tahap pengembangan dan testing.
+  // Semua operasi database dilakukan melalui DAO.
   //
-  // Nanti dapat diganti dengan database lokal.
-  // ==========================================================
+  // Repository tidak menjalankan query SQLite secara langsung.
+  // ----------------------------------------------------------
 
-  final List<StockPallet> _pallets = [];
+  final StockPalletDao _dao;
+
+  // ----------------------------------------------------------
+  // CONSTRUCTOR
+  // ----------------------------------------------------------
+  //
+  // AppDatabase diberikan dari Dependency Injection.
+  // ----------------------------------------------------------
+
+  StockPalletRepositoryImpl(database.AppDatabase db)
+      : _dao = StockPalletDao(db);
 
   // ==========================================================
   // SAVE
   // ==========================================================
   //
-  // FUNGSI:
-  // Menyimpan satu StockPallet.
+  // Digunakan ketika operator melakukan PUT AWAY pertama kali.
   //
-  // ATURAN:
-  // Satu Location Code hanya boleh memiliki satu pallet aktif.
+  // Aturan:
   //
-  // Jika Location Code sudah digunakan,
-  // proses penyimpanan akan ditolak.
+  // 1 Location = 1 Pallet aktif.
+  //
+  // Jika location sudah mempunyai pallet,
+  // proses penyimpanan ditolak.
   // ==========================================================
 
   @override
-  Future<void> save(StockPallet pallet) async {
-    // Cari apakah Location Code sudah digunakan.
+  Future<void> save(domain.StockPallet pallet) async {
+    // --------------------------------------------------------
+    // Cek apakah lokasi sudah mempunyai pallet.
+    // --------------------------------------------------------
 
-    final existing = await findByLocationCode(pallet.locationCode);
-
-    // Jika sudah ada pallet pada lokasi tersebut,
-    // jangan menyimpan data kedua.
+    final existing = await _dao.findByLocation(
+      pallet.locationCode,
+    );
 
     if (existing != null) {
       throw StateError(
-        'Location Code ${pallet.locationCode} '
-        'sudah digunakan.',
+        'Location ${pallet.locationCode} sudah memiliki pallet.',
       );
     }
 
-    // Tambahkan pallet ke storage.
+    // --------------------------------------------------------
+    // Entity Domain → Drift Companion.
+    // --------------------------------------------------------
 
-    _pallets.add(pallet);
+    final companion = database.StockPalletsCompanion.insert(
+      locationCode: pallet.locationCode.trim(),
+      plu: pallet.plu.trim(),
+      barcode: pallet.barcode.trim(),
+      description: pallet.description.trim(),
+      price: pallet.price,
+      returHari: pallet.returHari,
+      conv2: pallet.conv2,
+      type: pallet.type.trim(),
+      tear: pallet.tear,
+      stack: pallet.stack,
+      qtyCtn: pallet.qtyCtn,
+      qtyPcs: pallet.qtyPcs,
+      expiredDate: pallet.expiredDate,
+      createdAt: pallet.inputDate,
+      updatedAt: pallet.inputDate,
+    );
+
+    // --------------------------------------------------------
+    // Simpan melalui DAO → SQLite.
+    // --------------------------------------------------------
+
+    await _dao.insertPallet(companion);
   }
 
   // ==========================================================
   // GET ALL
   // ==========================================================
-  //
-  // FUNGSI:
-  // Mengambil seluruh StockPallet.
-  //
-  // Digunakan nantinya untuk:
-  // - Dashboard
-  // - Monitoring storage
-  // - Daftar pallet
-  // - Rekap stock
-  // - Export Excel
-  // ==========================================================
 
   @override
-  Future<List<StockPallet>> getAll() async {
-    // Mengembalikan salinan List.
-    //
-    // Kita tidak mengembalikan List internal secara langsung
-    // agar caller tidak dapat memodifikasi storage internal.
+  Future<List<domain.StockPallet>> getAll() async {
+    final rows = await _dao.getAllPallets();
 
-    return List<StockPallet>.unmodifiable(_pallets);
+    return rows.map(_mapToEntity).toList();
   }
 
   // ==========================================================
-  // FIND BY LOCATION CODE
-  // ==========================================================
-  //
-  // FUNGSI:
-  // Mencari pallet berdasarkan Location Code.
-  //
-  // Return:
-  // - StockPallet jika ditemukan.
-  // - null jika tidak ditemukan.
+  // FIND BY LOCATION
   // ==========================================================
 
   @override
-  Future<StockPallet?> findByLocationCode(String locationCode) async {
-    // Cari pallet berdasarkan Location Code.
+  Future<domain.StockPallet?> findByLocationCode(
+    String locationCode,
+  ) async {
+    final row = await _dao.findByLocation(
+      locationCode,
+    );
 
-    for (final pallet in _pallets) {
-      if (pallet.locationCode == locationCode) {
-        return pallet;
-      }
+    if (row == null) {
+      return null;
     }
 
-    // Tidak ditemukan.
-
-    return null;
+    return _mapToEntity(row);
   }
 
   // ==========================================================
   // UPDATE
   // ==========================================================
   //
-  // FUNGSI:
-  // Memperbarui pallet yang sudah tersimpan.
+  // Digunakan untuk EDIT PALLET.
   //
-  // Pencarian dilakukan berdasarkan Location Code.
+  // Operator nantinya mengisi kembali:
+  //
+  // PLU
+  // Tear
+  // Stack
+  // Tanggal Expired
+  //
+  // Data lainnya tetap tersimpan dari pallet sebelumnya.
   // ==========================================================
 
   @override
-  Future<void> update(StockPallet pallet) async {
-    // Cari index pallet berdasarkan Location Code.
+  Future<void> update(domain.StockPallet pallet) async {
+    // --------------------------------------------------------
+    // Cari pallet berdasarkan location.
+    // --------------------------------------------------------
 
-    final index = _pallets.indexWhere(
-      (item) => item.locationCode == pallet.locationCode,
+    final existing = await _dao.findByLocation(
+      pallet.locationCode,
     );
 
-    // Jika tidak ditemukan,
-    // update tidak dapat dilakukan.
-
-    if (index == -1) {
+    if (existing == null) {
       throw StateError(
-        'Stock pallet dengan Location Code '
-        '${pallet.locationCode} tidak ditemukan.',
+        'Pallet pada location ${pallet.locationCode} '
+        'tidak ditemukan.',
       );
     }
 
-    // Ganti data lama dengan data baru.
+    // --------------------------------------------------------
+    // Buat Companion untuk UPDATE.
+    //
+    // ID tetap menggunakan ID database lama.
+    // createdAt juga tidak berubah.
+    // --------------------------------------------------------
 
-    _pallets[index] = pallet;
+    final companion = database.StockPalletsCompanion(
+      id: Value(existing.id),
+
+      locationCode: Value(
+        pallet.locationCode.trim(),
+      ),
+
+      plu: Value(
+        pallet.plu.trim(),
+      ),
+
+      barcode: Value(
+        pallet.barcode.trim(),
+      ),
+
+      description: Value(
+        pallet.description.trim(),
+      ),
+
+      price: Value(
+        pallet.price,
+      ),
+
+      returHari: Value(
+        pallet.returHari,
+      ),
+
+      conv2: Value(
+        pallet.conv2,
+      ),
+
+      type: Value(
+        pallet.type.trim(),
+      ),
+
+      tear: Value(
+        pallet.tear,
+      ),
+
+      stack: Value(
+        pallet.stack,
+      ),
+
+      qtyCtn: Value(
+        pallet.qtyCtn,
+      ),
+
+      qtyPcs: Value(
+        pallet.qtyPcs,
+      ),
+
+      expiredDate: Value(
+        pallet.expiredDate,
+      ),
+
+      // createdAt tidak boleh berubah ketika EDIT.
+      createdAt: Value(
+        existing.createdAt,
+      ),
+
+      // updatedAt berubah setiap kali EDIT.
+      updatedAt: Value(
+        DateTime.now(),
+      ),
+    );
+
+    // --------------------------------------------------------
+    // Update melalui DAO → SQLite.
+    // --------------------------------------------------------
+
+    final updated = await _dao.updatePallet(
+      companion,
+    );
+
+    if (!updated) {
+      throw StateError(
+        'Gagal memperbarui pallet pada '
+        'location ${pallet.locationCode}.',
+      );
+    }
   }
 
   // ==========================================================
-  // DELETE BY LOCATION CODE
-  // ==========================================================
-  //
-  // FUNGSI:
-  // Menghapus pallet berdasarkan Location Code.
-  //
-  // Contoh:
-  //
-  // deleteByLocationCode('8001101')
-  //
-  // Maka pallet pada lokasi 8001101 akan dihapus.
+  // DELETE
   // ==========================================================
 
   @override
-  Future<void> deleteByLocationCode(String locationCode) async {
-    // Cari pallet berdasarkan Location Code.
-
-    final index = _pallets.indexWhere(
-      (item) => item.locationCode == locationCode,
+  Future<void> deleteByLocationCode(
+    String locationCode,
+  ) async {
+    final existing = await _dao.findByLocation(
+      locationCode,
     );
 
-    // Jika tidak ditemukan,
-    // tidak ada yang perlu dihapus.
-
-    if (index == -1) {
+    if (existing == null) {
       return;
     }
 
-    // Hapus pallet.
+    await _dao.deletePalletById(
+      existing.id,
+    );
+  }
 
-    _pallets.removeAt(index);
+  // ==========================================================
+  // DATABASE ROW → DOMAIN ENTITY
+  // ==========================================================
+  //
+  // Drift:
+  //
+  // StockPalletData
+  //
+  // ↓
+  //
+  // Domain:
+  //
+  // StockPallet
+  //
+  // Dengan prefix database/domain, nama tidak lagi bentrok.
+  // ==========================================================
+
+  domain.StockPallet _mapToEntity(database.StockPallet row) {
+    return domain.StockPallet(
+      locationCode: row.locationCode,
+      plu: row.plu,
+      barcode: row.barcode,             // Tambahkan ini
+      price: row.price,                 // Tambahkan ini
+      returHari: row.returHari,         // Tambahkan ini
+      type: row.type,                   // Tambahkan ini
+      description: row.description,
+      tear: row.tear,
+      stack: row.stack,
+      qtyCtn: row.qtyCtn,
+      qtyPcs: row.qtyPcs,
+      conv2: row.conv2,
+      expiredDate: row.expiredDate,
+
+      // createdAt database menjadi inputDate domain.
+      inputDate: row.createdAt,
+
+      // Untuk sementara operator NIK belum disimpan
+      // di tabel database.
+      operatorNik: '',
+
+      // Penanda sederhana sementara.
+      //
+      // Nanti dapat kita sempurnakan berdasarkan
+      // perbandingan Tear/Stack dengan Master Barang.
+      sesuaiMaster:
+          row.tear > 0 &&
+          row.stack > 0,
+    );
   }
 }
+

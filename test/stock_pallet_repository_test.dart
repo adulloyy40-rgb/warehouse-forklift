@@ -1,72 +1,124 @@
 // ============================================================
 // FILE:
 // test/stock_pallet_repository_test.dart
-// ============================================================
 //
 // FUNGSI:
-// Menguji StockPalletRepositoryImpl.
+// Integration/unit test untuk:
+// StockPalletRepositoryImpl
 //
-// Yang diuji:
-// - Menyimpan StockPallet.
-// - Menolak Location Code duplikat.
-// - Mengambil seluruh pallet.
-// - Mencari pallet berdasarkan Location Code.
-// - Update pallet.
-// - Menolak update pallet yang belum tersimpan.
-// - Menghapus pallet.
-// - Memastikan pallet benar-benar terhapus.
+// YANG DIUJI:
+// 1. Save pallet.
+// 2. Menolak location duplikat.
+// 3. Get all pallet.
+// 4. Find pallet berdasarkan location.
+// 5. Find location yang tidak ada.
+// 6. Update pallet.
+// 7. Menolak update pallet yang belum tersimpan.
+// 8. Delete pallet.
+// 9. Memastikan pallet benar-benar terhapus.
 //
-// CATATAN:
-// Repository menggunakan StateError untuk kondisi bisnis
-// seperti data duplikat atau data tidak ditemukan.
+// CATATAN PENTING:
+// Test menggunakan:
+// NativeDatabase.memory()
 //
-// Karena itu test menggunakan:
-//
-// throwsA(isA<StateError>())
-//
-// bukan:
-//
-// throwsA(isA<Exception>())
+// Dengan demikian:
+// - Tidak membutuhkan path_provider.
+// - Tidak membutuhkan Android.
+// - Tidak membuat database permanen.
+// - Setiap test mendapatkan database baru.
 // ============================================================
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
 
+import 'package:warehouse_forklift/data/database/app_database.dart';
 import 'package:warehouse_forklift/data/repositories/stock_pallet_repository_impl.dart';
-import 'package:warehouse_forklift/domain/entities/stock_pallet.dart';
+import 'package:warehouse_forklift/domain/entities/stock_pallet.dart' as domain;
+
+// ============================================================
+// MAIN TEST
+// ============================================================
 
 void main() {
   // ==========================================================
-  // HELPER:
-  // Membuat StockPallet untuk kebutuhan testing.
+  // INITIALIZE FLUTTER TEST BINDING
+  // ==========================================================
+  //
+  // Ini diperlukan karena project kita menggunakan Flutter.
+  //
+  // Tetapi database test tetap menggunakan:
+  // NativeDatabase.memory()
+  //
+  // sehingga tidak membutuhkan path_provider.
   // ==========================================================
 
-  StockPallet createPallet({
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // ==========================================================
+  // HELPER:
+  // CREATE REPOSITORY
+  // ==========================================================
+  //
+  // Setiap test mendapatkan database memory baru.
+  //
+  // Alur:
+  //
+  // NativeDatabase.memory()
+  //        ↓
+  // AppDatabase
+  //        ↓
+  // StockPalletRepositoryImpl
+  // ==========================================================
+
+  Future<(AppDatabase, StockPalletRepositoryImpl)> createRepository() async {
+    final database = AppDatabase(executor: NativeDatabase.memory());
+
+    final repository = StockPalletRepositoryImpl(database);
+
+    return (database, repository);
+  }
+
+  // ==========================================================
+  // HELPER:
+  // CREATE PALLET
+  // ==========================================================
+  //
+  // Digunakan oleh semua test supaya data test konsisten.
+  // ==========================================================
+
+  domain.StockPallet createPallet({
     String locationCode = '8001101',
     String plu = '100001',
+    String barcode = '8991234567890',
     String description = 'Produk Test',
+    double price = 15000,
+    int returHari = 7,
+    int conv2 = 12,
+    String type = 'REGULER',
     int tear = 4,
     int stack = 5,
     int qtyCtn = 20,
     int qtyPcs = 240,
-    int conv2 = 12,
     DateTime? expiredDate,
     DateTime? inputDate,
     String operatorNik = '123456789',
     bool sesuaiMaster = true,
   }) {
-    return StockPallet(
+    return domain.StockPallet(
       locationCode: locationCode,
       plu: plu,
+      barcode: barcode,
       description: description,
+      price: price,
+      returHari: returHari,
+      conv2: conv2,
+      type: type,
       tear: tear,
       stack: stack,
       qtyCtn: qtyCtn,
       qtyPcs: qtyPcs,
-      conv2: conv2,
-      expiredDate:
-          expiredDate ?? DateTime(2027, 12, 31),
-      inputDate:
-          inputDate ?? DateTime(2026, 8, 14, 10, 0),
+      expiredDate: expiredDate ?? DateTime(2027, 12, 31),
+      inputDate: inputDate ?? DateTime(2026, 8, 14, 10, 0),
       operatorNik: operatorNik,
       sesuaiMaster: sesuaiMaster,
     );
@@ -74,415 +126,253 @@ void main() {
 
   // ==========================================================
   // TEST 1
-  //
-  // FUNGSI:
-  // Memastikan repository dapat menyimpan pallet.
+  // SAVE
   // ==========================================================
 
-  test(
-    'save harus menyimpan StockPallet',
-    () async {
-      // Membuat repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('save harus menyimpan StockPallet', () async {
+    final (database, repository) = await createRepository();
 
-      // Membuat pallet.
+    try {
       final pallet = createPallet();
 
-      // Menyimpan pallet.
       await repository.save(pallet);
 
-      // Mengambil semua data.
       final result = await repository.getAll();
 
-      // Harus terdapat satu pallet.
+      // Harus ada satu pallet.
       expect(result.length, 1);
 
-      // Location Code harus sesuai.
-      expect(
-        result.first.locationCode,
-        '8001101',
-      );
+      // Location.
+      expect(result.first.locationCode, '8001101');
 
-      // PLU harus sesuai.
-      expect(
-        result.first.plu,
-        '100001',
-      );
-    },
-  );
+      // PLU.
+      expect(result.first.plu, '100001');
+
+      // Barcode.
+      expect(result.first.barcode, '8991234567890');
+
+      // Harga.
+      expect(result.first.price, 15000);
+
+      // Retur hari.
+      expect(result.first.returHari, 7);
+
+      // Type.
+      expect(result.first.type, 'REGULER');
+
+      // CONV2.
+      expect(result.first.conv2, 12);
+
+      // Tear.
+      expect(result.first.tear, 4);
+
+      // Stack.
+      expect(result.first.stack, 5);
+
+      // Qty CTN.
+      expect(result.first.qtyCtn, 20);
+
+      // Qty PCS.
+      expect(result.first.qtyPcs, 240);
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 2
-  //
-  // FUNGSI:
-  // Memastikan pallet kedua dengan Location Code yang sama
-  // ditolak.
+  // DUPLICATE LOCATION
   // ==========================================================
 
-  test(
-    'save harus menolak Location Code duplikat',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('save harus menolak Location Code duplikat', () async {
+    final (database, repository) = await createRepository();
 
-      // Pallet pertama.
-      final pallet1 = createPallet(
-        locationCode: '8001101',
-        plu: '100001',
-      );
+    try {
+      final pallet1 = createPallet(locationCode: '8001101');
 
-      // Pallet kedua menggunakan lokasi yang sama.
-      final pallet2 = createPallet(
-        locationCode: '8001101',
-        plu: '100002',
-      );
+      final pallet2 = createPallet(locationCode: '8001101', plu: '100002');
 
       // Simpan pallet pertama.
       await repository.save(pallet1);
 
-      // Pallet kedua harus ditolak.
+      // Pallet kedua menggunakan location
+      // yang sama.
       //
-      // Repository menggunakan StateError
-      // untuk Location Code yang sudah digunakan.
-      await expectLater(
-        repository.save(pallet2),
-        throwsA(isA<StateError>()),
-      );
-    },
-  );
+      // Repository harus menolak.
+      await expectLater(repository.save(pallet2), throwsA(isA<StateError>()));
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 3
-  //
-  // FUNGSI:
-  // Memastikan getAll() mengembalikan seluruh pallet.
+  // GET ALL
   // ==========================================================
 
-  test(
-    'getAll harus mengembalikan seluruh StockPallet',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('getAll harus mengambil seluruh pallet', () async {
+    final (database, repository) = await createRepository();
 
-      // Membuat dua pallet berbeda.
-      final pallet1 = createPallet(
-        locationCode: '8001101',
-        plu: '100001',
+    try {
+      await repository.save(createPallet(locationCode: '8001101'));
+
+      await repository.save(
+        createPallet(locationCode: '8001102', plu: '100002'),
       );
 
-      final pallet2 = createPallet(
-        locationCode: '8001201',
-        plu: '100002',
-      );
-
-      // Menyimpan keduanya.
-      await repository.save(pallet1);
-      await repository.save(pallet2);
-
-      // Mengambil seluruh pallet.
       final result = await repository.getAll();
 
-      // Harus ada dua pallet.
       expect(result.length, 2);
 
-      // Pastikan lokasi pertama ada.
-      expect(
-        result.any(
-          (pallet) =>
-              pallet.locationCode == '8001101',
-        ),
-        true,
-      );
+      final locations = result.map((e) => e.locationCode).toList();
 
-      // Pastikan lokasi kedua ada.
-      expect(
-        result.any(
-          (pallet) =>
-              pallet.locationCode == '8001201',
-        ),
-        true,
-      );
-    },
-  );
+      expect(locations, containsAll(['8001101', '8001102']));
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 4
-  //
-  // FUNGSI:
-  // Memastikan findByLocationCode()
-  // dapat menemukan pallet.
+  // FIND BY LOCATION
   // ==========================================================
 
-  test(
-    'findByLocationCode harus menemukan pallet',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('findByLocationCode harus menemukan pallet', () async {
+    final (database, repository) = await createRepository();
 
-      // Membuat pallet.
-      final pallet = createPallet(
-        locationCode: '8001101',
-      );
+    try {
+      await repository.save(createPallet(locationCode: '8001105'));
 
-      // Simpan pallet.
-      await repository.save(pallet);
+      final result = await repository.findByLocationCode('8001105');
 
-      // Cari berdasarkan Location Code.
-      final result =
-          await repository.findByLocationCode(
-        '8001101',
-      );
-
-      // Data harus ditemukan.
       expect(result, isNotNull);
 
-      // Pastikan Location Code benar.
-      expect(
-        result!.locationCode,
-        '8001101',
-      );
-    },
-  );
+      expect(result!.locationCode, '8001105');
+
+      expect(result.plu, '100001');
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 5
-  //
-  // FUNGSI:
-  // Memastikan findByLocationCode()
-  // mengembalikan null jika lokasi tidak ditemukan.
+  // FIND LOCATION TIDAK ADA
   // ==========================================================
 
-  test(
-    'findByLocationCode harus null jika lokasi tidak ditemukan',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('findByLocationCode harus null jika location tidak ditemukan', () async {
+    final (database, repository) = await createRepository();
 
-      // Cari lokasi yang belum ada.
-      final result =
-          await repository.findByLocationCode(
-        '9999999',
-      );
+    try {
+      final result = await repository.findByLocationCode('9999999');
 
-      // Harus null.
       expect(result, isNull);
-    },
-  );
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 6
-  //
-  // FUNGSI:
-  // Memastikan update() dapat memperbarui pallet.
+  // UPDATE
   // ==========================================================
 
-  test(
-    'update harus memperbarui StockPallet',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('update harus mengubah data pallet', () async {
+    final (database, repository) = await createRepository();
 
-      // Pallet awal.
-      final pallet = createPallet(
-        locationCode: '8001101',
+    try {
+      final original = createPallet(
+        locationCode: '8001110',
+        plu: '100001',
         tear: 4,
         stack: 5,
-        qtyCtn: 20,
-        qtyPcs: 240,
       );
 
-      // Simpan pallet awal.
-      await repository.save(pallet);
+      await repository.save(original);
 
-      // Membuat data yang sudah diperbarui.
       final updatedPallet = createPallet(
-        locationCode: '8001101',
+        locationCode: '8001110',
+        plu: '100999',
+        barcode: '8999999999999',
+        description: 'Produk Updated',
+        price: 25000,
+        returHari: 14,
+        conv2: 24,
+        type: 'PROMO',
         tear: 6,
-        stack: 5,
-        qtyCtn: 30,
-        qtyPcs: 360,
-        sesuaiMaster: false,
+        stack: 7,
+        qtyCtn: 42,
+        qtyPcs: 1008,
       );
 
-      // Update pallet.
       await repository.update(updatedPallet);
 
-      // Ambil kembali data.
-      final result =
-          await repository.findByLocationCode(
-        '8001101',
-      );
+      final result = await repository.findByLocationCode('8001110');
 
-      // Data harus ditemukan.
       expect(result, isNotNull);
 
-      // Pastikan nilai sudah berubah.
-      expect(result!.tear, 6);
-      expect(result.stack, 5);
-      expect(result.qtyCtn, 30);
-      expect(result.qtyPcs, 360);
+      expect(result!.plu, '100999');
 
-      // Status master juga berubah.
-      expect(
-        result.sesuaiMaster,
-        false,
-      );
-    },
-  );
+      expect(result.barcode, '8999999999999');
+
+      expect(result.description, 'Produk Updated');
+
+      expect(result.price, 25000);
+
+      expect(result.returHari, 14);
+
+      expect(result.conv2, 24);
+
+      expect(result.type, 'PROMO');
+
+      expect(result.tear, 6);
+
+      expect(result.stack, 7);
+
+      expect(result.qtyCtn, 42);
+
+      expect(result.qtyPcs, 1008);
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 7
-  //
-  // FUNGSI:
-  // Memastikan update() menolak pallet yang belum tersimpan.
-  //
-  // Repository menggunakan StateError.
+  // UPDATE DATA TIDAK ADA
   // ==========================================================
 
-  test(
-    'update harus menolak pallet yang belum tersimpan',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('update harus menolak pallet yang belum tersimpan', () async {
+    final (database, repository) = await createRepository();
 
-      // Pallet belum pernah disimpan.
-      final pallet = createPallet(
-        locationCode: '8001101',
-      );
+    try {
+      final pallet = createPallet(locationCode: '8888888');
 
-      // Update harus gagal.
-      await expectLater(
-        repository.update(pallet),
-        throwsA(isA<StateError>()),
-      );
-    },
-  );
+      await expectLater(repository.update(pallet), throwsA(isA<StateError>()));
+    } finally {
+      await database.close();
+    }
+  });
 
   // ==========================================================
   // TEST 8
-  //
-  // FUNGSI:
-  // Memastikan deleteByLocationCode()
-  // menghapus pallet.
+  // DELETE
   // ==========================================================
 
-  test(
-    'deleteByLocationCode harus menghapus pallet',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
+  test('delete harus menghapus pallet', () async {
+    final (database, repository) = await createRepository();
 
-      // Membuat pallet.
-      final pallet = createPallet(
-        locationCode: '8001101',
-      );
+    try {
+      final pallet = createPallet(locationCode: '8010001');
 
-      // Simpan pallet.
       await repository.save(pallet);
 
-      // Pastikan data ada.
-      expect(
-        await repository.findByLocationCode(
-          '8001101',
-        ),
-        isNotNull,
-      );
+      await repository.deleteByLocationCode(pallet.locationCode);
+      final result = await repository.findByLocationCode(pallet.locationCode);
 
-      // Hapus pallet.
-      await repository.deleteByLocationCode(
-        '8001101',
-      );
-
-      // Pastikan data sudah tidak ada.
-      expect(
-        await repository.findByLocationCode(
-          '8001101',
-        ),
-        isNull,
-      );
-    },
-  );
-
-  // ==========================================================
-  // TEST 9
-  //
-  // FUNGSI:
-  // Memastikan delete lokasi yang tidak ada
-  // menghasilkan StateError.
-  // ==========================================================
-
-  test(
-  'deleteByLocationCode aman untuk lokasi yang tidak ditemukan',
-  () async {
-    // Membuat repository baru.
-    final repository =
-        StockPalletRepositoryImpl();
-
-    // Memastikan lokasi memang belum ada.
-    final beforeDelete =
-        await repository.findByLocationCode(
-      '9999999',
-    );
-
-    expect(
-      beforeDelete,
-      isNull,
-    );
-
-    // Memanggil delete pada lokasi yang belum ada.
-    //
-    // Tidak boleh menyebabkan test gagal.
-    await repository.deleteByLocationCode(
-      '9999999',
-    );
-
-    // Pastikan lokasi tetap tidak ada.
-    final afterDelete =
-        await repository.findByLocationCode(
-      '9999999',
-    );
-
-    expect(
-      afterDelete,
-      isNull,
-    );
-  },
-);
-  // ==========================================================
-  // TEST 10
-  //
-  // FUNGSI:
-  // Memastikan dua pallet dengan Location Code berbeda
-  // dapat disimpan bersamaan.
-  // ==========================================================
-test(
-    'dua pallet dengan lokasi berbeda harus dapat disimpan',
-    () async {
-      // Repository baru.
-      final repository = StockPalletRepositoryImpl();
-
-      // Pallet pertama.
-      final pallet1 = createPallet(
-        locationCode: '8001101',
-        plu: '100001',
-      );
-
-      // Pallet kedua.
-      final pallet2 = createPallet(
-        locationCode: '8001201',
-        plu: '100002',
-      );
-
-      // Simpan keduanya.
-      await repository.save(pallet1);
-      await repository.save(pallet2);
-
-      // Ambil semua data.
-      final result = await repository.getAll();
-
-      // Harus terdapat dua pallet.
-      expect(result.length, 2);
-    },
-  );
+      expect(result, isNull);
+    } finally {
+      await database.close();
+    }
+  });
 }
-

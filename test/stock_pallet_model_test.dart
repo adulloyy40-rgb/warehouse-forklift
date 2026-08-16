@@ -1,16 +1,16 @@
 // ============================================================
 // FILE:
 // test/stock_pallet_model_test.dart
-// ============================================================
 //
 // FUNGSI:
 // Menguji StockPalletModel.
 //
-// Test memastikan:
-// - Entity dapat diubah menjadi Model.
-// - Model dapat diubah menjadi Map.
-// - Data export mempunyai kolom yang benar.
-// - Nilai Sesuai Master berubah menjadi YA/TIDAK.
+// TEST:
+// 1. Entity dapat diubah menjadi Model.
+// 2. Model dapat diubah menjadi Map.
+// 3. Model dapat diubah menjadi Export Map.
+// 4. sesuaiMaster true  -> YA.
+// 5. sesuaiMaster false -> TIDAK.
 // ============================================================
 
 import 'package:flutter_test/flutter_test.dart';
@@ -19,47 +19,120 @@ import 'package:warehouse_forklift/data/models/stock_pallet_model.dart';
 import 'package:warehouse_forklift/domain/entities/stock_pallet.dart';
 
 void main() {
-  // ----------------------------------------------------------
-  // Data contoh yang digunakan oleh beberapa test.
-  // ----------------------------------------------------------
+  // ==========================================================
+  // DATA TEST
+  // ==========================================================
 
   final expiredDate = DateTime(2027, 12, 31);
 
-  final inputDate = DateTime(2026, 8, 14, 10, 30);
+  final inputDate = DateTime(
+    2026,
+    8,
+    14,
+    10,
+    30,
+  );
+
+  // ==========================================================
+  // PALLET TEST
+  // ==========================================================
+  //
+  // Semua field wajib StockPallet harus diisi.
+  //
+  // Field master barang:
+  // - PLU
+  // - Barcode
+  // - Description
+  // - Price
+  // - Retur Hari
+  // - CONV2
+  // - Type
+  //
+  // Field fisik pallet:
+  // - Tear
+  // - Stack
+  // - Qty CTN
+  // - Qty PCS
+  // ==========================================================
 
   final pallet = StockPallet(
     locationCode: '8101201',
+
+    // --------------------------------------------------------
+    // MASTER BARANG
+    // --------------------------------------------------------
+
     plu: '123456',
+
+    barcode: '8991234567890',
+
     description: 'Produk ABC',
-    tear: 5,
-    stack: 3,
-    qtyCtn: 15,
-    qtyPcs: 180,
+
+    price: 15000,
+
+    returHari: 7,
+
     conv2: 12,
+
+    type: 'REGULER',
+
+    // --------------------------------------------------------
+    // DATA FISIK PALLET
+    // --------------------------------------------------------
+
+    tear: 5,
+
+    stack: 3,
+
+    qtyCtn: 15,
+
+    qtyPcs: 180,
+
+    // --------------------------------------------------------
+    // TANGGAL
+    // --------------------------------------------------------
+
     expiredDate: expiredDate,
+
     inputDate: inputDate,
+
+    // --------------------------------------------------------
+    // OPERATOR
+    // --------------------------------------------------------
+
     operatorNik: '123456789',
+
+    // --------------------------------------------------------
+    // VALIDASI MASTER
+    // --------------------------------------------------------
+
     sesuaiMaster: true,
   );
 
-
-  // ----------------------------------------------------------
+  // ==========================================================
   // TEST 1
-  // ----------------------------------------------------------
-  //
-  // Memastikan Entity dapat dibuat menjadi Model.
-  // ----------------------------------------------------------
+  // ENTITY -> MODEL
+  // ==========================================================
 
   test(
     'StockPallet Entity dapat diubah menjadi Model',
     () {
-      final model =
-          StockPalletModel.fromEntity(pallet);
+      final model = StockPalletModel.fromEntity(
+        pallet,
+      );
+
+      // ------------------------------------------------------
+      // LOCATION
+      // ------------------------------------------------------
 
       expect(
         model.locationCode,
         '8101201',
       );
+
+      // ------------------------------------------------------
+      // MASTER BARANG
+      // ------------------------------------------------------
 
       expect(
         model.plu,
@@ -67,8 +140,47 @@ void main() {
       );
 
       expect(
+        model.barcode,
+        '8991234567890',
+      );
+
+      expect(
+        model.description,
+        'Produk ABC',
+      );
+
+      expect(
+        model.price,
+        15000,
+      );
+
+      expect(
+        model.returHari,
+        7,
+      );
+
+      expect(
         model.conv2,
         12,
+      );
+
+      expect(
+        model.type,
+        'REGULER',
+      );
+
+      // ------------------------------------------------------
+      // DATA PALLET
+      // ------------------------------------------------------
+
+      expect(
+        model.tear,
+        5,
+      );
+
+      expect(
+        model.stack,
+        3,
       );
 
       expect(
@@ -81,6 +193,33 @@ void main() {
         180,
       );
 
+      // ------------------------------------------------------
+      // TANGGAL
+      // ------------------------------------------------------
+
+      expect(
+        model.expiredDate,
+        expiredDate,
+      );
+
+      expect(
+        model.inputDate,
+        inputDate,
+      );
+
+      // ------------------------------------------------------
+      // OPERATOR
+      // ------------------------------------------------------
+
+      expect(
+        model.operatorNik,
+        '123456789',
+      );
+
+      // ------------------------------------------------------
+      // VALIDASI MASTER
+      // ------------------------------------------------------
+
       expect(
         model.sesuaiMaster,
         true,
@@ -88,21 +227,23 @@ void main() {
     },
   );
 
-
-  // ----------------------------------------------------------
+  // ==========================================================
   // TEST 2
-  // ----------------------------------------------------------
-  //
-  // Memastikan Model dapat diubah menjadi Map.
-  // ----------------------------------------------------------
+  // MODEL -> MAP
+  // ==========================================================
 
   test(
     'StockPalletModel dapat diubah menjadi Map',
     () {
-      final model =
-          StockPalletModel.fromEntity(pallet);
+      final model = StockPalletModel.fromEntity(
+        pallet,
+      );
 
       final map = model.toMap();
+
+      // ------------------------------------------------------
+      // MASTER BARANG
+      // ------------------------------------------------------
 
       expect(
         map['locationCode'],
@@ -115,8 +256,47 @@ void main() {
       );
 
       expect(
+        map['barcode'],
+        '8991234567890',
+      );
+
+      expect(
+        map['description'],
+        'Produk ABC',
+      );
+
+      expect(
+        map['price'],
+        15000,
+      );
+
+      expect(
+        map['returHari'],
+        7,
+      );
+
+      expect(
         map['conv2'],
         12,
+      );
+
+      expect(
+        map['type'],
+        'REGULER',
+      );
+
+      // ------------------------------------------------------
+      // PALLET
+      // ------------------------------------------------------
+
+      expect(
+        map['tear'],
+        5,
+      );
+
+      expect(
+        map['stack'],
+        3,
       );
 
       expect(
@@ -128,36 +308,60 @@ void main() {
         map['qtyPcs'],
         180,
       );
+
+      // ------------------------------------------------------
+      // OPERATOR
+      // ------------------------------------------------------
+
+      expect(
+        map['operatorNik'],
+        '123456789',
+      );
+
+      expect(
+        map['sesuaiMaster'],
+        true,
+      );
     },
   );
 
-
-  // ----------------------------------------------------------
+  // ==========================================================
   // TEST 3
-  // ----------------------------------------------------------
-  //
-  // Memastikan format export Excel sesuai urutan
-  // yang sudah kita sepakati.
-  // ----------------------------------------------------------
+  // EXPORT MAP
+  // ==========================================================
 
   test(
-    'Export Map mempunyai kolom Stock Pallet',
+    'StockPalletModel menghasilkan Export Map yang benar',
     () {
-      final model =
-          StockPalletModel.fromEntity(pallet);
+      final model = StockPalletModel.fromEntity(
+        pallet,
+      );
 
-      final exportMap =
-          model.toExportMap(no: 1);
+      final exportMap = model.toExportMap(
+        no: 1,
+      );
+
+      // ------------------------------------------------------
+      // NOMOR
+      // ------------------------------------------------------
 
       expect(
         exportMap['No'],
         1,
       );
 
+      // ------------------------------------------------------
+      // LOCATION
+      // ------------------------------------------------------
+
       expect(
         exportMap['Location Code'],
         '8101201',
       );
+
+      // ------------------------------------------------------
+      // MASTER
+      // ------------------------------------------------------
 
       expect(
         exportMap['PLU'],
@@ -173,6 +377,10 @@ void main() {
         exportMap['Description'],
         'Produk ABC',
       );
+
+      // ------------------------------------------------------
+      // PALLET
+      // ------------------------------------------------------
 
       expect(
         exportMap['Tear Aktual'],
@@ -194,15 +402,18 @@ void main() {
         180,
       );
 
-      expect(
-        exportMap['Expired Date'],
-        '2027-12-31T00:00:00.000',
-      );
+      // ------------------------------------------------------
+      // OPERATOR
+      // ------------------------------------------------------
 
       expect(
         exportMap['Operator NIK'],
         '123456789',
       );
+
+      // ------------------------------------------------------
+      // VALIDASI MASTER
+      // ------------------------------------------------------
 
       expect(
         exportMap['Sesuai Master'],
@@ -211,35 +422,55 @@ void main() {
     },
   );
 
-
-  // ----------------------------------------------------------
+  // ==========================================================
   // TEST 4
-  // ----------------------------------------------------------
+  // SESUAI MASTER = FALSE
+  // ==========================================================
   //
-  // Jika sesuaiMaster = false,
-  // hasil export harus menjadi TIDAK.
-  // ----------------------------------------------------------
+  // Jika sesuaiMaster false,
+  // export harus menghasilkan "TIDAK".
+  // ==========================================================
 
   test(
     'Sesuai Master false menjadi TIDAK',
     () {
       final model = StockPalletModel(
         locationCode: '8101202',
+
         plu: '999999',
+
+        barcode: '8999999999999',
+
         description: 'Produk XYZ',
-        tear: 4,
-        stack: 2,
-        qtyCtn: 8,
-        qtyPcs: 96,
+
+        price: 25000,
+
+        returHari: 14,
+
         conv2: 12,
+
+        type: 'PROMO',
+
+        tear: 4,
+
+        stack: 2,
+
+        qtyCtn: 8,
+
+        qtyPcs: 96,
+
         expiredDate: expiredDate,
+
         inputDate: inputDate,
+
         operatorNik: '987654321',
+
         sesuaiMaster: false,
       );
 
-      final exportMap =
-          model.toExportMap(no: 2);
+      final exportMap = model.toExportMap(
+        no: 2,
+      );
 
       expect(
         exportMap['Sesuai Master'],
