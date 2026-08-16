@@ -31,7 +31,6 @@
 
 import '../entities/stock_pallet.dart';
 
-
 // ============================================================
 // ABSTRACT CLASS: StockPalletRepository
 // ============================================================
@@ -60,7 +59,6 @@ abstract class StockPalletRepository {
 
   Future<void> save(StockPallet pallet);
 
-
   // ==========================================================
   // GET ALL
   // ==========================================================
@@ -77,7 +75,6 @@ abstract class StockPalletRepository {
 
   Future<List<StockPallet>> getAll();
 
-
   // ==========================================================
   // FIND BY LOCATION
   // ==========================================================
@@ -93,10 +90,7 @@ abstract class StockPalletRepository {
   // oleh dua pallet aktif secara bersamaan.
   // ==========================================================
 
-  Future<StockPallet?> findByLocationCode(
-    String locationCode,
-  );
-
+  Future<StockPallet?> findByLocationCode(String locationCode);
 
   // ==========================================================
   // UPDATE
@@ -113,7 +107,6 @@ abstract class StockPalletRepository {
 
   Future<void> update(StockPallet pallet);
 
-
   // ==========================================================
   // DELETE
   // ==========================================================
@@ -126,7 +119,5 @@ abstract class StockPalletRepository {
   // hak akses user/operator.
   // ==========================================================
 
-  Future<void> deleteByLocationCode(
-    String locationCode,
-  );
+  Future<void> deleteByLocationCode(String locationCode);
 }

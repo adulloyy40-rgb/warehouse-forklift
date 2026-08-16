@@ -27,9 +27,7 @@ import 'app_theme.dart';
 // ============================================================
 
 class WarehouseForkliftApp extends StatelessWidget {
-  const WarehouseForkliftApp({
-    super.key,
-  });
+  const WarehouseForkliftApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,19 +35,16 @@ class WarehouseForkliftApp extends StatelessWidget {
       // ========================================================
       // INFORMASI APLIKASI
       // ========================================================
-
       title: 'Warehouse Forklift',
 
       // ========================================================
       // HILANGKAN DEBUG BANNER
       // ========================================================
-
       debugShowCheckedModeBanner: false,
 
       // ========================================================
       // THEME
       // ========================================================
-
       theme: AppTheme.light,
 
       // ========================================================
@@ -59,7 +54,6 @@ class WarehouseForkliftApp extends StatelessWidget {
       // DashboardPage saat ini membuat repository sendiri.
       // Jadi tidak perlu mengirim parameter repository dari sini.
       // ========================================================
-
       home: const DashboardPage(),
     );
   }

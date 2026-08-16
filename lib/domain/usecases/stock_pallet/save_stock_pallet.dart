@@ -28,7 +28,6 @@
 import '../../entities/stock_pallet.dart';
 import '../../repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS:
 // SaveStockPallet
@@ -49,15 +48,11 @@ class SaveStockPallet {
 
   final StockPalletRepository repository;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const SaveStockPallet({
-    required this.repository,
-  });
-
+  const SaveStockPallet({required this.repository});
 
   // ==========================================================
   // CALL
@@ -74,9 +69,7 @@ class SaveStockPallet {
   // repository akan menolak penyimpanan.
   // ==========================================================
 
-  Future<void> call(
-    StockPallet pallet,
-  ) async {
+  Future<void> call(StockPallet pallet) async {
     await repository.save(pallet);
   }
 }

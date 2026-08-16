@@ -21,7 +21,5 @@ void main() {
 
   // Menjalankan aplikasi Warehouse Forklift.
 
-  runApp(
-    const WarehouseForkliftApp(),
-  );
+  runApp(const WarehouseForkliftApp());
 }

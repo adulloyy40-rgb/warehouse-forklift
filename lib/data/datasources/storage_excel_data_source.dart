@@ -40,7 +40,6 @@ import 'package:excel/excel.dart';
 
 import '../../domain/validators/location_validator.dart';
 
-
 // ============================================================
 // CLASS: StorageExcelDataSource
 // ============================================================
@@ -50,10 +49,7 @@ class StorageExcelDataSource {
   final LocationValidator locationValidator;
 
   // Constructor.
-  const StorageExcelDataSource({
-    required this.locationValidator,
-  });
-
+  const StorageExcelDataSource({required this.locationValidator});
 
   // ==========================================================
   // read()
@@ -90,12 +86,9 @@ class StorageExcelDataSource {
 
     final headerRow = sheet.rows.first;
 
-    final headers = headerRow.map(
-      (cell) => _normalizeHeader(
-        cell?.value?.toString() ?? '',
-      ),
-    ).toList();
-
+    final headers = headerRow
+        .map((cell) => _normalizeHeader(cell?.value?.toString() ?? ''))
+        .toList();
 
     // --------------------------------------------------------
     // Menyimpan hasil parsing.
@@ -103,17 +96,13 @@ class StorageExcelDataSource {
 
     final result = <Map<String, dynamic>>[];
 
-
     // --------------------------------------------------------
     // Membaca setiap baris data.
     //
     // Mulai dari index 1 karena index 0 adalah header.
     // --------------------------------------------------------
 
-    for (int rowIndex = 1;
-        rowIndex < sheet.rows.length;
-        rowIndex++) {
-
+    for (int rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
       final row = sheet.rows[rowIndex];
 
       // Lewati baris kosong.
@@ -123,20 +112,14 @@ class StorageExcelDataSource {
 
       final data = <String, dynamic>{};
 
-
       // ------------------------------------------------------
       // Memasukkan setiap cell berdasarkan header.
       // ------------------------------------------------------
 
-      for (int columnIndex = 0;
-          columnIndex < headers.length;
-          columnIndex++) {
-
+      for (int columnIndex = 0; columnIndex < headers.length; columnIndex++) {
         // Jika jumlah cell kurang dari header,
         // nilai dianggap kosong.
-        final value = columnIndex < row.length
-            ? row[columnIndex]?.value
-            : null;
+        final value = columnIndex < row.length ? row[columnIndex]?.value : null;
 
         final header = headers[columnIndex];
 
@@ -145,7 +128,6 @@ class StorageExcelDataSource {
         }
       }
 
-
       // ------------------------------------------------------
       // Tambahkan data hasil parsing.
       // ------------------------------------------------------
@@ -153,10 +135,8 @@ class StorageExcelDataSource {
       result.add(data);
     }
 
-
     return result;
   }
-
 
   // ==========================================================
   // readValidLocations()
@@ -167,45 +147,30 @@ class StorageExcelDataSource {
   // import 1.000 lokasi storage.
   // ==========================================================
 
-  List<Map<String, dynamic>> readValidLocations(
-    Uint8List bytes,
-  ) {
+  List<Map<String, dynamic>> readValidLocations(Uint8List bytes) {
     // Baca seluruh data terlebih dahulu.
     final rows = read(bytes);
 
     // Hasil data yang lolos validasi.
     final validRows = <Map<String, dynamic>>[];
 
-
     for (final row in rows) {
       // Ambil Rack.
-      final rack = _toInt(
-        row['rack'],
-      );
+      final rack = _toInt(row['rack']);
 
       // Ambil Bay.
-      final bay = _toInt(
-        row['bay'],
-      );
-
+      final bay = _toInt(row['bay']);
 
       // Rack dan Bay harus tersedia.
       if (rack == null || bay == null) {
         continue;
       }
 
-
       // Ambil Shelving jika ada.
-      final shelving = _toNullableInt(
-        row['shelving'],
-      );
-
+      final shelving = _toNullableInt(row['shelving']);
 
       // Ambil Position jika ada.
-      final position = _toNullableInt(
-        row['position'],
-      );
-
+      final position = _toNullableInt(row['position']);
 
       // ------------------------------------------------------
       // Validasi lokasi.
@@ -213,19 +178,9 @@ class StorageExcelDataSource {
 
       final locationIsValid =
           locationValidator.isRackValid(rack) &&
-          locationValidator.isBayValid(
-            rack: rack,
-            bay: bay,
-          ) &&
-          locationValidator.isShelvingValid(
-            rack: rack,
-            shelving: shelving,
-          ) &&
-          locationValidator.isPositionValid(
-            rack: rack,
-            position: position,
-          );
-
+          locationValidator.isBayValid(rack: rack, bay: bay) &&
+          locationValidator.isShelvingValid(rack: rack, shelving: shelving) &&
+          locationValidator.isPositionValid(rack: rack, position: position);
 
       // ------------------------------------------------------
       // Hanya data VALID yang dimasukkan.
@@ -236,10 +191,8 @@ class StorageExcelDataSource {
       }
     }
 
-
     return validRows;
   }
-
 
   // ==========================================================
   // _normalizeHeader()
@@ -254,12 +207,8 @@ class StorageExcelDataSource {
   // ==========================================================
 
   String _normalizeHeader(String value) {
-    return value
-        .trim()
-        .toLowerCase()
-        .replaceAll(' ', '_');
+    return value.trim().toLowerCase().replaceAll(' ', '_');
   }
-
 
   // ==========================================================
   // _isEmptyRow()
@@ -267,21 +216,17 @@ class StorageExcelDataSource {
   // Mengecek apakah seluruh cell pada baris kosong.
   // ==========================================================
 
-  bool _isEmptyRow(
-    List<Data?> row,
-  ) {
+  bool _isEmptyRow(List<Data?> row) {
     for (final cell in row) {
       final value = cell?.value;
 
-      if (value != null &&
-          value.toString().trim().isNotEmpty) {
+      if (value != null && value.toString().trim().isNotEmpty) {
         return false;
       }
     }
 
     return true;
   }
-
 
   // ==========================================================
   // _toInt()
@@ -329,7 +274,6 @@ class StorageExcelDataSource {
 
     return null;
   }
-
 
   // ==========================================================
   // _toNullableInt()

@@ -18,7 +18,6 @@
 import '../../entities/stock_pallet.dart';
 import '../../repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS:
 // FindStockPalletByLocation
@@ -31,15 +30,11 @@ class FindStockPalletByLocation {
 
   final StockPalletRepository repository;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const FindStockPalletByLocation({
-    required this.repository,
-  });
-
+  const FindStockPalletByLocation({required this.repository});
 
   // ==========================================================
   // CALL
@@ -54,11 +49,7 @@ class FindStockPalletByLocation {
   // null jika lokasi belum memiliki pallet.
   // ==========================================================
 
-  Future<StockPallet?> call(
-    String locationCode,
-  ) async {
-    return await repository.findByLocationCode(
-      locationCode,
-    );
+  Future<StockPallet?> call(String locationCode) async {
+    return await repository.findByLocationCode(locationCode);
   }
 }

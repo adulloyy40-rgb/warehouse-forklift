@@ -21,7 +21,6 @@
 
 import '../entities/storage_location.dart';
 
-
 // ============================================================
 // ABSTRACT CLASS: StorageLocationRepository
 // ============================================================
@@ -38,7 +37,6 @@ import '../entities/storage_location.dart';
 // ============================================================
 
 abstract class StorageLocationRepository {
-
   // ==========================================================
   // getAllLocations()
   // ==========================================================
@@ -59,7 +57,6 @@ abstract class StorageLocationRepository {
 
   Future<List<StorageLocation>> getAllLocations();
 
-
   // ==========================================================
   // getLocationByCode()
   // ==========================================================
@@ -78,10 +75,7 @@ abstract class StorageLocationRepository {
   // return null.
   // ==========================================================
 
-  Future<StorageLocation?> getLocationByCode(
-    String code,
-  );
-
+  Future<StorageLocation?> getLocationByCode(String code);
 
   // ==========================================================
   // getTotalLocation()
@@ -97,7 +91,6 @@ abstract class StorageLocationRepository {
   // ==========================================================
 
   Future<int> getTotalLocation();
-
 
   // ==========================================================
   // getAvailableLocation()

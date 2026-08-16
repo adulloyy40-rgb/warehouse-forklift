@@ -21,15 +21,20 @@
 // AVAILABLE
 // OCCUPIED
 //
+// PERFORMANCE:
+// Menggunakan CustomScrollView + SliverList
+// agar ribuan lokasi tidak dibangun sekaligus.
 // ============================================================
 
 import 'package:flutter/material.dart';
 
-import '../../../data/repositories/stock_pallet_repository_impl.dart';
+import '../../../core/di/app_dependencies.dart';
 import '../../../data/repositories/storage_location_repository_impl.dart';
-import '../../../domain/entities/stock_pallet.dart';
+
 import '../../../domain/entities/storage_location.dart';
+
 import '../../../domain/repositories/stock_pallet_repository.dart';
+
 import 'storage_detail_page.dart';
 
 // ============================================================
@@ -55,16 +60,17 @@ class _StoragePageState extends State<StoragePage> {
   final StorageLocationRepositoryImpl _storageRepository =
       const StorageLocationRepositoryImpl();
 
-  final StockPalletRepositoryImpl _palletRepository =
-      StockPalletRepositoryImpl();
-
+  final StockPalletRepository _palletRepository =
+      AppDependencies.instance.stockPalletRepository;
   // ==========================================================
   // DATA
   // ==========================================================
 
   List<StorageLocation> _locations = [];
 
-  List<StockPallet> _pallets = [];
+  // ==========================================================
+  // OCCUPIED LOCATION CACHE
+  // ==========================================================
 
   // ==========================================================
   // SEARCH
@@ -93,6 +99,7 @@ class _StoragePageState extends State<StoragePage> {
   // ==========================================================
   // INIT
   // ==========================================================
+  final Set<String> _occupiedLocationCodes = {};
 
   @override
   void initState() {
@@ -114,21 +121,52 @@ class _StoragePageState extends State<StoragePage> {
     }
 
     try {
+      // ========================================================
+      // LOAD SEMUA STORAGE LOCATION
+      // ========================================================
+
       final locations = await _storageRepository.getAllLocations();
 
+      // ========================================================
+      // LOAD SEMUA STOCK PALLET
+      // ========================================================
+
       final pallets = await _palletRepository.getAll();
+
+      // ========================================================
+      // BENTUK SET LOCATION CODE YANG TERISI
+      // ========================================================
+
+      final occupiedCodes = pallets
+          .map((pallet) => pallet.locationCode.trim())
+          .where((code) => code.isNotEmpty)
+          .toSet();
+
+      // ========================================================
+      // CEK WIDGET MASIH AKTIF
+      // ========================================================
 
       if (!mounted) {
         return;
       }
 
+      // ========================================================
+      // UPDATE DATA
+      // ========================================================
+
       setState(() {
         _locations = locations;
-        _pallets = pallets;
+
+        _occupiedLocationCodes
+          ..clear()
+          ..addAll(occupiedCodes);
+
         _isLoading = false;
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint('Storage load error: $error');
+
+      debugPrint(stackTrace.toString());
 
       if (!mounted) {
         return;
@@ -139,14 +177,6 @@ class _StoragePageState extends State<StoragePage> {
         _errorMessage = 'Gagal memuat data storage.';
       });
     }
-  }
-
-  // ==========================================================
-  // OCCUPIED LOCATION CODES
-  // ==========================================================
-
-  Set<String> get _occupiedLocationCodes {
-    return _pallets.map((pallet) => pallet.locationCode).toSet();
   }
 
   // ==========================================================
@@ -170,7 +200,9 @@ class _StoragePageState extends State<StoragePage> {
   // ==========================================================
 
   int get _availableLocation {
-    return (_totalLocation - _occupiedLocation).clamp(0, _totalLocation);
+    final available = _totalLocation - _occupiedLocation;
+
+    return available.clamp(0, _totalLocation);
   }
 
   // ==========================================================
@@ -238,47 +270,80 @@ class _StoragePageState extends State<StoragePage> {
       // ========================================================
       // BODY
       // ========================================================
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null
-            ? _buildErrorState()
-            : RefreshIndicator(
-                onRefresh: _loadStorageData,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSummary(theme),
+      body: SafeArea(child: _buildBody(theme)),
+    );
+  }
 
-                      const SizedBox(height: 24),
+  // ==========================================================
+  // BODY
+  // ==========================================================
 
-                      _buildSearchField(theme),
+  Widget _buildBody(ThemeData theme) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-                      const SizedBox(height: 12),
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
 
-                      _buildRackFilter(theme),
+    return RefreshIndicator(
+      onRefresh: _loadStorageData,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // ====================================================
+          // HEADER
+          // ====================================================
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            sliver: SliverToBoxAdapter(child: _buildHeader(theme)),
+          ),
 
-                      const SizedBox(height: 20),
+          // ====================================================
+          // LOCATION LIST
+          // ====================================================
+          _buildLocationSliver(theme),
 
-                      Text(
-                        '${_filteredLocations.length} lokasi ditemukan',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      _buildLocationList(theme),
-                    ],
-                  ),
-                ),
-              ),
+          // ====================================================
+          // BOTTOM SPACE
+          // ====================================================
+          const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+        ],
       ),
+    );
+  }
+
+  // ==========================================================
+  // HEADER
+  // ==========================================================
+
+  Widget _buildHeader(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSummary(theme),
+
+        const SizedBox(height: 24),
+
+        _buildSearchField(theme),
+
+        const SizedBox(height: 12),
+
+        _buildRackFilter(theme),
+
+        const SizedBox(height: 20),
+
+        Text(
+          '${_filteredLocations.length} lokasi ditemukan',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+
+        const SizedBox(height: 12),
+      ],
     );
   }
 
@@ -365,6 +430,9 @@ class _StoragePageState extends State<StoragePage> {
             ),
           ),
 
+          // ==================================================
+          // RACK ITEMS
+          // ==================================================
           ..._rackList.map((rack) {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -385,63 +453,87 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
-  // LOCATION LIST
+  // LOCATION SLIVER
   // ==========================================================
 
-  Widget _buildLocationList(ThemeData theme) {
+  Widget _buildLocationSliver(ThemeData theme) {
     final locations = _filteredLocations;
 
+    // ========================================================
+    // EMPTY
+    // ========================================================
+
     if (locations.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.search_off_rounded,
-                  size: 48,
-                  color: Colors.grey.shade500,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Lokasi tidak ditemukan',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Coba ubah kata pencarian '
-                  'atau filter rack.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      return SliverPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        sliver: SliverToBoxAdapter(child: _buildEmptyState(theme)),
       );
     }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: locations.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final location = locations[index];
+    // ========================================================
+    // LAZY LOCATION LIST
+    // ========================================================
 
-        final isOccupied = _occupiedLocationCodes.contains(location.code);
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final location = locations[index];
 
-        return _LocationCard(
-          location: location,
-          isOccupied: isOccupied,
-          stockPalletRepository: _palletRepository,
-        );
-      },
+          final isOccupied = _occupiedLocationCodes.contains(location.code);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _LocationCard(
+              location: location,
+              isOccupied: isOccupied,
+              stockPalletRepository: _palletRepository,
+            ),
+          );
+        }, childCount: locations.length),
+      ),
+    );
+  }
+
+  // ==========================================================
+  // EMPTY STATE
+  // ==========================================================
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: 48,
+                color: Colors.grey.shade500,
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                'Lokasi tidak ditemukan',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                'Coba ubah kata pencarian atau filter rack.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -461,18 +553,23 @@ class _StoragePageState extends State<StoragePage> {
               size: 56,
               color: Colors.red,
             ),
+
             const SizedBox(height: 16),
+
             const Text(
               'Gagal memuat Storage',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
+
             const SizedBox(height: 8),
+
             const Text(
-              'Terjadi masalah ketika '
-              'memuat data lokasi.',
+              'Terjadi masalah ketika memuat data lokasi.',
               textAlign: TextAlign.center,
             ),
+
             const SizedBox(height: 20),
+
             ElevatedButton.icon(
               onPressed: _loadStorageData,
               icon: const Icon(Icons.refresh_rounded),
@@ -513,7 +610,9 @@ class _SummaryCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 25, color: theme.colorScheme.primary),
+
             const SizedBox(height: 6),
+
             Text(
               title,
               maxLines: 1,
@@ -522,7 +621,9 @@ class _SummaryCard extends StatelessWidget {
                 color: Colors.grey.shade600,
               ),
             ),
+
             const SizedBox(height: 3),
+
             Text(
               value,
               style: theme.textTheme.titleMedium?.copyWith(
@@ -583,6 +684,9 @@ class _LocationCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              // ==================================================
+              // STATUS ICON
+              // ==================================================
               Container(
                 width: 46,
                 height: 46,
@@ -595,6 +699,9 @@ class _LocationCard extends StatelessWidget {
 
               const SizedBox(width: 14),
 
+              // ==================================================
+              // LOCATION INFORMATION
+              // ==================================================
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,16 +712,17 @@ class _LocationCard extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
+
                     const SizedBox(height: 5),
+
                     Text(
-                      'Rack ${location.rack} • '
-                      'Bay ${location.bay}',
+                      'Rack ${location.rack} • Bay ${location.bay}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
                       ),
                     ),
+
                     if (location.shelving != null ||
-                        location.level != null ||
                         location.position != null) ...[
                       const SizedBox(height: 3),
                       Text(
@@ -630,6 +738,9 @@ class _LocationCard extends StatelessWidget {
 
               const SizedBox(width: 8),
 
+              // ==================================================
+              // STATUS BADGE
+              // ==================================================
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
                 decoration: BoxDecoration(
@@ -651,6 +762,7 @@ class _LocationCard extends StatelessWidget {
       ),
     );
   }
+
   // ==========================================================
   // POSITION TEXT
   // ==========================================================
@@ -659,14 +771,7 @@ class _LocationCard extends StatelessWidget {
     final parts = <String>[];
 
     if (location.shelving != null) {
-      parts.add(
-        'Shelving '
-        '${location.shelving}',
-      );
-    }
-
-    if (location.level != null) {
-      parts.add('Level ${location.level}');
+      parts.add('Shelving ${location.shelving}');
     }
 
     if (location.position != null) {

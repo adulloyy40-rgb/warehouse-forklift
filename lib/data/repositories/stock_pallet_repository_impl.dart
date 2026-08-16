@@ -32,7 +32,6 @@
 import '../../domain/entities/stock_pallet.dart';
 import '../../domain/repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS: StockPalletRepositoryImpl
 // ============================================================
@@ -45,9 +44,7 @@ import '../../domain/repositories/stock_pallet_repository.dart';
 // database tanpa mengubah Domain layer.
 // ============================================================
 
-class StockPalletRepositoryImpl
-    implements StockPalletRepository {
-
+class StockPalletRepositoryImpl implements StockPalletRepository {
   // ==========================================================
   // STORAGE SEMENTARA
   // ==========================================================
@@ -59,7 +56,6 @@ class StockPalletRepositoryImpl
   // ==========================================================
 
   final List<StockPallet> _pallets = [];
-
 
   // ==========================================================
   // SAVE
@@ -79,9 +75,7 @@ class StockPalletRepositoryImpl
   Future<void> save(StockPallet pallet) async {
     // Cari apakah Location Code sudah digunakan.
 
-    final existing = await findByLocationCode(
-      pallet.locationCode,
-    );
+    final existing = await findByLocationCode(pallet.locationCode);
 
     // Jika sudah ada pallet pada lokasi tersebut,
     // jangan menyimpan data kedua.
@@ -97,7 +91,6 @@ class StockPalletRepositoryImpl
 
     _pallets.add(pallet);
   }
-
 
   // ==========================================================
   // GET ALL
@@ -121,11 +114,8 @@ class StockPalletRepositoryImpl
     // Kita tidak mengembalikan List internal secara langsung
     // agar caller tidak dapat memodifikasi storage internal.
 
-    return List<StockPallet>.unmodifiable(
-      _pallets,
-    );
+    return List<StockPallet>.unmodifiable(_pallets);
   }
-
 
   // ==========================================================
   // FIND BY LOCATION CODE
@@ -140,9 +130,7 @@ class StockPalletRepositoryImpl
   // ==========================================================
 
   @override
-  Future<StockPallet?> findByLocationCode(
-    String locationCode,
-  ) async {
+  Future<StockPallet?> findByLocationCode(String locationCode) async {
     // Cari pallet berdasarkan Location Code.
 
     for (final pallet in _pallets) {
@@ -155,7 +143,6 @@ class StockPalletRepositoryImpl
 
     return null;
   }
-
 
   // ==========================================================
   // UPDATE
@@ -172,8 +159,7 @@ class StockPalletRepositoryImpl
     // Cari index pallet berdasarkan Location Code.
 
     final index = _pallets.indexWhere(
-      (item) =>
-          item.locationCode == pallet.locationCode,
+      (item) => item.locationCode == pallet.locationCode,
     );
 
     // Jika tidak ditemukan,
@@ -191,7 +177,6 @@ class StockPalletRepositoryImpl
     _pallets[index] = pallet;
   }
 
-
   // ==========================================================
   // DELETE BY LOCATION CODE
   // ==========================================================
@@ -207,14 +192,11 @@ class StockPalletRepositoryImpl
   // ==========================================================
 
   @override
-  Future<void> deleteByLocationCode(
-    String locationCode,
-  ) async {
+  Future<void> deleteByLocationCode(String locationCode) async {
     // Cari pallet berdasarkan Location Code.
 
     final index = _pallets.indexWhere(
-      (item) =>
-          item.locationCode == locationCode,
+      (item) => item.locationCode == locationCode,
     );
 
     // Jika tidak ditemukan,

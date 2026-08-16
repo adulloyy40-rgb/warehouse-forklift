@@ -127,11 +127,7 @@ class LocationCodeGenerator {
     for (int bay = 1; bay <= bayCount; bay++) {
       // Melakukan perulangan dari shelving paling bawah
       // sampai shelving paling atas.
-      for (
-        int shelving = firstShelving;
-        shelving <= lastShelving;
-        shelving++
-      ) {
+      for (int shelving = firstShelving; shelving <= lastShelving; shelving++) {
         // Setiap shelving mempunyai 3 posisi pallet.
         for (int position = 1; position <= 3; position++) {
           // Membuat kode lokasi berdasarkan

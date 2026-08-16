@@ -39,7 +39,6 @@
 // - mengubah StockPallet
 // ============================================================
 
-
 // ============================================================
 // CLASS: PalletQuantityCalculator
 // ============================================================
@@ -61,13 +60,9 @@ class PalletQuantityCalculator {
   // Qty CTN = Tear × Stack
   // ==========================================================
 
-  static int calculateQtyCtn({
-    required int tear,
-    required int stack,
-  }) {
+  static int calculateQtyCtn({required int tear, required int stack}) {
     return tear * stack;
   }
-
 
   // ==========================================================
   // calculateQtyPcs()
@@ -81,13 +76,9 @@ class PalletQuantityCalculator {
   // Qty PCS = Qty CTN × CONV2
   // ==========================================================
 
-  static int calculateQtyPcs({
-    required int qtyCtn,
-    required int conv2,
-  }) {
+  static int calculateQtyPcs({required int qtyCtn, required int conv2}) {
     return qtyCtn * conv2;
   }
-
 
   // ==========================================================
   // calculate()
@@ -116,30 +107,19 @@ class PalletQuantityCalculator {
     // Hitung Qty CTN terlebih dahulu.
     // --------------------------------------------------------
 
-    final qtyCtn = calculateQtyCtn(
-      tear: tear,
-      stack: stack,
-    );
-
+    final qtyCtn = calculateQtyCtn(tear: tear, stack: stack);
 
     // --------------------------------------------------------
     // Setelah Qty CTN didapat,
     // hitung Qty PCS.
     // --------------------------------------------------------
 
-    final qtyPcs = calculateQtyPcs(
-      qtyCtn: qtyCtn,
-      conv2: conv2,
-    );
-
+    final qtyPcs = calculateQtyPcs(qtyCtn: qtyCtn, conv2: conv2);
 
     // --------------------------------------------------------
     // Kembalikan kedua hasil perhitungan.
     // --------------------------------------------------------
 
-    return {
-      'qtyCtn': qtyCtn,
-      'qtyPcs': qtyPcs,
-    };
+    return {'qtyCtn': qtyCtn, 'qtyPcs': qtyPcs};
   }
 }

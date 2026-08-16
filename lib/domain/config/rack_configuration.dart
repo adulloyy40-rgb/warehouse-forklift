@@ -18,7 +18,6 @@
 // apakah sebuah lokasi diperbolehkan atau tidak.
 // ============================================================
 
-
 // ============================================================
 // CLASS: RackConfiguration
 // ============================================================
@@ -32,7 +31,6 @@ class RackConfiguration {
   // ==========================================================
 
   final int rack;
-
 
   // ==========================================================
   // JUMLAH BAY
@@ -48,7 +46,6 @@ class RackConfiguration {
 
   final int bayCount;
 
-
   // ==========================================================
   // SHELVING MINIMUM
   // ==========================================================
@@ -58,13 +55,11 @@ class RackConfiguration {
 
   final int? minShelving;
 
-
   // ==========================================================
   // SHELVING MAKSIMUM
   // ==========================================================
 
   final int? maxShelving;
-
 
   // ==========================================================
   // JUMLAH POSITION
@@ -82,7 +77,6 @@ class RackConfiguration {
 
   final int? positionCount;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
@@ -95,7 +89,6 @@ class RackConfiguration {
     this.positionCount,
   });
 
-
   // ==========================================================
   // hasShelving
   // ==========================================================
@@ -104,11 +97,8 @@ class RackConfiguration {
   // ==========================================================
 
   bool get hasShelving {
-    return minShelving != null &&
-        maxShelving != null &&
-        positionCount != null;
+    return minShelving != null && maxShelving != null && positionCount != null;
   }
-
 
   // ==========================================================
   // isBayValid()
@@ -134,7 +124,6 @@ class RackConfiguration {
     return bay >= 1 && bay <= bayCount;
   }
 
-
   // ==========================================================
   // isShelvingValid()
   // ==========================================================
@@ -154,18 +143,14 @@ class RackConfiguration {
       return true;
     }
 
-
     // Rack menggunakan Shelving,
     // sehingga Shelving wajib tersedia.
     if (shelving == null) {
       return false;
     }
 
-
-    return shelving >= minShelving! &&
-        shelving <= maxShelving!;
+    return shelving >= minShelving! && shelving <= maxShelving!;
   }
-
 
   // ==========================================================
   // isPositionValid()
@@ -188,18 +173,14 @@ class RackConfiguration {
       return true;
     }
 
-
     // Jika menggunakan Shelving,
     // Position wajib diisi.
     if (position == null) {
       return false;
     }
 
-
-    return position >= 1 &&
-        position <= positionCount!;
+    return position >= 1 && position <= positionCount!;
   }
-
 
   // ==========================================================
   // toString()
@@ -219,7 +200,6 @@ class RackConfiguration {
         ')';
   }
 }
-
 
 // ============================================================
 // CLASS: RackConfigurations
@@ -249,10 +229,9 @@ class RackConfiguration {
 
 class RackConfigurations {
   // Constructor private.
-//
-// Class ini hanya menyediakan konfigurasi statis.
+  //
+  // Class ini hanya menyediakan konfigurasi statis.
   RackConfigurations._();
-
 
   // ==========================================================
   // RACK 80
@@ -265,7 +244,6 @@ class RackConfigurations {
     rack: 80,
     bayCount: 7,
   );
-
 
   // ==========================================================
   // RACK 81–90
@@ -302,7 +280,6 @@ class RackConfigurations {
     positionCount: 3,
   );
 
-
   // ==========================================================
   // RACK 91–94
   // ==========================================================
@@ -315,7 +292,6 @@ class RackConfigurations {
     bayCount: 7,
   );
 
-
   // ==========================================================
   // RACK 95–96
   // ==========================================================
@@ -327,7 +303,6 @@ class RackConfigurations {
     rack: 95,
     bayCount: 5,
   );
-
 
   // ==========================================================
   // get()
@@ -350,7 +325,6 @@ class RackConfigurations {
       return rack80;
     }
 
-
     // --------------------------------------------------------
     // Rack 81–90
     // --------------------------------------------------------
@@ -369,30 +343,21 @@ class RackConfigurations {
       );
     }
 
-
     // --------------------------------------------------------
     // Rack 91–94
     // --------------------------------------------------------
 
     if (rack >= 91 && rack <= 94) {
-      return RackConfiguration(
-        rack: rack,
-        bayCount: rack91To94.bayCount,
-      );
+      return RackConfiguration(rack: rack, bayCount: rack91To94.bayCount);
     }
-
 
     // --------------------------------------------------------
     // Rack 95–96
     // --------------------------------------------------------
 
     if (rack >= 95 && rack <= 96) {
-      return RackConfiguration(
-        rack: rack,
-        bayCount: rack95To96.bayCount,
-      );
+      return RackConfiguration(rack: rack, bayCount: rack95To96.bayCount);
     }
-
 
     // --------------------------------------------------------
     // Rack tidak dikenal.
@@ -400,7 +365,6 @@ class RackConfigurations {
 
     return null;
   }
-
 
   // ==========================================================
   // containsRack()

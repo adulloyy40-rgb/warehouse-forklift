@@ -31,7 +31,6 @@ class StorageLocation {
 
   final int rack;
 
-
   // ==========================================================
   // bay
   // ==========================================================
@@ -44,7 +43,6 @@ class StorageLocation {
   // ==========================================================
 
   final int bay;
-
 
   // ==========================================================
   // shelving
@@ -62,7 +60,6 @@ class StorageLocation {
 
   final int? shelving;
 
-
   // ==========================================================
   // level
   // ==========================================================
@@ -79,9 +76,6 @@ class StorageLocation {
   // istilah Level dengan cara yang sama.
   // ==========================================================
 
-  final int? level;
-
-
   // ==========================================================
   // position
   // ==========================================================
@@ -95,7 +89,6 @@ class StorageLocation {
   // ==========================================================
 
   final int? position;
-
 
   // ==========================================================
   // code
@@ -115,7 +108,6 @@ class StorageLocation {
 
   final String code;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
@@ -124,11 +116,9 @@ class StorageLocation {
     required this.rack,
     required this.bay,
     this.shelving,
-    this.level,
     this.position,
     required this.code,
   });
-
 
   // ==========================================================
   // copyWith()
@@ -144,7 +134,6 @@ class StorageLocation {
     int? rack,
     int? bay,
     int? shelving,
-    int? level,
     int? position,
     String? code,
   }) {
@@ -152,12 +141,11 @@ class StorageLocation {
       rack: rack ?? this.rack,
       bay: bay ?? this.bay,
       shelving: shelving ?? this.shelving,
-      level: level ?? this.level,
+
       position: position ?? this.position,
       code: code ?? this.code,
     );
   }
-
 
   // ==========================================================
   // toString()
@@ -174,7 +162,6 @@ class StorageLocation {
         'rack: $rack, '
         'bay: $bay, '
         'shelving: $shelving, '
-        'level: $level, '
         'position: $position, '
         'code: $code'
         ')';

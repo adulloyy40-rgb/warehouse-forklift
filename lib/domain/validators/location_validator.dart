@@ -22,7 +22,6 @@
 import '../config/rack_configuration.dart';
 import '../entities/storage_location.dart';
 
-
 // ============================================================
 // CLASS: LocationValidator
 // ============================================================
@@ -38,7 +37,6 @@ class LocationValidator {
   static const int minRack = 80;
 
   static const int maxRack = 96;
-
 
   // ==========================================================
   // isRackValid()
@@ -59,7 +57,6 @@ class LocationValidator {
     return RackConfigurations.containsRack(rack);
   }
 
-
   // ==========================================================
   // getBayCount()
   //
@@ -79,17 +76,13 @@ class LocationValidator {
     return config.bayCount;
   }
 
-
   // ==========================================================
   // isBayValid()
   //
   // Mengecek Bay berdasarkan konfigurasi Rack.
   // ==========================================================
 
-  bool isBayValid({
-    required int rack,
-    required int bay,
-  }) {
+  bool isBayValid({required int rack, required int bay}) {
     // Ambil konfigurasi Rack.
     final config = RackConfigurations.get(rack);
 
@@ -101,7 +94,6 @@ class LocationValidator {
     // Validasi Bay menggunakan konfigurasi.
     return config.isBayValid(bay);
   }
-
 
   // ==========================================================
   // isShelvingValid()
@@ -115,10 +107,7 @@ class LocationValidator {
   // konfigurasi menganggap Shelving tidak diperlukan.
   // ==========================================================
 
-  bool isShelvingValid({
-    required int rack,
-    required int? shelving,
-  }) {
+  bool isShelvingValid({required int rack, required int? shelving}) {
     // Ambil konfigurasi Rack.
     final config = RackConfigurations.get(rack);
 
@@ -131,7 +120,6 @@ class LocationValidator {
     return config.isShelvingValid(shelving);
   }
 
-
   // ==========================================================
   // isPositionValid()
   //
@@ -141,10 +129,7 @@ class LocationValidator {
   // Position 01–03
   // ==========================================================
 
-  bool isPositionValid({
-    required int rack,
-    required int? position,
-  }) {
+  bool isPositionValid({required int rack, required int? position}) {
     // Ambil konfigurasi Rack.
     final config = RackConfigurations.get(rack);
 
@@ -156,7 +141,6 @@ class LocationValidator {
     // Validasi menggunakan konfigurasi.
     return config.isPositionValid(position);
   }
-
 
   // ==========================================================
   // validate()
@@ -182,42 +166,29 @@ class LocationValidator {
       return false;
     }
 
-
     // --------------------------------------------------------
     // 2. Validasi Bay
     // --------------------------------------------------------
 
-    if (!isBayValid(
-      rack: location.rack,
-      bay: location.bay,
-    )) {
+    if (!isBayValid(rack: location.rack, bay: location.bay)) {
       return false;
     }
-
 
     // --------------------------------------------------------
     // 3. Validasi Shelving
     // --------------------------------------------------------
 
-    if (!isShelvingValid(
-      rack: location.rack,
-      shelving: location.shelving,
-    )) {
+    if (!isShelvingValid(rack: location.rack, shelving: location.shelving)) {
       return false;
     }
-
 
     // --------------------------------------------------------
     // 4. Validasi Position
     // --------------------------------------------------------
 
-    if (!isPositionValid(
-      rack: location.rack,
-      position: location.position,
-    )) {
+    if (!isPositionValid(rack: location.rack, position: location.position)) {
       return false;
     }
-
 
     // --------------------------------------------------------
     // Semua validasi berhasil.

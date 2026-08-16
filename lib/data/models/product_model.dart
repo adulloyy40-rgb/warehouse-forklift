@@ -33,7 +33,6 @@
 
 import '../../domain/entities/product.dart';
 
-
 // ============================================================
 // CLASS: ProductModel
 // ============================================================
@@ -61,7 +60,6 @@ class ProductModel {
 
   final String barcode;
 
-
   // ==========================================================
   // PLU
   // ==========================================================
@@ -72,7 +70,6 @@ class ProductModel {
   // ==========================================================
 
   final String plu;
-
 
   // ==========================================================
   // DESCRIPTION
@@ -86,7 +83,6 @@ class ProductModel {
 
   final String description;
 
-
   // ==========================================================
   // PRICE
   // ==========================================================
@@ -96,7 +92,6 @@ class ProductModel {
 
   final double price;
 
-
   // ==========================================================
   // RETUR HARI
   // ==========================================================
@@ -105,7 +100,6 @@ class ProductModel {
   // ==========================================================
 
   final int returHari;
-
 
   // ==========================================================
   // CONV2
@@ -132,7 +126,6 @@ class ProductModel {
 
   final int conv2;
 
-
   // ==========================================================
   // TYPE
   // ==========================================================
@@ -146,7 +139,6 @@ class ProductModel {
   // ==========================================================
 
   final String type;
-
 
   // ==========================================================
   // MASTER TEAR
@@ -163,7 +155,6 @@ class ProductModel {
 
   final int masterTear;
 
-
   // ==========================================================
   // MASTER STACK
   // ==========================================================
@@ -177,7 +168,6 @@ class ProductModel {
   // ==========================================================
 
   final int masterStack;
-
 
   // ==========================================================
   // CONSTRUCTOR
@@ -200,7 +190,6 @@ class ProductModel {
     required this.masterTear,
     required this.masterStack,
   });
-
 
   // ==========================================================
   // FROM MAP
@@ -230,48 +219,36 @@ class ProductModel {
   // }
   // ==========================================================
 
-  factory ProductModel.fromMap(
-    Map<String, dynamic> map,
-  ) {
+  factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
       // Membaca barcode.
-      barcode:
-          map['barcode']?.toString().trim() ?? '',
+      barcode: map['barcode']?.toString().trim() ?? '',
 
       // Membaca PLU.
-      plu:
-          map['plu']?.toString().trim() ?? '',
+      plu: map['plu']?.toString().trim() ?? '',
 
       // Membaca nama/deskripsi barang.
-      description:
-          map['description']?.toString().trim() ?? '',
+      description: map['description']?.toString().trim() ?? '',
 
       // Membaca harga dan memastikan menjadi double.
-      price:
-          _toDouble(map['price']),
+      price: _toDouble(map['price']),
 
       // Membaca jumlah hari retur.
-      returHari:
-          _toInt(map['returHari']),
+      returHari: _toInt(map['returHari']),
 
       // Membaca nilai konversi CTN → PCS.
-      conv2:
-          _toInt(map['conv2']),
+      conv2: _toInt(map['conv2']),
 
       // Membaca tipe barang.
-      type:
-          map['type']?.toString().trim() ?? '',
+      type: map['type']?.toString().trim() ?? '',
 
       // Membaca Tear standar dari Master.
-      masterTear:
-          _toInt(map['masterTear']),
+      masterTear: _toInt(map['masterTear']),
 
       // Membaca Stack standar dari Master.
-      masterStack:
-          _toInt(map['masterStack']),
+      masterStack: _toInt(map['masterStack']),
     );
   }
-
 
   // ==========================================================
   // FROM ENTITY
@@ -289,9 +266,7 @@ class ProductModel {
   // kembali oleh Data layer.
   // ==========================================================
 
-  factory ProductModel.fromEntity(
-    Product product,
-  ) {
+  factory ProductModel.fromEntity(Product product) {
     return ProductModel(
       // Mengambil barcode dari Entity.
       barcode: product.barcode,
@@ -321,7 +296,6 @@ class ProductModel {
       masterStack: product.masterStack,
     );
   }
-
 
   // ==========================================================
   // TO ENTITY
@@ -372,7 +346,6 @@ class ProductModel {
     );
   }
 
-
   // ==========================================================
   // TO MAP
   // ==========================================================
@@ -401,7 +374,6 @@ class ProductModel {
     };
   }
 
-
   // ==========================================================
   // HELPER: _toInt
   // ==========================================================
@@ -424,9 +396,7 @@ class ProductModel {
   // null     → 0
   // ==========================================================
 
-  static int _toInt(
-    dynamic value,
-  ) {
+  static int _toInt(dynamic value) {
     // Nilai null dianggap 0.
     if (value == null) {
       return 0;
@@ -443,8 +413,7 @@ class ProductModel {
     }
 
     // Mengubah nilai menjadi String.
-    final text =
-        value.toString().trim();
+    final text = value.toString().trim();
 
     // String kosong dianggap 0.
     if (text.isEmpty) {
@@ -452,16 +421,14 @@ class ProductModel {
     }
 
     // Coba parsing sebagai int.
-    final intValue =
-        int.tryParse(text);
+    final intValue = int.tryParse(text);
 
     if (intValue != null) {
       return intValue;
     }
 
     // Jika gagal, coba parsing sebagai double.
-    final doubleValue =
-        double.tryParse(text);
+    final doubleValue = double.tryParse(text);
 
     if (doubleValue != null) {
       return doubleValue.toInt();
@@ -471,7 +438,6 @@ class ProductModel {
     // gunakan nilai default 0.
     return 0;
   }
-
 
   // ==========================================================
   // HELPER: _toDouble
@@ -487,9 +453,7 @@ class ProductModel {
   // null        → 0
   // ==========================================================
 
-  static double _toDouble(
-    dynamic value,
-  ) {
+  static double _toDouble(dynamic value) {
     // Nilai null dianggap 0.
     if (value == null) {
       return 0;
@@ -506,8 +470,7 @@ class ProductModel {
     }
 
     // Mengubah nilai menjadi String.
-    final text =
-        value.toString().trim();
+    final text = value.toString().trim();
 
     // String kosong dianggap 0.
     if (text.isEmpty) {

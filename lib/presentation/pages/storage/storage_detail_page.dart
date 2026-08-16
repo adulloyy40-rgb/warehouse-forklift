@@ -33,6 +33,10 @@ import '../../../domain/entities/storage_location.dart';
 import '../../../domain/entities/stock_pallet.dart';
 import '../../../domain/repositories/stock_pallet_repository.dart';
 
+import '../../../core/di/app_dependencies.dart';
+import '../../../domain/entities/product.dart';
+import '../../../domain/usecases/product/get_product_by_plu.dart';
+
 // ============================================================
 // STORAGE DETAIL PAGE
 // ============================================================
@@ -133,6 +137,45 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
   //
   // AVAILABLE
   // ==========================================================
+
+  // ============================================================
+  // OPEN PUT AWAY FORM
+  // ============================================================
+
+  Future<void> _openPutAwayForm() async {
+    // ----------------------------------------------------------
+    // Jangan membuka PUT AWAY jika lokasi sudah terisi.
+    // ----------------------------------------------------------
+
+    if (_pallet != null) {
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // Buka form PUT AWAY.
+    // ----------------------------------------------------------
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return _PutAwayForm(
+          location: widget.location,
+          stockPalletRepository: widget.stockPalletRepository,
+        );
+      },
+    );
+
+    // ----------------------------------------------------------
+    // Jika PUT AWAY berhasil,
+    // reload data lokasi.
+    // ----------------------------------------------------------
+
+    if (result == true) {
+      await _loadLocationData();
+    }
+  }
 
   Future<void> _loadLocationData() async {
     setState(() {
@@ -263,11 +306,29 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                   const _LoadingCard()
                 else if (isOccupied)
                   _PalletInformationCard(pallet: _pallet!)
-                else
+                else ...[
                   const _AvailableCard(),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: FilledButton.icon(
+                      onPressed: _openPutAwayForm,
+                      icon: const Icon(Icons.move_to_inbox_rounded),
+                      label: const Text(
+                        'PUT AWAY',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 24),
                 // ==================================================
                 // SYSTEM INFORMATION
                 // ==================================================
@@ -430,14 +491,6 @@ class _LocationInformationCard extends StatelessWidget {
               icon: Icons.layers_outlined,
               title: 'Shelving',
               value: _displayNullable(location.shelving),
-            ),
-
-            const Divider(height: 24),
-
-            _InformationRow(
-              icon: Icons.stairs_rounded,
-              title: 'Level',
-              value: _displayNullable(location.level),
             ),
 
             const Divider(height: 24),
@@ -800,6 +853,803 @@ class _InformationRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ============================================================
+// PUT AWAY FORM
+// ============================================================
+//
+// FUNGSI:
+// Form untuk memasukkan pallet ke lokasi storage.
+//
+// ALUR:
+//
+// PLU
+//   ↓
+// GetProductByPlu
+//   ↓
+// Master Barang
+//   ↓
+// Input Tear & Stack
+//   ↓
+// Hitung Qty CTN
+//   ↓
+// Hitung Qty PCS
+//   ↓
+// Bandingkan dengan Master
+//
+// ============================================================
+
+class _PutAwayForm extends StatefulWidget {
+  const _PutAwayForm({
+    required this.location,
+    required this.stockPalletRepository,
+  });
+
+  // Lokasi tujuan pallet.
+  final StorageLocation location;
+
+  // Repository StockPallet.
+  final StockPalletRepository stockPalletRepository;
+
+  @override
+  State<_PutAwayForm> createState() => _PutAwayFormState();
+}
+
+// ============================================================
+// PUT AWAY FORM STATE
+// ============================================================
+//
+// State untuk form PUT AWAY.
+//
+// Tahap pertama:
+//
+// 1. Menyiapkan controller input.
+// 2. Menyimpan Product hasil pencarian PLU.
+// 3. Menyimpan status loading pencarian.
+// 4. Menyimpan pesan error.
+//
+// UI form akan kita buat setelah struktur State ini
+// berhasil dianalisis Flutter.
+// ============================================================
+
+class _PutAwayFormState extends State<_PutAwayForm> {
+  // ==========================================================
+  // PLU CONTROLLER
+  // ==========================================================
+  //
+  // Digunakan operator untuk memasukkan PLU barang.
+  // ==========================================================
+
+  final TextEditingController _pluController = TextEditingController();
+
+  // ==========================================================
+  // QTY CTN CONTROLLER
+  // ==========================================================
+  //
+  // Jumlah CTN aktual yang dimasukkan operator.
+  //
+  // Catatan:
+  // Untuk sementara controller ini kita siapkan terlebih dahulu.
+  // Perhitungan final akan kita tentukan pada tahap berikutnya.
+  // ==========================================================
+
+  final TextEditingController _qtyCtnController = TextEditingController();
+
+  // ==========================================================
+  // TEAR CONTROLLER
+  // ==========================================================
+  //
+  // Tear aktual pallet.
+  // ==========================================================
+
+  final TextEditingController _tearController = TextEditingController();
+
+  // ==========================================================
+  // STACK CONTROLLER
+  // ==========================================================
+  //
+  // Stack aktual pallet.
+  // ==========================================================
+
+  final TextEditingController _stackController = TextEditingController();
+
+  // ==========================================================
+  // EXPIRED DATE CONTROLLER
+  // ==========================================================
+  //
+  // Menampilkan tanggal expired barang.
+  // ==========================================================
+
+  final TextEditingController _expiredDateController = TextEditingController();
+
+  // ==========================================================
+  // PRODUCT
+  // ==========================================================
+  //
+  // Product hasil pencarian Master Barang berdasarkan PLU.
+  //
+  // null:
+  // Belum ada barang yang ditemukan.
+  // ==========================================================
+
+  Product? _product;
+
+  // ==========================================================
+  // LOADING PRODUCT
+  // ==========================================================
+  //
+  // true ketika aplikasi sedang mencari PLU
+  // pada Master Barang.
+  // ==========================================================
+
+  bool _isSearching = false;
+  // ==========================================================
+  // ERROR MESSAGE
+  // ==========================================================
+  //
+  // Menyimpan pesan error form.
+  // ==========================================================
+
+  String? _errorMessage;
+
+  // ==========================================================
+  // GET PRODUCT BY PLU
+  // ==========================================================
+
+  GetProductByPlu get getProductByPlu {
+    return AppDependencies.instance.getProductByPlu;
+  }
+
+  // ==========================================================
+  // DISPOSE
+  // ==========================================================
+
+  @override
+  void dispose() {
+    _pluController.dispose();
+    _qtyCtnController.dispose();
+    _tearController.dispose();
+    _stackController.dispose();
+    _expiredDateController.dispose();
+
+    super.dispose();
+  }
+
+  // ==========================================================
+  // QUANTITY CHANGED
+  // ==========================================================
+
+  void _onQuantityChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // ==========================================================
+  // SEARCH PRODUCT
+  // ==========================================================
+
+  Future<void> _searchProduct() async {
+    final plu = _pluController.text.trim();
+
+    if (plu.isEmpty) {
+      setState(() {
+        _errorMessage = 'PLU wajib diisi.';
+        _product = null;
+      });
+
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isSearching = true;
+      _errorMessage = null;
+      _product = null;
+    });
+
+    try {
+      final product = await getProductByPlu(plu);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _product = product;
+        _isSearching = false;
+
+        if (product == null) {
+          _errorMessage = 'Barang dengan PLU $plu tidak ditemukan.';
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSearching = false;
+        _product = null;
+        _errorMessage = 'Gagal mencari Master Barang.';
+      });
+
+      debugPrint('Put Away product search error: $error');
+    }
+  }
+
+  // ==========================================================
+  // INTEGER PARSER
+  // ==========================================================
+
+  int _parseInt(String value) {
+    return int.tryParse(value.trim()) ?? 0;
+  }
+
+  // ==========================================================
+  // TEAR
+  // ==========================================================
+
+  int get _tear {
+    return _parseInt(_tearController.text);
+  }
+
+  // ==========================================================
+  // STACK
+  // ==========================================================
+
+  int get _stack {
+    return _parseInt(_stackController.text);
+  }
+
+  // ==========================================================
+  // QTY CTN
+  // ==========================================================
+  //
+  // Rumus:
+  //
+  // Tear × Stack
+  //
+  // Contoh:
+  //
+  // Tear  = 10
+  // Stack = 5
+  //
+  // CTN = 10 × 5
+  //     = 50
+  // ==========================================================
+
+  int get _qtyCtn {
+    return _tear * _stack;
+  }
+
+  // ==========================================================
+  // QTY PCS
+  // ==========================================================
+  //
+  // Rumus:
+  //
+  // Qty CTN × Conv2
+  // ==========================================================
+
+  int get _qtyPcs {
+    final product = _product;
+
+    if (product == null) {
+      return 0;
+    }
+
+    return _qtyCtn * product.conv2;
+  }
+
+  // ==========================================================
+  // SESUAI MASTER
+  // ==========================================================
+  //
+  // True:
+  // Tear dan Stack sama dengan Master.
+  //
+  // False:
+  // Salah satu berbeda.
+  // ==========================================================
+
+  bool get _sesuaiMaster {
+    final product = _product;
+
+    if (product == null) {
+      return false;
+    }
+
+    return _tear == product.masterTear && _stack == product.masterStack;
+  }
+
+  // ==========================================================
+  // BUILD
+  // ==========================================================
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ==================================================
+            // HEADER
+            // ==================================================
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Put Away Pallet',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              'Lokasi tujuan: ${widget.location.code}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ==================================================
+            // PLU
+            // ==================================================
+            Text(
+              'PLU Barang',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _pluController,
+                    textInputAction: TextInputAction.search,
+                    keyboardType: TextInputType.number,
+                    onSubmitted: (_) {
+                      _searchProduct();
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Masukkan PLU',
+                      hintText: 'Contoh: 5867',
+                      prefixIcon: Icon(Icons.qr_code_2_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                SizedBox(
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: _isSearching ? null : _searchProduct,
+                    child: _isSearching
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search_rounded),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // ==================================================
+            // ERROR
+            // ==================================================
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.20)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: Colors.red),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // ==================================================
+            // PRODUCT INFORMATION
+            // ==================================================
+            if (_product != null) ...[
+              const SizedBox(height: 20),
+
+              Text(
+                'Master Barang',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              _PutAwayProductCard(product: _product!),
+
+              const SizedBox(height: 20),
+
+              // =================================================
+              // TEAR
+              // =================================================
+              Text(
+                'Tear Aktual',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tearController,
+                keyboardType: TextInputType.number,
+                onChanged: (_) {
+                  _onQuantityChanged();
+                },
+                decoration: InputDecoration(
+                  labelText: 'Tear',
+                  hintText: 'Master: ${_product!.masterTear}',
+                  prefixIcon: const Icon(Icons.layers_rounded),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // =================================================
+              // STACK
+              // =================================================
+              Text(
+                'Stack Aktual',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _stackController,
+                keyboardType: TextInputType.number,
+                onChanged: (_) {
+                  _onQuantityChanged();
+                },
+
+                decoration: InputDecoration(
+                  labelText: 'Stack',
+                  hintText: 'Master: ${_product!.masterStack}',
+                  prefixIcon: const Icon(Icons.view_module_rounded),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // =================================================
+              // QUANTITY RESULT
+              // =================================================
+              _PutAwayQuantityCard(
+                qtyCtn: _qtyCtn,
+                qtyPcs: _qtyPcs,
+                conv2: _product!.conv2,
+              ),
+
+              const SizedBox(height: 16),
+
+              // =================================================
+              // MASTER COMPARISON
+              // =================================================
+              _PutAwayMasterStatusCard(
+                sesuaiMaster: _sesuaiMaster,
+                masterTear: _product!.masterTear,
+                masterStack: _product!.masterStack,
+                actualTear: _tear,
+                actualStack: _stack,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// PRODUCT CARD
+// ============================================================
+
+class _PutAwayProductCard extends StatelessWidget {
+  const _PutAwayProductCard({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _InformationRow(
+              icon: Icons.qr_code_rounded,
+              title: 'Barcode',
+              value: product.barcode,
+            ),
+
+            const Divider(height: 24),
+
+            _InformationRow(
+              icon: Icons.tag_rounded,
+              title: 'PLU',
+              value: product.plu,
+            ),
+
+            const Divider(height: 24),
+
+            _InformationRow(
+              icon: Icons.inventory_2_rounded,
+              title: 'Description',
+              value: product.description,
+            ),
+
+            const Divider(height: 24),
+
+            _InformationRow(
+              icon: Icons.swap_horiz_rounded,
+              title: 'Conv2',
+              value: product.conv2.toString(),
+            ),
+
+            const Divider(height: 24),
+
+            _InformationRow(
+              icon: Icons.layers_rounded,
+              title: 'Master Tear',
+              value: product.masterTear.toString(),
+            ),
+
+            const Divider(height: 24),
+
+            _InformationRow(
+              icon: Icons.view_module_rounded,
+              title: 'Master Stack',
+              value: product.masterStack.toString(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// QUANTITY CARD
+// ============================================================
+
+class _PutAwayQuantityCard extends StatelessWidget {
+  const _PutAwayQuantityCard({
+    required this.qtyCtn,
+    required this.qtyPcs,
+    required this.conv2,
+  });
+
+  final int qtyCtn;
+  final int qtyPcs;
+  final int conv2;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Perhitungan Quantity',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _QuantityItem(
+                    title: 'QTY CTN',
+                    value: qtyCtn.toString(),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: _QuantityItem(
+                    title: 'QTY PCS',
+                    value: qtyPcs.toString(),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            Text(
+              'PCS = CTN × Conv2 ($conv2)',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// QUANTITY ITEM
+// ============================================================
+
+class _QuantityItem extends StatelessWidget {
+  const _QuantityItem({required this.title, required this.value});
+
+  final String title;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          Text(
+            value,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// MASTER STATUS CARD
+// ============================================================
+
+class _PutAwayMasterStatusCard extends StatelessWidget {
+  const _PutAwayMasterStatusCard({
+    required this.sesuaiMaster,
+    required this.masterTear,
+    required this.masterStack,
+    required this.actualTear,
+    required this.actualStack,
+  });
+
+  final bool sesuaiMaster;
+  final int masterTear;
+  final int masterStack;
+  final int actualTear;
+  final int actualStack;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = sesuaiMaster ? Colors.green : Colors.orange;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Icon(
+              sesuaiMaster ? Icons.check_circle_rounded : Icons.warning_rounded,
+              color: color,
+              size: 32,
+            ),
+
+            const SizedBox(width: 14),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sesuaiMaster ? 'Sesuai Master' : 'Berbeda dari Master',
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+
+                  const SizedBox(height: 5),
+
+                  Text(
+                    'Master: Tear $masterTear × Stack $masterStack',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+
+                  Text(
+                    'Aktual: Tear $actualTear × Stack $actualStack',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

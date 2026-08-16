@@ -32,7 +32,6 @@ import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../datasources/excel_data_source.dart';
 
-
 // ============================================================
 // CLASS: ProductRepositoryImpl
 // ============================================================
@@ -49,7 +48,6 @@ class ProductRepositoryImpl implements ProductRepository {
   // ==========================================================
 
   final ExcelDataSource _dataSource;
-
 
   // ==========================================================
   // PROPERTY: excelFilePath
@@ -68,7 +66,6 @@ class ProductRepositoryImpl implements ProductRepository {
 
   final String excelFilePath;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
@@ -83,7 +80,6 @@ class ProductRepositoryImpl implements ProductRepository {
     required this.excelFilePath,
     ExcelDataSource? dataSource,
   }) : _dataSource = dataSource ?? ExcelDataSource();
-
 
   // ==========================================================
   // getAllProducts()
@@ -102,20 +98,14 @@ class ProductRepositoryImpl implements ProductRepository {
     // Membaca seluruh data dari Excel.
     // --------------------------------------------------------
 
-    final rows = await _dataSource.readMasterProduct(
-      excelFilePath,
-    );
-
+    final rows = await _dataSource.readMasterProduct(excelFilePath);
 
     // --------------------------------------------------------
     // Mengubah setiap Map menjadi Product Entity.
     // --------------------------------------------------------
 
-    return rows
-        .map(_mapToProduct)
-        .toList();
+    return rows.map(_mapToProduct).toList();
   }
-
 
   // ==========================================================
   // getProductByPlu()
@@ -132,15 +122,12 @@ class ProductRepositoryImpl implements ProductRepository {
   // ==========================================================
 
   @override
-  Future<Product?> getProductByPlu(
-    String plu,
-  ) async {
+  Future<Product?> getProductByPlu(String plu) async {
     // --------------------------------------------------------
     // Membersihkan input PLU.
     // --------------------------------------------------------
 
     final normalizedPlu = plu.trim();
-
 
     // --------------------------------------------------------
     // Jika PLU kosong, langsung return null.
@@ -150,13 +137,11 @@ class ProductRepositoryImpl implements ProductRepository {
       return null;
     }
 
-
     // --------------------------------------------------------
     // Mengambil seluruh produk.
     // --------------------------------------------------------
 
     final products = await getAllProducts();
-
 
     // --------------------------------------------------------
     // Mencari PLU yang sama.
@@ -168,14 +153,12 @@ class ProductRepositoryImpl implements ProductRepository {
       }
     }
 
-
     // --------------------------------------------------------
     // PLU tidak ditemukan.
     // --------------------------------------------------------
 
     return null;
   }
-
 
   // ==========================================================
   // searchProducts()
@@ -192,16 +175,12 @@ class ProductRepositoryImpl implements ProductRepository {
   // ==========================================================
 
   @override
-  Future<List<Product>> searchProducts(
-    String query,
-  ) async {
+  Future<List<Product>> searchProducts(String query) async {
     // --------------------------------------------------------
     // Membersihkan query dan mengubahnya menjadi lowercase.
     // --------------------------------------------------------
 
-    final normalizedQuery =
-        query.trim().toLowerCase();
-
+    final normalizedQuery = query.trim().toLowerCase();
 
     // --------------------------------------------------------
     // Jika query kosong, tampilkan semua produk.
@@ -211,13 +190,11 @@ class ProductRepositoryImpl implements ProductRepository {
       return getAllProducts();
     }
 
-
     // --------------------------------------------------------
     // Mengambil seluruh produk.
     // --------------------------------------------------------
 
     final products = await getAllProducts();
-
 
     // --------------------------------------------------------
     // Melakukan pencarian.
@@ -228,43 +205,32 @@ class ProductRepositoryImpl implements ProductRepository {
       // Cek PLU.
       // ------------------------------------------------------
 
-      final pluMatch =
-          product.plu.toLowerCase().contains(
-                normalizedQuery,
-              );
-
+      final pluMatch = product.plu.toLowerCase().contains(normalizedQuery);
 
       // ------------------------------------------------------
       // Cek Barcode.
       // ------------------------------------------------------
 
-      final barcodeMatch =
-          product.barcode.toLowerCase().contains(
-                normalizedQuery,
-              );
-
+      final barcodeMatch = product.barcode.toLowerCase().contains(
+        normalizedQuery,
+      );
 
       // ------------------------------------------------------
       // Cek Description.
       // ------------------------------------------------------
 
-      final descriptionMatch =
-          product.description.toLowerCase().contains(
-                normalizedQuery,
-              );
-
+      final descriptionMatch = product.description.toLowerCase().contains(
+        normalizedQuery,
+      );
 
       // ------------------------------------------------------
       // Jika salah satu cocok,
       // masukkan ke hasil pencarian.
       // ------------------------------------------------------
 
-      return pluMatch ||
-          barcodeMatch ||
-          descriptionMatch;
+      return pluMatch || barcodeMatch || descriptionMatch;
     }).toList();
   }
-
 
   // ==========================================================
   // _mapToProduct()
@@ -286,9 +252,7 @@ class ProductRepositoryImpl implements ProductRepository {
   // masterStack → masterStack
   // ==========================================================
 
-  Product _mapToProduct(
-    Map<String, dynamic> row,
-  ) {
+  Product _mapToProduct(Map<String, dynamic> row) {
     return Product(
       // Barcode barang.
       barcode: row['barcode']?.toString() ?? '',
@@ -297,8 +261,7 @@ class ProductRepositoryImpl implements ProductRepository {
       plu: row['plu']?.toString() ?? '',
 
       // Deskripsi barang.
-      description:
-          row['description']?.toString() ?? '',
+      description: row['description']?.toString() ?? '',
 
       // Harga barang.
       price: _toDouble(row['price']),
@@ -319,7 +282,6 @@ class ProductRepositoryImpl implements ProductRepository {
       masterStack: _toInt(row['masterStack']),
     );
   }
-
 
   // ==========================================================
   // _toInt()
@@ -354,11 +316,8 @@ class ProductRepositoryImpl implements ProductRepository {
     }
 
     // Mencoba parsing integer.
-    return int.tryParse(text) ??
-        double.tryParse(text)?.toInt() ??
-        0;
+    return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
   }
-
 
   // ==========================================================
   // _toDouble()

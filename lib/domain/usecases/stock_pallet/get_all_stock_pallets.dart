@@ -17,7 +17,6 @@
 import '../../entities/stock_pallet.dart';
 import '../../repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS:
 // GetAllStockPallets
@@ -30,15 +29,11 @@ class GetAllStockPallets {
 
   final StockPalletRepository repository;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const GetAllStockPallets({
-    required this.repository,
-  });
-
+  const GetAllStockPallets({required this.repository});
 
   // ==========================================================
   // CALL

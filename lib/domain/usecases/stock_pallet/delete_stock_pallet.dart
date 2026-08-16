@@ -16,7 +16,6 @@
 
 import '../../repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS:
 // DeleteStockPallet
@@ -29,15 +28,11 @@ class DeleteStockPallet {
 
   final StockPalletRepository repository;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const DeleteStockPallet({
-    required this.repository,
-  });
-
+  const DeleteStockPallet({required this.repository});
 
   // ==========================================================
   // CALL
@@ -47,11 +42,7 @@ class DeleteStockPallet {
   // Menghapus pallet berdasarkan Location Code.
   // ==========================================================
 
-  Future<void> call(
-    String locationCode,
-  ) async {
-    await repository.deleteByLocationCode(
-      locationCode,
-    );
+  Future<void> call(String locationCode) async {
+    await repository.deleteByLocationCode(locationCode);
   }
 }

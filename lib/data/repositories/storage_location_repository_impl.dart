@@ -49,9 +49,7 @@ import '../../domain/repositories/storage_location_repository.dart';
 // StorageLocationRepositoryImpl
 // ============================================================
 
-class StorageLocationRepositoryImpl
-    implements StorageLocationRepository {
-
+class StorageLocationRepositoryImpl implements StorageLocationRepository {
   // ----------------------------------------------------------
   // Constructor.
   // ----------------------------------------------------------
@@ -73,10 +71,7 @@ class StorageLocationRepositoryImpl
     // Rack 80
     // --------------------------------------------------------
 
-    _addRackLocations(
-      locations,
-      rack: 80,
-    );
+    _addRackLocations(locations, rack: 80);
 
     // --------------------------------------------------------
     // Rack 81–90
@@ -85,10 +80,7 @@ class StorageLocationRepositoryImpl
     // --------------------------------------------------------
 
     for (int rack = 81; rack <= 90; rack++) {
-      _addRackLocations(
-        locations,
-        rack: rack,
-      );
+      _addRackLocations(locations, rack: rack);
     }
 
     // --------------------------------------------------------
@@ -98,10 +90,7 @@ class StorageLocationRepositoryImpl
     // --------------------------------------------------------
 
     for (int rack = 91; rack <= 94; rack++) {
-      _addRackLocations(
-        locations,
-        rack: rack,
-      );
+      _addRackLocations(locations, rack: rack);
     }
 
     // --------------------------------------------------------
@@ -112,10 +101,7 @@ class StorageLocationRepositoryImpl
     // --------------------------------------------------------
 
     for (int rack = 95; rack <= 96; rack++) {
-      _addRackLocations(
-        locations,
-        rack: rack,
-      );
+      _addRackLocations(locations, rack: rack);
     }
 
     return locations;
@@ -129,10 +115,7 @@ class StorageLocationRepositoryImpl
   // StorageLocation entity.
   // ==========================================================
 
-  void _addRackLocations(
-    List<StorageLocation> locations, {
-    required int rack,
-  }) {
+  void _addRackLocations(List<StorageLocation> locations, {required int rack}) {
     // --------------------------------------------------------
     // Ambil seluruh kode lokasi untuk Rack.
     // Generator sudah mengetahui aturan:
@@ -143,8 +126,9 @@ class StorageLocationRepositoryImpl
     // Rack 95–96   → Shelving 01–06
     // --------------------------------------------------------
 
-    final List<String> codes =
-        LocationCodeGenerator.generateRackLocations(rack);
+    final List<String> codes = LocationCodeGenerator.generateRackLocations(
+      rack,
+    );
 
     // --------------------------------------------------------
     // Ubah setiap kode menjadi StorageLocation.
@@ -171,17 +155,13 @@ class StorageLocationRepositoryImpl
       // 01 = Position
       // ------------------------------------------------------
 
-      final int rackNumber =
-          int.parse(code.substring(0, 2));
+      final int rackNumber = int.parse(code.substring(0, 2));
 
-      final int bayNumber =
-          int.parse(code.substring(2, 4));
+      final int bayNumber = int.parse(code.substring(2, 4));
 
-      final int shelvingNumber =
-          int.parse(code.substring(4, 5));
+      final int shelvingNumber = int.parse(code.substring(4, 5));
 
-      final int positionNumber =
-          int.parse(code.substring(5, 7));
+      final int positionNumber = int.parse(code.substring(5, 7));
 
       // ------------------------------------------------------
       // Buat entity StorageLocation.
@@ -192,7 +172,7 @@ class StorageLocationRepositoryImpl
           rack: rackNumber,
           bay: bayNumber,
           shelving: shelvingNumber,
-          level: shelvingNumber,
+
           position: positionNumber,
           code: code,
         ),
@@ -215,11 +195,8 @@ class StorageLocationRepositoryImpl
   // ==========================================================
 
   @override
-  Future<StorageLocation?> getLocationByCode(
-    String code,
-  ) async {
-    final List<StorageLocation> locations =
-        await getAllLocations();
+  Future<StorageLocation?> getLocationByCode(String code) async {
+    final List<StorageLocation> locations = await getAllLocations();
 
     for (final StorageLocation location in locations) {
       if (location.code == code) {
@@ -247,9 +224,7 @@ class StorageLocationRepositoryImpl
   // Kita pertahankan findByCode agar test lama tidak rusak.
   // ==========================================================
 
-  Future<StorageLocation?> findByCode(
-    String code,
-  ) async {
+  Future<StorageLocation?> findByCode(String code) async {
     return getLocationByCode(code);
   }
 
@@ -264,8 +239,7 @@ class StorageLocationRepositoryImpl
 
   @override
   Future<int> getTotalLocation() async {
-    final List<StorageLocation> locations =
-        await getAllLocations();
+    final List<StorageLocation> locations = await getAllLocations();
 
     return locations.length;
   }

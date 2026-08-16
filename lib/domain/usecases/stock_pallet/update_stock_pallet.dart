@@ -19,7 +19,6 @@
 import '../../entities/stock_pallet.dart';
 import '../../repositories/stock_pallet_repository.dart';
 
-
 // ============================================================
 // CLASS:
 // UpdateStockPallet
@@ -32,15 +31,11 @@ class UpdateStockPallet {
 
   final StockPalletRepository repository;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const UpdateStockPallet({
-    required this.repository,
-  });
-
+  const UpdateStockPallet({required this.repository});
 
   // ==========================================================
   // CALL
@@ -53,9 +48,7 @@ class UpdateStockPallet {
   // repository akan menghasilkan StateError.
   // ==========================================================
 
-  Future<void> call(
-    StockPallet pallet,
-  ) async {
+  Future<void> call(StockPallet pallet) async {
     await repository.update(pallet);
   }
 }

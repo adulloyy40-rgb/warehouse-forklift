@@ -364,7 +364,7 @@ void main() {
         rack: 81,
         bay: 1,
         shelving: 2,
-        level: 1,
+        
         position: 1,
         code: '8101201',
       );
@@ -389,7 +389,7 @@ void main() {
         rack: 81,
         bay: 1,
         shelving: 1,
-        level: 1,
+        
         position: 1,
         code: '8101101',
       );

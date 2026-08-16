@@ -25,7 +25,6 @@
 // Class ini hanya bertugas melakukan PERHITUNGAN.
 // ============================================================
 
-
 // ============================================================
 // CLASS: StockPalletCalculation
 //
@@ -48,7 +47,6 @@ class StockPalletCalculation {
 
   final int qtyCtn;
 
-
   // ==========================================================
   // qtyPcs
   //
@@ -59,16 +57,11 @@ class StockPalletCalculation {
 
   final int qtyPcs;
 
-
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const StockPalletCalculation({
-    required this.qtyCtn,
-    required this.qtyPcs,
-  });
-
+  const StockPalletCalculation({required this.qtyCtn, required this.qtyPcs});
 
   // ==========================================================
   // toString()
@@ -84,7 +77,6 @@ class StockPalletCalculation {
         ')';
   }
 }
-
 
 // ============================================================
 // CLASS: StockPalletCalculator
@@ -120,7 +112,6 @@ class StockPalletCalculator {
 
     final int qtyCtn = tear * stack;
 
-
     // --------------------------------------------------------
     // Menghitung jumlah PCS.
     //
@@ -129,14 +120,10 @@ class StockPalletCalculator {
 
     final int qtyPcs = qtyCtn * conv2;
 
-
     // --------------------------------------------------------
     // Mengembalikan hasil perhitungan.
     // --------------------------------------------------------
 
-    return StockPalletCalculation(
-      qtyCtn: qtyCtn,
-      qtyPcs: qtyPcs,
-    );
+    return StockPalletCalculation(qtyCtn: qtyCtn, qtyPcs: qtyPcs);
   }
 }

@@ -37,7 +37,6 @@
 
 import '../../domain/entities/stock_pallet.dart';
 
-
 // ============================================================
 // CLASS: StockPalletModel
 // ============================================================
@@ -68,7 +67,6 @@ class StockPalletModel extends StockPallet {
     required super.sesuaiMaster,
   });
 
-
   // ==========================================================
   // fromEntity()
   // ==========================================================
@@ -79,9 +77,7 @@ class StockPalletModel extends StockPallet {
   // Digunakan ketika data dari Domain masuk ke Data Layer.
   // ==========================================================
 
-  factory StockPalletModel.fromEntity(
-    StockPallet entity,
-  ) {
+  factory StockPalletModel.fromEntity(StockPallet entity) {
     return StockPalletModel(
       locationCode: entity.locationCode,
       plu: entity.plu,
@@ -98,7 +94,6 @@ class StockPalletModel extends StockPallet {
     );
   }
 
-
   // ==========================================================
   // fromMap()
   // ==========================================================
@@ -113,48 +108,33 @@ class StockPalletModel extends StockPallet {
   // - pembacaan data
   // ==========================================================
 
-  factory StockPalletModel.fromMap(
-    Map<String, dynamic> map,
-  ) {
+  factory StockPalletModel.fromMap(Map<String, dynamic> map) {
     return StockPalletModel(
-      locationCode:
-          map['locationCode']?.toString() ?? '',
+      locationCode: map['locationCode']?.toString() ?? '',
 
-      plu:
-          map['plu']?.toString() ?? '',
+      plu: map['plu']?.toString() ?? '',
 
-      description:
-          map['description']?.toString() ?? '',
+      description: map['description']?.toString() ?? '',
 
-      tear:
-          _toInt(map['tear']),
+      tear: _toInt(map['tear']),
 
-      stack:
-          _toInt(map['stack']),
+      stack: _toInt(map['stack']),
 
-      qtyCtn:
-          _toInt(map['qtyCtn']),
+      qtyCtn: _toInt(map['qtyCtn']),
 
-      qtyPcs:
-          _toInt(map['qtyPcs']),
+      qtyPcs: _toInt(map['qtyPcs']),
 
-      conv2:
-          _toInt(map['conv2']),
+      conv2: _toInt(map['conv2']),
 
-      expiredDate:
-          _toDateTime(map['expiredDate']),
+      expiredDate: _toDateTime(map['expiredDate']),
 
-      inputDate:
-          _toDateTime(map['inputDate']),
+      inputDate: _toDateTime(map['inputDate']),
 
-      operatorNik:
-          map['operatorNik']?.toString() ?? '',
+      operatorNik: map['operatorNik']?.toString() ?? '',
 
-      sesuaiMaster:
-          _toBool(map['sesuaiMaster']),
+      sesuaiMaster: _toBool(map['sesuaiMaster']),
     );
   }
-
 
   // ==========================================================
   // toMap()
@@ -197,7 +177,6 @@ class StockPalletModel extends StockPallet {
     };
   }
 
-
   // ==========================================================
   // toExportMap()
   // ==========================================================
@@ -226,9 +205,7 @@ class StockPalletModel extends StockPallet {
   // No hanya digunakan saat membuat laporan Excel.
   // ==========================================================
 
-  Map<String, dynamic> toExportMap({
-    required int no,
-  }) {
+  Map<String, dynamic> toExportMap({required int no}) {
     return {
       'No': no,
 
@@ -248,20 +225,15 @@ class StockPalletModel extends StockPallet {
 
       'Qty PCS': qtyPcs,
 
-      'Expired Date':
-          expiredDate.toIso8601String(),
+      'Expired Date': expiredDate.toIso8601String(),
 
-      'Input Date':
-          inputDate.toIso8601String(),
+      'Input Date': inputDate.toIso8601String(),
 
-      'Operator NIK':
-          operatorNik,
+      'Operator NIK': operatorNik,
 
-      'Sesuai Master':
-          sesuaiMaster ? 'YA' : 'TIDAK',
+      'Sesuai Master': sesuaiMaster ? 'YA' : 'TIDAK',
     };
   }
-
 
   // ==========================================================
   // _toInt()
@@ -278,9 +250,7 @@ class StockPalletModel extends StockPallet {
   // null
   // ==========================================================
 
-  static int _toInt(
-    dynamic value,
-  ) {
+  static int _toInt(dynamic value) {
     if (value == null) {
       return 0;
     }
@@ -293,22 +263,19 @@ class StockPalletModel extends StockPallet {
       return value.toInt();
     }
 
-    final text =
-        value.toString().trim();
+    final text = value.toString().trim();
 
     if (text.isEmpty) {
       return 0;
     }
 
-    final intValue =
-        int.tryParse(text);
+    final intValue = int.tryParse(text);
 
     if (intValue != null) {
       return intValue;
     }
 
-    final doubleValue =
-        double.tryParse(text);
+    final doubleValue = double.tryParse(text);
 
     if (doubleValue != null) {
       return doubleValue.toInt();
@@ -316,7 +283,6 @@ class StockPalletModel extends StockPallet {
 
     return 0;
   }
-
 
   // ==========================================================
   // _toBool()
@@ -329,22 +295,15 @@ class StockPalletModel extends StockPallet {
   // TIDAK / false / no / 0 → false
   // ==========================================================
 
-  static bool _toBool(
-    dynamic value,
-  ) {
+  static bool _toBool(dynamic value) {
     if (value is bool) {
       return value;
     }
 
-    final text =
-        value?.toString().trim().toLowerCase() ?? '';
+    final text = value?.toString().trim().toLowerCase() ?? '';
 
-    return text == 'true' ||
-        text == 'ya' ||
-        text == 'yes' ||
-        text == '1';
+    return text == 'true' || text == 'ya' || text == 'yes' || text == '1';
   }
-
 
   // ==========================================================
   // _toDateTime()
@@ -357,20 +316,15 @@ class StockPalletModel extends StockPallet {
   // digunakan nilai fallback epoch.
   // ==========================================================
 
-  static DateTime _toDateTime(
-    dynamic value,
-  ) {
+  static DateTime _toDateTime(dynamic value) {
     if (value is DateTime) {
       return value;
     }
 
-    final text =
-        value?.toString().trim() ?? '';
+    final text = value?.toString().trim() ?? '';
 
-    final result =
-        DateTime.tryParse(text);
+    final result = DateTime.tryParse(text);
 
-    return result ??
-        DateTime.fromMillisecondsSinceEpoch(0);
+    return result ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 }

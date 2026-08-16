@@ -27,7 +27,6 @@
 
 import '../entities/product.dart';
 
-
 // ============================================================
 // ABSTRACT CLASS: ProductRepository
 // ============================================================
@@ -69,7 +68,6 @@ abstract class ProductRepository {
 
   Future<List<Product>> getAllProducts();
 
-
   // ==========================================================
   // getProductByPlu()
   // ==========================================================
@@ -87,10 +85,7 @@ abstract class ProductRepository {
   // return null
   // ==========================================================
 
-  Future<Product?> getProductByPlu(
-    String plu,
-  );
-
+  Future<Product?> getProductByPlu(String plu);
 
   // ==========================================================
   // searchProducts()
@@ -107,7 +102,5 @@ abstract class ProductRepository {
   // kita rencanakan.
   // ==========================================================
 
-  Future<List<Product>> searchProducts(
-    String query,
-  );
+  Future<List<Product>> searchProducts(String query);
 }

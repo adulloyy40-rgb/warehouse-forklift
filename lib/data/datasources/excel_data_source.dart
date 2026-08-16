@@ -27,7 +27,6 @@ import 'dart:io';
 
 import 'package:excel/excel.dart';
 
-
 // ============================================================
 // CLASS: ExcelDataSource
 // ============================================================
@@ -56,7 +55,6 @@ class ExcelDataSource {
     'TEAR',
   ];
 
-
   // ==========================================================
   // readMasterProduct()
   // ==========================================================
@@ -73,9 +71,7 @@ class ExcelDataSource {
   // Satu Map = satu barang.
   // ==========================================================
 
-  Future<List<Map<String, dynamic>>> readMasterProduct(
-    String filePath,
-  ) async {
+  Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
     // --------------------------------------------------------
     // 1. Memastikan file Excel tersedia.
     // --------------------------------------------------------
@@ -83,11 +79,8 @@ class ExcelDataSource {
     final file = File(filePath);
 
     if (!await file.exists()) {
-      throw Exception(
-        'File Excel tidak ditemukan: $filePath',
-      );
+      throw Exception('File Excel tidak ditemukan: $filePath');
     }
-
 
     // --------------------------------------------------------
     // 2. Membaca file Excel menjadi bytes.
@@ -95,24 +88,19 @@ class ExcelDataSource {
 
     final bytes = await file.readAsBytes();
 
-
     // --------------------------------------------------------
     // 3. Membuka file Excel.
     // --------------------------------------------------------
 
     final excel = Excel.decodeBytes(bytes);
 
-
     // --------------------------------------------------------
     // 4. Memastikan Excel mempunyai worksheet.
     // --------------------------------------------------------
 
     if (excel.tables.isEmpty) {
-      throw Exception(
-        'File Excel tidak memiliki worksheet.',
-      );
+      throw Exception('File Excel tidak memiliki worksheet.');
     }
-
 
     // --------------------------------------------------------
     // 5. Mengambil worksheet pertama.
@@ -125,11 +113,8 @@ class ExcelDataSource {
     final sheet = excel.tables[sheetName];
 
     if (sheet == null) {
-      throw Exception(
-        'Worksheet Excel tidak dapat dibaca.',
-      );
+      throw Exception('Worksheet Excel tidak dapat dibaca.');
     }
-
 
     // --------------------------------------------------------
     // 6. Mencari baris HEADER secara otomatis.
@@ -149,11 +134,7 @@ class ExcelDataSource {
 
     Map<String, int>? headerIndexes;
 
-    for (
-      int rowIndex = 0;
-      rowIndex < sheet.maxRows;
-      rowIndex++
-    ) {
+    for (int rowIndex = 0; rowIndex < sheet.maxRows; rowIndex++) {
       // Mengambil satu baris Excel.
       final row = sheet.row(rowIndex);
 
@@ -161,18 +142,12 @@ class ExcelDataSource {
       final indexes = <String, int>{};
 
       // Membaca setiap cell pada baris.
-      for (
-        int columnIndex = 0;
-        columnIndex < row.length;
-        columnIndex++
-      ) {
+      for (int columnIndex = 0; columnIndex < row.length; columnIndex++) {
         // Mengambil nilai cell.
-        final cellValue =
-            row[columnIndex]?.value?.toString() ?? '';
+        final cellValue = row[columnIndex]?.value?.toString() ?? '';
 
         // Membersihkan spasi.
-        final normalized =
-            _normalizeHeader(cellValue);
+        final normalized = _normalizeHeader(cellValue);
 
         // Jika cell mempunyai nilai,
         // simpan posisi kolomnya.
@@ -194,14 +169,12 @@ class ExcelDataSource {
       }
     }
 
-
     // --------------------------------------------------------
     // 7. Jika header tidak ditemukan,
     // hentikan proses dengan pesan yang jelas.
     // --------------------------------------------------------
 
-    if (headerRowIndex == null ||
-        headerIndexes == null) {
+    if (headerRowIndex == null || headerIndexes == null) {
       throw Exception(
         'Header Master Barang tidak ditemukan. '
         'Pastikan Excel memiliki kolom BARCODE, PLU, '
@@ -209,17 +182,13 @@ class ExcelDataSource {
       );
     }
 
-
     // --------------------------------------------------------
     // 8. Memastikan semua kolom wajib tersedia.
     // --------------------------------------------------------
 
-    final missingHeaders =
-        requiredExcelHeaders.where(
-      (header) =>
-          !headerIndexes!.containsKey(header),
-    ).toList();
-
+    final missingHeaders = requiredExcelHeaders
+        .where((header) => !headerIndexes!.containsKey(header))
+        .toList();
 
     // --------------------------------------------------------
     // 9. Jika ada kolom yang hilang,
@@ -234,13 +203,11 @@ class ExcelDataSource {
       );
     }
 
-
     // --------------------------------------------------------
     // 10. Menyiapkan list hasil pembacaan.
     // --------------------------------------------------------
 
     final List<Map<String, dynamic>> products = [];
-
 
     // --------------------------------------------------------
     // 11. Membaca semua baris SETELAH HEADER.
@@ -254,7 +221,6 @@ class ExcelDataSource {
       // Mengambil baris barang.
       final row = sheet.row(rowIndex);
 
-
       // ------------------------------------------------------
       // 12. Melewati baris kosong.
       // ------------------------------------------------------
@@ -263,15 +229,13 @@ class ExcelDataSource {
         continue;
       }
 
-
       // ------------------------------------------------------
       // 13. Membaca nilai berdasarkan nama kolom Excel.
       // ------------------------------------------------------
 
       dynamic getExcelValue(String header) {
         // Mengambil index kolom.
-        final columnIndex =
-            headerIndexes![header];
+        final columnIndex = headerIndexes![header];
 
         // Jika kolom tidak ditemukan.
         if (columnIndex == null) {
@@ -287,38 +251,27 @@ class ExcelDataSource {
         return row[columnIndex]?.value;
       }
 
-
       // ------------------------------------------------------
       // 14. Mengambil semua nilai Excel.
       // ------------------------------------------------------
 
-      final barcode =
-          _cleanValue(getExcelValue('BARCODE'));
+      final barcode = _cleanValue(getExcelValue('BARCODE'));
 
-      final plu =
-          _cleanValue(getExcelValue('PLU'));
+      final plu = _cleanValue(getExcelValue('PLU'));
 
-      final description =
-          _cleanValue(getExcelValue('DESC'));
+      final description = _cleanValue(getExcelValue('DESC'));
 
-      final price =
-          _toDouble(getExcelValue('PRICE'));
+      final price = _toDouble(getExcelValue('PRICE'));
 
-      final returHari =
-          _toInt(getExcelValue('RETUR HARI'));
+      final returHari = _toInt(getExcelValue('RETUR HARI'));
 
-      final conv2 =
-          _toInt(getExcelValue('C2'));
+      final conv2 = _toInt(getExcelValue('C2'));
 
-      final type =
-          _cleanValue(getExcelValue('TYPE'));
+      final type = _cleanValue(getExcelValue('TYPE'));
 
-      final masterStack =
-          _toInt(getExcelValue('STACK'));
+      final masterStack = _toInt(getExcelValue('STACK'));
 
-      final masterTear =
-          _toInt(getExcelValue('TEAR'));
-
+      final masterTear = _toInt(getExcelValue('TEAR'));
 
       // ------------------------------------------------------
       // 15. Validasi baris barang.
@@ -327,12 +280,9 @@ class ExcelDataSource {
       // baris tidak dianggap sebagai barang valid.
       // ------------------------------------------------------
 
-      if (barcode.isEmpty &&
-          plu.isEmpty &&
-          description.isEmpty) {
+      if (barcode.isEmpty && plu.isEmpty && description.isEmpty) {
         continue;
       }
-
 
       // ------------------------------------------------------
       // 16. Mapping Excel → Aplikasi.
@@ -374,7 +324,6 @@ class ExcelDataSource {
         'masterStack': masterStack,
       };
 
-
       // ------------------------------------------------------
       // 17. Menambahkan barang ke hasil.
       // ------------------------------------------------------
@@ -382,14 +331,12 @@ class ExcelDataSource {
       products.add(product);
     }
 
-
     // --------------------------------------------------------
     // 18. Mengembalikan seluruh Master Barang.
     // --------------------------------------------------------
 
     return products;
   }
-
 
   // ==========================================================
   // _normalizeHeader()
@@ -404,12 +351,8 @@ class ExcelDataSource {
   // ==========================================================
 
   String _normalizeHeader(String value) {
-    return value
-        .trim()
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .toUpperCase();
+    return value.trim().replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
   }
-
 
   // ==========================================================
   // _containsMinimumHeaders()
@@ -421,14 +364,11 @@ class ExcelDataSource {
   // identitas minimum header Master Barang.
   // ==========================================================
 
-  bool _containsMinimumHeaders(
-    Map<String, int> indexes,
-  ) {
+  bool _containsMinimumHeaders(Map<String, int> indexes) {
     return indexes.containsKey('BARCODE') &&
         indexes.containsKey('PLU') &&
         indexes.containsKey('DESC');
   }
-
 
   // ==========================================================
   // _isEmptyRow()
@@ -437,12 +377,9 @@ class ExcelDataSource {
   // Mengecek apakah satu baris Excel kosong.
   // ==========================================================
 
-  bool _isEmptyRow(
-    List<Data?> row,
-  ) {
+  bool _isEmptyRow(List<Data?> row) {
     for (final cell in row) {
-      final value =
-          cell?.value?.toString().trim() ?? '';
+      final value = cell?.value?.toString().trim() ?? '';
 
       if (value.isNotEmpty) {
         return false;
@@ -451,7 +388,6 @@ class ExcelDataSource {
 
     return true;
   }
-
 
   // ==========================================================
   // _cleanValue()
@@ -467,7 +403,6 @@ class ExcelDataSource {
 
     return value.toString().trim();
   }
-
 
   // ==========================================================
   // _toInt()
@@ -502,11 +437,8 @@ class ExcelDataSource {
       return 0;
     }
 
-    return int.tryParse(text) ??
-        double.tryParse(text)?.toInt() ??
-        0;
+    return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
   }
-
 
   // ==========================================================
   // _toDouble()
