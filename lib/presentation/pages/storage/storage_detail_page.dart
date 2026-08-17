@@ -17,6 +17,7 @@
 // 8. Menghitung QTY CTN.
 // 9. Menghitung QTY PCS.
 // 10. Menyimpan pallet melalui PutAwayStockPallet.
+// 11. Mengedit pallet melalui UpdateStockPallet.
 //
 // ============================================================
 
@@ -32,6 +33,7 @@ import '../../../domain/repositories/stock_pallet_repository.dart';
 
 import '../../../domain/usecases/product/get_product_by_plu.dart';
 import '../../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
+import '../../../domain/usecases/stock_pallet/update_stock_pallet.dart';
 
 // ============================================================
 // STORAGE DETAIL PAGE
@@ -149,6 +151,50 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
   }
 
   // ==========================================================
+  // OPEN EDIT PALLET
+  // ==========================================================
+  //
+  // EDIT hanya tersedia jika lokasi sedang OCCUPIED.
+  // Location Code tetap terkunci; operator hanya mengubah
+  // data pallet yang memang boleh dikoreksi di lapangan.
+  // ==========================================================
+
+  Future<void> _openEditPalletForm() async {
+    final pallet = _pallet;
+
+    if (pallet == null) {
+      return;
+    }
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return _EditPalletForm(
+          location: widget.location,
+          pallet: pallet,
+          stockPalletRepository: widget.stockPalletRepository,
+        );
+      },
+    );
+
+    if (result == true) {
+      await _loadLocationData();
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('EDIT PALLET berhasil disimpan.'),
+        ),
+      );
+    }
+  }
+
+  // ==========================================================
   // BUILD
   // ==========================================================
 
@@ -243,11 +289,35 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
 
                 if (_isLoading)
                   const _LoadingCard()
-                else if (isOccupied)
+                else if (isOccupied) ...[
                   _PalletInformationCard(
                     pallet: _pallet!,
-                  )
-                else ...[
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _openEditPalletForm,
+                          icon: const Icon(
+                            Icons.edit_note_rounded,
+                          ),
+                          label: const Text(
+                            'EDIT PALLET',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
                   const _AvailableCard(),
 
                   const SizedBox(height: 16),
@@ -816,6 +886,628 @@ class _InformationRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ============================================================
+// EDIT PALLET FORM
+// ============================================================
+//
+// FUNGSI:
+// Form khusus untuk mengedit pallet yang sudah menempati lokasi.
+//
+// ATURAN:
+// - Location Code tidak dapat diubah.
+// - PLU dapat diganti dan harus valid di Master Barang.
+// - Barcode, Description, Price, Conv2, dan Type mengikuti Master.
+// - Tear dan Stack dapat dikoreksi sesuai kondisi lapangan.
+// - Qty CTN dan Qty PCS dihitung otomatis.
+// - Expired Date dapat dikoreksi.
+// - Update menggunakan UpdateStockPallet.
+// ============================================================
+
+class _EditPalletForm extends StatefulWidget {
+  const _EditPalletForm({
+    required this.location,
+    required this.pallet,
+    required this.stockPalletRepository,
+  });
+
+  final StorageLocation location;
+  final StockPallet pallet;
+  final StockPalletRepository stockPalletRepository;
+
+  @override
+  State<_EditPalletForm> createState() => _EditPalletFormState();
+}
+
+class _EditPalletFormState extends State<_EditPalletForm> {
+  final TextEditingController _pluController =
+      TextEditingController();
+
+  final TextEditingController _tearController =
+      TextEditingController();
+
+  final TextEditingController _stackController =
+      TextEditingController();
+
+  final TextEditingController _expiredDateController =
+      TextEditingController();
+
+  Product? _product;
+
+  bool _isSearching = false;
+  bool _isSaving = false;
+  String? _errorMessage;
+
+  GetProductByPlu get getProductByPlu =>
+      AppDependencies.instance.getProductByPlu;
+
+  UpdateStockPallet get updateStockPallet =>
+      AppDependencies.instance.updateStockPallet;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pluController.text = widget.pallet.plu;
+    _tearController.text = widget.pallet.tear.toString();
+    _stackController.text = widget.pallet.stack.toString();
+    _expiredDateController.text =
+        _formatDate(widget.pallet.expiredDate);
+
+    _tearController.addListener(_refresh);
+    _stackController.addListener(_refresh);
+
+    _loadInitialProduct();
+  }
+
+  Future<void> _loadInitialProduct() async {
+    try {
+      final product =
+          await getProductByPlu(widget.pallet.plu);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _product = product;
+
+        if (product == null) {
+          _errorMessage =
+              'Master Barang untuk PLU ${widget.pallet.plu} tidak ditemukan.';
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint(
+        'Edit pallet initial product error: $error',
+      );
+
+      setState(() {
+        _errorMessage =
+            'Gagal memuat Master Barang.';
+      });
+    }
+  }
+
+  void _refresh() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  int _parseInt(String value) {
+    return int.tryParse(value.trim()) ?? 0;
+  }
+
+  int get _tear => _parseInt(_tearController.text);
+
+  int get _stack => _parseInt(_stackController.text);
+
+  int get _qtyCtn => _tear * _stack;
+
+  int get _qtyPcs {
+    if (_product == null) {
+      return 0;
+    }
+
+    return _qtyCtn * _product!.conv2;
+  }
+
+  bool get _sesuaiMaster {
+    if (_product == null) {
+      return false;
+    }
+
+    return _tear == _product!.masterTear &&
+        _stack == _product!.masterStack;
+  }
+
+  Future<void> _searchProduct() async {
+    final plu = _pluController.text.trim();
+
+    if (plu.isEmpty) {
+      setState(() {
+        _product = null;
+        _errorMessage = 'PLU wajib diisi.';
+      });
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isSearching = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final product = await getProductByPlu(plu);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isSearching = false;
+        _product = product;
+        _errorMessage = product == null
+            ? 'Barang dengan PLU $plu tidak ditemukan.'
+            : null;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint(
+        'Edit pallet product search error: $error',
+      );
+
+      setState(() {
+        _isSearching = false;
+        _product = null;
+        _errorMessage =
+            'Gagal mencari Master Barang.';
+      });
+    }
+  }
+
+  Future<void> _selectExpiredDate() async {
+    final current =
+        _getExpiredDate() ?? DateTime.now();
+
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(current.year - 10),
+      lastDate: DateTime(current.year + 20),
+    );
+
+    if (selected == null || !mounted) {
+      return;
+    }
+
+    _expiredDateController.text =
+        _formatDate(selected);
+
+    setState(() {});
+  }
+
+  DateTime? _getExpiredDate() {
+    final value =
+        _expiredDateController.text.trim();
+
+    if (value.isEmpty) {
+      return null;
+    }
+
+    final parts = value.split('/');
+
+    if (parts.length != 3) {
+      return null;
+    }
+
+    final day = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+
+    if (day == null ||
+        month == null ||
+        year == null) {
+      return null;
+    }
+
+    final date = DateTime(year, month, day);
+
+    // Mencegah tanggal seperti 31/02/2026
+    // berubah diam-diam menjadi tanggal lain.
+    if (date.year != year ||
+        date.month != month ||
+        date.day != day) {
+      return null;
+    }
+
+    return date;
+  }
+
+  String _formatDate(DateTime date) {
+    final day =
+        date.day.toString().padLeft(2, '0');
+    final month =
+        date.month.toString().padLeft(2, '0');
+
+    return '$day/$month/${date.year}';
+  }
+
+  Future<void> _saveEdit() async {
+    if (_product == null) {
+      setState(() {
+        _errorMessage =
+            'Master Barang belum valid. Cari PLU terlebih dahulu.';
+      });
+      return;
+    }
+
+    if (_tear <= 0) {
+      setState(() {
+        _errorMessage =
+            'Tear harus lebih besar dari 0.';
+      });
+      return;
+    }
+
+    if (_stack <= 0) {
+      setState(() {
+        _errorMessage =
+            'Stack harus lebih besar dari 0.';
+      });
+      return;
+    }
+
+    final expiredDate = _getExpiredDate();
+
+    if (expiredDate == null) {
+      setState(() {
+        _errorMessage =
+            'Tanggal expired tidak valid.';
+      });
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final updatedPallet = StockPallet(
+        locationCode: widget.pallet.locationCode,
+        plu: _product!.plu,
+        barcode: _product!.barcode,
+        description: _product!.description,
+        price: _product!.price,
+        returHari: _product!.returHari,
+        conv2: _product!.conv2,
+        type: _product!.type,
+        tear: _tear,
+        stack: _stack,
+        qtyCtn: _qtyCtn,
+        qtyPcs: _qtyPcs,
+        expiredDate: expiredDate,
+        inputDate: widget.pallet.inputDate,
+        operatorNik: widget.pallet.operatorNik,
+        sesuaiMaster: _sesuaiMaster,
+      );
+
+      await updateStockPallet(updatedPallet);
+
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop(true);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint(
+        'Edit pallet save error: $error',
+      );
+
+      setState(() {
+        _isSaving = false;
+        _errorMessage = error is StateError
+            ? error.message
+            : error is ArgumentError
+                ? error.message?.toString()
+                : 'Gagal menyimpan perubahan pallet.';
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _pluController.dispose();
+    _tearController.dispose();
+    _stackController.dispose();
+    _expiredDateController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom:
+            MediaQuery.of(context).viewInsets.bottom +
+                20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Edit Pallet',
+                    style: theme
+                        .textTheme.headlineSmall
+                        ?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Tutup',
+                  onPressed: _isSaving
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ],
+            ),
+
+            Text(
+              'Lokasi: ${widget.location.code}',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              'PLU Barang',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _pluController,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.search,
+                    enabled: !_isSaving,
+                    onSubmitted: (_) => _searchProduct(),
+                    decoration: const InputDecoration(
+                      labelText: 'PLU',
+                      prefixIcon:
+                          Icon(Icons.tag_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: _isSearching || _isSaving
+                        ? null
+                        : _searchProduct,
+                    child: _isSearching
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child:
+                                CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.search_rounded,
+                          ),
+                  ),
+                ),
+              ],
+            ),
+
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius:
+                      BorderRadius.circular(12),
+                  border: Border.all(
+                    color:
+                        Colors.red.withValues(alpha: 0.20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (_product != null) ...[
+              const SizedBox(height: 16),
+
+              _PutAwayProductCard(
+                product: _product!,
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'Tear Aktual',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _tearController,
+                keyboardType: TextInputType.number,
+                enabled: !_isSaving,
+                decoration: const InputDecoration(
+                  labelText: 'Tear',
+                  prefixIcon:
+                      Icon(Icons.layers_rounded),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'Stack Aktual',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _stackController,
+                keyboardType: TextInputType.number,
+                enabled: !_isSaving,
+                decoration: const InputDecoration(
+                  labelText: 'Stack',
+                  prefixIcon:
+                      Icon(Icons.view_module_rounded),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Text(
+                'Tanggal Expired',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              TextField(
+                controller: _expiredDateController,
+                readOnly: true,
+                enabled: !_isSaving,
+                onTap: _selectExpiredDate,
+                decoration: const InputDecoration(
+                  labelText: 'Tanggal Expired',
+                  prefixIcon:
+                      Icon(Icons.calendar_today_rounded),
+                  suffixIcon:
+                      Icon(Icons.arrow_drop_down_rounded),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              _PutAwayQuantityCard(
+                qtyCtn: _qtyCtn,
+                qtyPcs: _qtyPcs,
+                conv2: _product!.conv2,
+              ),
+
+              const SizedBox(height: 16),
+
+              _PutAwayMasterStatusCard(
+                sesuaiMaster: _sesuaiMaster,
+                masterTear: _product!.masterTear,
+                masterStack: _product!.masterStack,
+                actualTear: _tear,
+                actualStack: _stack,
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: FilledButton.icon(
+                  onPressed: _isSaving ? null : _saveEdit,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child:
+                              CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.save_rounded),
+                  label: Text(
+                    _isSaving
+                        ? 'MENYIMPAN...'
+                        : 'SIMPAN PERUBAHAN',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
