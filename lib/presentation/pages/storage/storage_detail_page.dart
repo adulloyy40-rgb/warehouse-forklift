@@ -34,6 +34,7 @@ import '../../../domain/repositories/stock_pallet_repository.dart';
 import '../../../domain/usecases/product/get_product_by_plu.dart';
 import '../../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../../domain/usecases/stock_pallet/update_stock_pallet.dart';
+import '../../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 
 // ============================================================
 // STORAGE DETAIL PAGE
@@ -61,6 +62,17 @@ class StorageDetailPage extends StatefulWidget {
 // ============================================================
 
 class _StorageDetailPageState extends State<StorageDetailPage> {
+  // ==========================================================
+  // DELETE STOCK PALLET
+  // ==========================================================
+  //
+  // Use case untuk mengosongkan pallet dari lokasi storage.
+  // Repository tetap menggunakan dependency yang sama.
+  // ==========================================================
+
+  DeleteStockPallet get deleteStockPallet =>
+      AppDependencies.instance.deleteStockPallet;
+
   // Pallet yang menempati lokasi.
   //
   // null = lokasi AVAILABLE.
@@ -158,6 +170,134 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
   // Location Code tetap terkunci; operator hanya mengubah
   // data pallet yang memang boleh dikoreksi di lapangan.
   // ==========================================================
+
+  // ==========================================================
+  // CONFIRM DELETE / KOSONGKAN PALLET
+  // ==========================================================
+  //
+  // Digunakan untuk mengosongkan lokasi yang sedang OCCUPIED.
+  //
+  // ALUR:
+  //
+  // Operator
+  //    ↓
+  // KOSONGKAN PALLET
+  //    ↓
+  // Dialog konfirmasi
+  //    ↓
+  // DeleteStockPallet
+  //    ↓
+  // SQLite
+  //    ↓
+  // Reload Storage Detail
+  //    ↓
+  // AVAILABLE
+  //
+  // Location Code tidak dapat dipilih oleh operator.
+  // Sistem menggunakan location yang sedang dibuka.
+  // ==========================================================
+
+  Future<void> _confirmDeletePallet() async {
+    final pallet = _pallet;
+
+    // --------------------------------------------------------
+    // Safety check:
+    // Jika tidak ada pallet, tidak ada yang boleh dihapus.
+    // --------------------------------------------------------
+
+    if (pallet == null) {
+      return;
+    }
+
+    // --------------------------------------------------------
+    // Dialog konfirmasi.
+    // --------------------------------------------------------
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            'Kosongkan Pallet?',
+          ),
+          content: Text(
+            'Pallet dengan PLU ${pallet.plu} '
+            'akan dihapus dari lokasi ${widget.location.code}. '
+            'Tindakan ini tidak dapat dibatalkan.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('BATAL'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('KOSONGKAN'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Operator membatalkan proses.
+    if (confirmed != true) {
+      return;
+    }
+
+    // --------------------------------------------------------
+    // Jalankan proses delete.
+    // --------------------------------------------------------
+
+    try {
+      await deleteStockPallet(
+        widget.location.code,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      // ------------------------------------------------------
+      // Reload agar status berubah:
+      //
+      // OCCUPIED → AVAILABLE
+      // ------------------------------------------------------
+
+      await _loadLocationData();
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Pallet berhasil dikosongkan.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      debugPrint(
+        'StorageDetailPage delete pallet error: $error',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Gagal mengosongkan pallet.',
+          ),
+        ),
+      );
+    }
+  }
 
   Future<void> _openEditPalletForm() async {
     final pallet = _pallet;
@@ -298,6 +438,9 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
 
                   Row(
                     children: [
+                      // ==================================================
+                      // EDIT PALLET
+                      // ==================================================
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _openEditPalletForm,
@@ -311,6 +454,29 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                             ),
                           ),
                           style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // ==================================================
+                      // KOSONGKAN PALLET
+                      // ==================================================
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _confirmDeletePallet,
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                          ),
+                          label: const Text(
+                            'KOSONGKAN',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
                           ),
                         ),
