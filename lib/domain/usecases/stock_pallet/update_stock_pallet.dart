@@ -1,54 +1,254 @@
 // ============================================================
 // FILE:
 // lib/domain/usecases/stock_pallet/update_stock_pallet.dart
-// ============================================================
 //
 // FUNGSI:
-// Memperbarui data StockPallet yang sudah tersimpan.
+// Use Case untuk EDIT / UPDATE Stock Pallet.
 //
-// Contoh perubahan:
-// - Tear Aktual
-// - Stack Aktual
-// - Qty CTN
-// - Qty PCS
-// - Expired Date
-// - Operator NIK
-// - Sesuai Master
+// TUGAS:
+// 1. Validasi input pallet.
+// 2. Memastikan PLU ada di Master Barang.
+// 3. Mengambil data Master Barang berdasarkan PLU.
+// 4. Mempertahankan Tear dan Stack aktual dari operator.
+// 5. Menghitung Qty CTN.
+// 6. Menghitung Qty PCS.
+// 7. Menentukan apakah Tear dan Stack sesuai Master.
+// 8. Mengirim data final ke StockPalletRepository.
+//
+// ALUR:
+//
+// UI
+//   ↓
+// UpdateStockPallet
+//   ├── ProductRepository
+//   │       ↓
+//   │   Master Barang
+//   │
+//   └── StockPalletRepository
+//           ↓
+//        SQLite
+//
 // ============================================================
 
+import '../../entities/product.dart';
 import '../../entities/stock_pallet.dart';
+import '../../repositories/product_repository.dart';
 import '../../repositories/stock_pallet_repository.dart';
 
 // ============================================================
-// CLASS:
-// UpdateStockPallet
+// CLASS
 // ============================================================
 
 class UpdateStockPallet {
   // ==========================================================
-  // Repository
+  // REPOSITORY STOCK PALLET
   // ==========================================================
 
-  final StockPalletRepository repository;
+  final StockPalletRepository stockPalletRepository;
+
+  // ==========================================================
+  // REPOSITORY MASTER BARANG
+  // ==========================================================
+
+  final ProductRepository productRepository;
 
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const UpdateStockPallet({required this.repository});
+  const UpdateStockPallet({
+    required this.stockPalletRepository,
+    required this.productRepository,
+  });
 
   // ==========================================================
   // CALL
   // ==========================================================
-  //
-  // FUNGSI:
-  // Memperbarui StockPallet.
-  //
-  // Jika Location Code belum tersimpan,
-  // repository akan menghasilkan StateError.
-  // ==========================================================
 
   Future<void> call(StockPallet pallet) async {
-    await repository.update(pallet);
+    // --------------------------------------------------------
+    // VALIDASI LOCATION
+    // --------------------------------------------------------
+
+    final locationCode = pallet.locationCode.trim();
+
+    if (locationCode.isEmpty) {
+      throw ArgumentError(
+        'Location Code tidak boleh kosong.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // VALIDASI PLU
+    // --------------------------------------------------------
+
+    final plu = pallet.plu.trim();
+
+    if (plu.isEmpty) {
+      throw ArgumentError(
+        'PLU tidak boleh kosong.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // VALIDASI TEAR
+    // --------------------------------------------------------
+
+    if (pallet.tear <= 0) {
+      throw ArgumentError(
+        'Tear harus lebih besar dari 0.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // VALIDASI STACK
+    // --------------------------------------------------------
+
+    if (pallet.stack <= 0) {
+      throw ArgumentError(
+        'Stack harus lebih besar dari 0.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // CARI MASTER BARANG
+    // --------------------------------------------------------
+    //
+    // PLU operator digunakan untuk mencari Master Barang.
+    // --------------------------------------------------------
+
+    final Product? product =
+        await productRepository.getProductByPlu(plu);
+
+    // --------------------------------------------------------
+    // MASTER TIDAK DITEMUKAN
+    // --------------------------------------------------------
+    //
+    // Jangan melakukan update database jika PLU tidak valid.
+    // --------------------------------------------------------
+
+    if (product == null) {
+      throw StateError(
+        'PLU $plu tidak ditemukan di Master Barang.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // VALIDASI CONV2 MASTER
+    // --------------------------------------------------------
+
+    if (product.conv2 <= 0) {
+      throw StateError(
+        'Conv2 Master Barang untuk PLU $plu tidak valid.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // HITUNG QTY CTN
+    // --------------------------------------------------------
+    //
+    // Rumus:
+    //
+    // Tear × Stack
+    // --------------------------------------------------------
+
+    final qtyCtn = pallet.tear * pallet.stack;
+
+    // --------------------------------------------------------
+    // HITUNG QTY PCS
+    // --------------------------------------------------------
+    //
+    // Rumus:
+    //
+    // Qty CTN × Conv2
+    // --------------------------------------------------------
+
+    final qtyPcs = qtyCtn * product.conv2;
+
+    // --------------------------------------------------------
+    // CEK KESESUAIAN MASTER
+    // --------------------------------------------------------
+    //
+    // Tear dan Stack aktual dibandingkan dengan Master Barang.
+    //
+    // true:
+    //   keduanya sama.
+    //
+    // false:
+    //   salah satu atau keduanya berbeda.
+    // --------------------------------------------------------
+
+    final sesuaiMaster =
+        pallet.tear == product.masterTear &&
+        pallet.stack == product.masterStack;
+
+    // --------------------------------------------------------
+    // BUAT DATA PALLET FINAL
+    // --------------------------------------------------------
+    //
+    // Data master diambil dari Product.
+    //
+    // Tear dan Stack tetap menggunakan nilai aktual operator.
+    // --------------------------------------------------------
+
+    final updatedPallet = StockPallet(
+      locationCode: locationCode,
+
+      // ------------------------------------------------------
+      // MASTER BARANG
+      // ------------------------------------------------------
+
+      plu: product.plu,
+      barcode: product.barcode,
+      description: product.description,
+      price: product.price,
+      returHari: product.returHari,
+      conv2: product.conv2,
+      type: product.type,
+
+      // ------------------------------------------------------
+      // DATA AKTUAL PALLET
+      // ------------------------------------------------------
+
+      tear: pallet.tear,
+      stack: pallet.stack,
+
+      // ------------------------------------------------------
+      // QUANTITY HASIL PERHITUNGAN SISTEM
+      // ------------------------------------------------------
+
+      qtyCtn: qtyCtn,
+      qtyPcs: qtyPcs,
+
+      // ------------------------------------------------------
+      // TANGGAL
+      // ------------------------------------------------------
+
+      expiredDate: pallet.expiredDate,
+      inputDate: pallet.inputDate,
+
+      // ------------------------------------------------------
+      // OPERATOR
+      // ------------------------------------------------------
+
+      operatorNik: pallet.operatorNik.trim(),
+
+      // ------------------------------------------------------
+      // HASIL PERBANDINGAN DENGAN MASTER
+      // ------------------------------------------------------
+
+      sesuaiMaster: sesuaiMaster,
+    );
+
+    // --------------------------------------------------------
+    // UPDATE DATABASE
+    // --------------------------------------------------------
+    //
+    // Database hanya disentuh setelah seluruh validasi berhasil.
+    // --------------------------------------------------------
+
+    await stockPalletRepository.update(
+      updatedPallet,
+    );
   }
 }

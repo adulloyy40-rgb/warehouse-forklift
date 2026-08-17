@@ -5,18 +5,29 @@
 // FUNGSI:
 // Dependency Injection utama aplikasi Warehouse Forklift.
 //
-// Semua dependency penting aplikasi dibuat di sini.
+// Prinsip:
 //
-// PRINSIP:
 // SATU AppDatabase
-//        ↓
-// SATU StockPalletRepository
-//        ↓
-// Dipakai bersama oleh seluruh aplikasi.
+//        |
+//        +-- StockPalletRepository
+//        |       |
+//        |       +-- StockPalletRepositoryImpl
+//        |
+//        +-- ProductRepository
+//        |       |
+//        |       +-- ProductRepositoryImpl
+//        |
+//        +-- StorageLocationRepository
 //
-// Use Case:
-// - GetProductByPlu
-// - PutAwayStockPallet
+// USE CASE:
+//
+// Product:
+//   GetProductByPlu
+//
+// Stock Pallet:
+//   PutAwayStockPallet
+//   UpdateStockPallet
+//
 // ============================================================
 
 import '../../data/database/app_database.dart';
@@ -30,38 +41,21 @@ import '../../domain/repositories/storage_location_repository.dart';
 
 import '../../domain/usecases/product/get_product_by_plu.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
+import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
 
 // ============================================================
-// CLASS:
-// AppDependencies
-// ============================================================
-//
-// Dependency Injection utama aplikasi.
-//
-// Semua dependency yang bersifat shared dibuat dari sini.
-//
-// Tujuannya:
-// - Tidak membuat database berkali-kali.
-// - Tidak membuat repository berkali-kali.
-// - Use Case menggunakan repository yang sama.
-// - Memudahkan pengembangan aplikasi.
+// CLASS
 // ============================================================
 
 class AppDependencies {
   // ==========================================================
   // PRIVATE CONSTRUCTOR
   // ==========================================================
-  //
-  // Constructor private agar class digunakan sebagai Singleton.
-  // ==========================================================
 
   AppDependencies._();
 
   // ==========================================================
   // SINGLETON
-  // ==========================================================
-  //
-  // Satu instance AppDependencies untuk seluruh aplikasi.
   // ==========================================================
 
   static final AppDependencies instance = AppDependencies._();
@@ -70,13 +64,7 @@ class AppDependencies {
   // DATABASE
   // ==========================================================
   //
-  // SATU instance database digunakan oleh seluruh aplikasi.
-  //
-  // Jangan membuat:
-  //
-  // AppDatabase()
-  //
-  // secara langsung pada setiap Page.
+  // Hanya satu database digunakan seluruh aplikasi.
   // ==========================================================
 
   final AppDatabase database = AppDatabase();
@@ -85,9 +73,7 @@ class AppDependencies {
   // STOCK PALLET REPOSITORY
   // ==========================================================
   //
-  // Repository menerima database yang sama.
-  //
-  // Semua proses StockPallet menggunakan repository ini.
+  // Repository Stock Pallet menggunakan database yang sama.
   // ==========================================================
 
   late final StockPalletRepository stockPalletRepository =
@@ -99,7 +85,7 @@ class AppDependencies {
   // STORAGE LOCATION REPOSITORY
   // ==========================================================
   //
-  // Repository untuk data lokasi storage.
+  // Repository untuk master lokasi storage.
   // ==========================================================
 
   final StorageLocationRepository storageLocationRepository =
@@ -109,9 +95,12 @@ class AppDependencies {
   // PRODUCT REPOSITORY
   // ==========================================================
   //
-  // Repository untuk Master Barang.
+  // Repository Master Barang.
   //
-  // Saat ini sumber data menggunakan file Excel fixture.
+  // Untuk sekarang Master Barang dibaca dari:
+  //
+  // test/fixtures/master_barang.xlsx
+  //
   // ==========================================================
 
   final ProductRepository productRepository =
@@ -123,9 +112,11 @@ class AppDependencies {
   // GET PRODUCT BY PLU
   // ==========================================================
   //
-  // Use Case:
+  // Digunakan untuk mencari Master Barang berdasarkan PLU.
   //
-  // PLU
+  // ALUR:
+  //
+  // UI
   //  ↓
   // GetProductByPlu
   //  ↓
@@ -133,7 +124,6 @@ class AppDependencies {
   //  ↓
   // Master Barang
   //
-  // Digunakan oleh form PUT AWAY.
   // ==========================================================
 
   GetProductByPlu get getProductByPlu {
@@ -146,7 +136,7 @@ class AppDependencies {
   // PUT AWAY STOCK PALLET
   // ==========================================================
   //
-  // Use Case utama untuk proses PUT AWAY.
+  // Digunakan untuk memasukkan pallet baru ke lokasi kosong.
   //
   // ALUR:
   //
@@ -158,15 +148,10 @@ class AppDependencies {
   //  ↓
   // StockPalletRepositoryImpl
   //  ↓
-  // DAO
+  // StockPalletDao
   //  ↓
   // SQLite
   //
-  // PutAwayStockPallet juga memastikan Location Code
-  // belum digunakan sebelum pallet disimpan.
-  //
-  // Repository yang digunakan adalah instance yang sama
-  // dengan seluruh aplikasi.
   // ==========================================================
 
   PutAwayStockPallet get putAwayStockPallet {
@@ -176,12 +161,33 @@ class AppDependencies {
   }
 
   // ==========================================================
-  // CLOSE DATABASE
+  // UPDATE STOCK PALLET
   // ==========================================================
   //
-  // Dipanggil ketika aplikasi benar-benar ditutup.
+  // Digunakan untuk EDIT pallet yang sudah tersimpan.
   //
-  // Database ditutup hanya dari instance yang sama.
+  // Use Case membutuhkan DUA repository:
+  //
+  // 1. ProductRepository
+  //    Untuk mencari Master Barang berdasarkan PLU.
+  //
+  // 2. StockPalletRepository
+  //    Untuk menyimpan perubahan pallet.
+  //
+  // ==========================================================
+
+  UpdateStockPallet get updateStockPallet {
+    return UpdateStockPallet(
+      productRepository: productRepository,
+      stockPalletRepository: stockPalletRepository,
+    );
+  }
+
+  // ==========================================================
+  // DISPOSE
+  // ==========================================================
+  //
+  // Menutup database dari instance yang sama.
   // ==========================================================
 
   Future<void> dispose() async {
