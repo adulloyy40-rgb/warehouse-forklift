@@ -1,48 +1,78 @@
 // ============================================================
 // FILE:
 // lib/domain/usecases/stock_pallet/delete_stock_pallet.dart
-// ============================================================
 //
 // FUNGSI:
-// Menghapus StockPallet berdasarkan Location Code.
+// Use Case untuk mengosongkan / menghapus pallet dari lokasi.
 //
-// Contoh:
+// ALUR:
 //
-// deleteStockPallet('8001101');
+// UI
+//   ↓
+// DeleteStockPallet
+//   ↓
+// StockPalletRepository
+//   ↓
+// SQLite
 //
-// Maka pallet aktif pada Location Code 8001101
-// akan dihapus dari repository.
+// CATATAN:
+// - Use case tidak mengetahui SQLite.
+// - Use case tidak mengakses DAO secara langsung.
+// - Penghapusan dilakukan berdasarkan Location Code.
 // ============================================================
 
 import '../../repositories/stock_pallet_repository.dart';
 
 // ============================================================
-// CLASS:
-// DeleteStockPallet
+// CLASS
 // ============================================================
 
 class DeleteStockPallet {
   // ==========================================================
-  // Repository
+  // REPOSITORY
   // ==========================================================
 
-  final StockPalletRepository repository;
+  final StockPalletRepository stockPalletRepository;
 
   // ==========================================================
   // CONSTRUCTOR
   // ==========================================================
 
-  const DeleteStockPallet({required this.repository});
+  const DeleteStockPallet({
+    required this.stockPalletRepository,
+  });
 
   // ==========================================================
   // CALL
   // ==========================================================
-  //
-  // FUNGSI:
-  // Menghapus pallet berdasarkan Location Code.
-  // ==========================================================
 
   Future<void> call(String locationCode) async {
-    await repository.deleteByLocationCode(locationCode);
+    // --------------------------------------------------------
+    // NORMALISASI LOCATION CODE
+    // --------------------------------------------------------
+
+    final normalizedLocationCode = locationCode.trim();
+
+    // --------------------------------------------------------
+    // VALIDASI LOCATION CODE
+    // --------------------------------------------------------
+
+    if (normalizedLocationCode.isEmpty) {
+      throw ArgumentError(
+        'Location Code tidak boleh kosong.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // HAPUS PALLET
+    // --------------------------------------------------------
+    //
+    // Repository yang bertanggung jawab meneruskan proses
+    // sampai DAO/database.
+    // --------------------------------------------------------
+
+    await stockPalletRepository.deleteByLocationCode(
+      normalizedLocationCode,
+    );
   }
 }

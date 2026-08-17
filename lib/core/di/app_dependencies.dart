@@ -42,6 +42,7 @@ import '../../domain/repositories/storage_location_repository.dart';
 import '../../domain/usecases/product/get_product_by_plu.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
+import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 
 // ============================================================
 // CLASS
@@ -179,6 +180,23 @@ class AppDependencies {
   UpdateStockPallet get updateStockPallet {
     return UpdateStockPallet(
       productRepository: productRepository,
+      stockPalletRepository: stockPalletRepository,
+    );
+  }
+
+  // ==========================================================
+  // DELETE STOCK PALLET
+  // ==========================================================
+  //
+  // Digunakan untuk mengosongkan pallet dari lokasi storage.
+  //
+  // Use Case menggunakan StockPalletRepository yang sama
+  // dengan PUT AWAY dan EDIT PALLET.
+  //
+  // ==========================================================
+
+  DeleteStockPallet get deleteStockPallet {
+    return DeleteStockPallet(
       stockPalletRepository: stockPalletRepository,
     );
   }
