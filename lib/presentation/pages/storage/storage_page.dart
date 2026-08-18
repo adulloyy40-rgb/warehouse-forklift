@@ -757,6 +757,53 @@ class _MismatchBadge extends StatelessWidget {
 }
 
 // ============================================================
+// VALUE MISMATCH DETAIL
+// ============================================================
+//
+// Menampilkan nilai Master dan nilai Aktual.
+//
+// Contoh:
+// TEAR  Master: 4  Aktual: 5
+// STACK Master: 3  Aktual: 2
+// ============================================================
+
+class _ValueMismatchText extends StatelessWidget {
+  const _ValueMismatchText({
+    required this.label,
+    required this.masterValue,
+    required this.actualValue,
+  });
+
+  final String label;
+  final int masterValue;
+  final int actualValue;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.error.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Text(
+        '$label  Master: $masterValue  Aktual: $actualValue',
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: theme.colorScheme.error,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
 // LOCATION CARD
 // ============================================================
 
@@ -906,6 +953,30 @@ class _LocationCard extends StatelessWidget {
                             ),
                         ],
                       ),
+
+                      if (masterProduct != null) ...[
+                        const SizedBox(height: 6),
+
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            if (palletStatus.tearMismatch)
+                              _ValueMismatchText(
+                                label: 'TEAR',
+                                masterValue: masterProduct!.masterTear,
+                                actualValue: stockPallet!.tear,
+                              ),
+
+                            if (palletStatus.stackMismatch)
+                              _ValueMismatchText(
+                                label: 'STACK',
+                                masterValue: masterProduct!.masterStack,
+                                actualValue: stockPallet!.stack,
+                              ),
+                          ],
+                        ),
+                      ],
                     ],
                   ],
                 ),
