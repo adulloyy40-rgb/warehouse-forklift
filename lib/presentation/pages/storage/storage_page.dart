@@ -32,8 +32,13 @@ import '../../../core/di/app_dependencies.dart';
 import '../../../data/repositories/storage_location_repository_impl.dart';
 
 import '../../../domain/entities/storage_location.dart';
+import '../../../domain/entities/product.dart';
+import '../../../domain/entities/stock_pallet.dart';
 
 import '../../../domain/repositories/stock_pallet_repository.dart';
+import '../../../domain/repositories/product_repository.dart';
+
+import '../../../domain/services/pallet_status_calculator.dart';
 
 import 'storage_detail_page.dart';
 
@@ -62,11 +67,39 @@ class _StoragePageState extends State<StoragePage> {
 
   final StockPalletRepository _palletRepository =
       AppDependencies.instance.stockPalletRepository;
+
+  final ProductRepository _productRepository =
+      AppDependencies.instance.productRepository;
+
   // ==========================================================
   // DATA
   // ==========================================================
 
   List<StorageLocation> _locations = [];
+
+  // ==========================================================
+  // PALLET CACHE
+  // ==========================================================
+  //
+  // Key   : Location Code
+  // Value : StockPallet
+  //
+  // Tujuan:
+  // Menghindari query pallet satu per satu ketika membangun
+  // daftar Storage Location.
+  // ==========================================================
+
+  final Map<String, StockPallet> _palletByLocation = {};
+
+  // ==========================================================
+  // MASTER BARANG CACHE
+  // ==========================================================
+  //
+  // Key   : PLU
+  // Value : Product
+  // ==========================================================
+
+  final Map<String, Product> _productByPlu = {};
 
   // ==========================================================
   // OCCUPIED LOCATION CACHE
@@ -134,13 +167,35 @@ class _StoragePageState extends State<StoragePage> {
       final pallets = await _palletRepository.getAll();
 
       // ========================================================
+      // LOAD MASTER BARANG
+      // ========================================================
+      //
+      // Master Barang dimuat satu kali.
+      //
+      // Setelah itu digunakan sebagai lookup berdasarkan PLU.
+      // ========================================================
+
+      final products = await _productRepository.getAllProducts();
+
+      final productByPlu = <String, Product>{
+        for (final product in products) product.plu.trim(): product,
+      };
+
+      // ========================================================
+      // CACHE PALLET BERDASARKAN LOCATION
+      // ========================================================
+
+      final palletByLocation = <String, StockPallet>{
+        for (final pallet in pallets)
+          if (pallet.locationCode.trim().isNotEmpty)
+            pallet.locationCode.trim(): pallet,
+      };
+
+      // ========================================================
       // BENTUK SET LOCATION CODE YANG TERISI
       // ========================================================
 
-      final occupiedCodes = pallets
-          .map((pallet) => pallet.locationCode.trim())
-          .where((code) => code.isNotEmpty)
-          .toSet();
+      final occupiedCodes = palletByLocation.keys.toSet();
 
       // ========================================================
       // CEK WIDGET MASIH AKTIF
@@ -160,6 +215,14 @@ class _StoragePageState extends State<StoragePage> {
         _occupiedLocationCodes
           ..clear()
           ..addAll(occupiedCodes);
+
+        _palletByLocation
+          ..clear()
+          ..addAll(palletByLocation);
+
+        _productByPlu
+          ..clear()
+          ..addAll(productByPlu);
 
         _isLoading = false;
       });
@@ -487,7 +550,12 @@ class _StoragePageState extends State<StoragePage> {
             child: _LocationCard(
               location: location,
               isOccupied: isOccupied,
+              stockPallet: _palletByLocation[location.code.trim()],
+              masterProduct:
+                  _productByPlu[_palletByLocation[location.code.trim()]?.plu
+                      .trim()],
               stockPalletRepository: _palletRepository,
+              palletStatusCalculator: const PalletStatusCalculator(),
             ),
           );
         }, childCount: locations.length),
@@ -638,6 +706,57 @@ class _SummaryCard extends StatelessWidget {
 }
 
 // ============================================================
+// MISMATCH BADGE
+// ============================================================
+//
+// Menampilkan peringatan ketika nilai fisik pallet berbeda
+// dengan nilai Master Barang.
+//
+// Contoh:
+// - TEAR MISMATCH
+// - STACK MISMATCH
+//
+// Widget ini hanya bertugas sebagai UI.
+// Business rule tetap berada di PalletStatusCalculator.
+// ============================================================
+
+class _MismatchBadge extends StatelessWidget {
+  const _MismatchBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.error;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
 // LOCATION CARD
 // ============================================================
 
@@ -645,18 +764,45 @@ class _LocationCard extends StatelessWidget {
   const _LocationCard({
     required this.location,
     required this.isOccupied,
+    required this.stockPallet,
+    required this.masterProduct,
     required this.stockPalletRepository,
+    required this.palletStatusCalculator,
   });
 
   final StorageLocation location;
 
   final bool isOccupied;
 
+  final StockPallet? stockPallet;
+
+  final Product? masterProduct;
+
   final StockPalletRepository stockPalletRepository;
+
+  final PalletStatusCalculator palletStatusCalculator;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // ==========================================================
+    // HITUNG STATUS TEAR / STACK
+    // ==========================================================
+    //
+    // TEAR AKTUAL  dibandingkan dengan TEAR MASTER
+    // STACK AKTUAL dibandingkan dengan STACK MASTER
+    //
+    // Jika pallet kosong, tidak ada kalkulasi.
+    // ==========================================================
+
+    final palletStatus = stockPallet == null
+        ? null
+        : palletStatusCalculator.calculate(
+            stockPallet!,
+            masterTear: masterProduct?.masterTear,
+            masterStack: masterProduct?.masterStack,
+          );
 
     final statusText = isOccupied ? 'OCCUPIED' : 'AVAILABLE';
 
@@ -730,6 +876,35 @@ class _LocationCard extends StatelessWidget {
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.grey.shade600,
                         ),
+                      ),
+                    ],
+
+                    // ==================================================
+                    // TEAR / STACK MISMATCH
+                    // ==================================================
+                    //
+                    // Hanya ditampilkan jika pallet memang ada.
+                    // ==================================================
+                    if (palletStatus != null &&
+                        palletStatus.hasTearOrStackMismatch) ...[
+                      const SizedBox(height: 8),
+
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (palletStatus.tearMismatch)
+                            _MismatchBadge(
+                              icon: Icons.warning_amber_rounded,
+                              label: 'TEAR MISMATCH',
+                            ),
+
+                          if (palletStatus.stackMismatch)
+                            _MismatchBadge(
+                              icon: Icons.layers_clear_rounded,
+                              label: 'STACK MISMATCH',
+                            ),
+                        ],
                       ),
                     ],
                   ],
