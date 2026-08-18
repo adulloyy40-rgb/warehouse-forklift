@@ -804,6 +804,62 @@ class _ValueMismatchText extends StatelessWidget {
 }
 
 // ============================================================
+// EXPIRY STATUS BADGE
+// ============================================================
+//
+// Menampilkan status tanggal pallet:
+//
+// - EXPIRED
+// - NEAR RETURN
+//
+// Business rule tetap dihitung oleh PalletStatusCalculator.
+// Widget ini hanya bertugas menampilkan hasilnya.
+// ============================================================
+
+class _ExpiryBadge extends StatelessWidget {
+  const _ExpiryBadge({required this.status});
+
+  final PalletExpiryStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final isExpired = status == PalletExpiryStatus.expired;
+
+    final color = isExpired ? theme.colorScheme.error : Colors.deepPurple;
+
+    final icon = isExpired ? Icons.error_rounded : Icons.schedule_rounded;
+
+    final label = isExpired ? 'EXPIRED' : 'NEAR RETURN';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
 // LOCATION CARD
 // ============================================================
 
@@ -924,6 +980,24 @@ class _LocationCard extends StatelessWidget {
                           color: Colors.grey.shade600,
                         ),
                       ),
+                    ],
+
+                    // ==================================================
+                    // EXPIRY STATUS
+                    // ==================================================
+                    //
+                    // Hanya ditampilkan jika pallet memang ada.
+                    //
+                    // NORMAL      -> tidak menampilkan badge.
+                    // NEAR RETURN -> tampilkan badge.
+                    // EXPIRED     -> tampilkan badge.
+                    // ==================================================
+                    if (palletStatus != null &&
+                        palletStatus.expiryStatus !=
+                            PalletExpiryStatus.normal) ...[
+                      const SizedBox(height: 8),
+
+                      _ExpiryBadge(status: palletStatus.expiryStatus),
                     ],
 
                     // ==================================================
