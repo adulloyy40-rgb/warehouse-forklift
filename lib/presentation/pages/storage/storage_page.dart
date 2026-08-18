@@ -983,6 +983,42 @@ class _LocationCard extends StatelessWidget {
                     ],
 
                     // ==================================================
+                    // PALLET ITEM DETAIL
+                    // ==================================================
+                    //
+                    // Data berasal langsung dari StockPallet.
+                    //
+                    // description → Nama Barang
+                    // qtyCtn     → Qty CTN
+                    // qtyPcs     → Qty PCS
+                    //
+                    // Tidak ada query database tambahan di sini.
+                    // ==================================================
+                    if (stockPallet != null) ...[
+                      const SizedBox(height: 8),
+
+                      Text(
+                        stockPallet!.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      Text(
+                        'Qty CTN = ${stockPallet!.qtyCtn} • '
+                        'Qty PCS = ${stockPallet!.qtyPcs}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+
+                    // ==================================================
                     // EXPIRY STATUS
                     // ==================================================
                     //
