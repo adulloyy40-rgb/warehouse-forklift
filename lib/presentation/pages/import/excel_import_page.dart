@@ -43,10 +43,9 @@ class _ExcelImportPageState extends State<ExcelImportPage> {
       final picked = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls'],
-        withData: true,
       );
 
-      if (picked == null) {
+      if (picked.isEmpty) {
         if (!mounted) return;
 
         setState(() {
@@ -56,11 +55,13 @@ class _ExcelImportPageState extends State<ExcelImportPage> {
         return;
       }
 
-      final file = picked.files.single;
-      final bytes = file.bytes;
+      final file = picked.single;
+      final bytes = await file.readAsBytes();
 
-      if (bytes == null || bytes.isEmpty) {
-        throw StateError('File Excel tidak dapat dibaca.');
+      if (bytes.isEmpty) {
+        throw StateError(
+          'File Excel tidak dapat dibaca.',
+        );
       }
 
       final rows = _dataSource.read(bytes);
