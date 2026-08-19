@@ -72,58 +72,57 @@ class ExcelDataSource {
   // Satu Map = satu barang.
   // ==========================================================
 
-Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
-  // --------------------------------------------------------
-  // 1. Membaca file Excel.
-  //
-  // Ada dua kemungkinan sumber file:
-  //
-  // A. Filesystem
-  //    Digunakan ketika menjalankan test/development.
-  //
-  // B. Flutter Asset
-  //    Digunakan ketika aplikasi berjalan di Android.
-  //
-  // Kita mencoba filesystem terlebih dahulu.
-  // Jika tidak ditemukan, kita mencoba Flutter Asset.
-  // --------------------------------------------------------
+  Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
+    // --------------------------------------------------------
+    // 1. Membaca file Excel.
+    //
+    // Ada dua kemungkinan sumber file:
+    //
+    // A. Filesystem
+    //    Digunakan ketika menjalankan test/development.
+    //
+    // B. Flutter Asset
+    //    Digunakan ketika aplikasi berjalan di Android.
+    //
+    // Kita mencoba filesystem terlebih dahulu.
+    // Jika tidak ditemukan, kita mencoba Flutter Asset.
+    // --------------------------------------------------------
 
-  List<int> bytes;
+    List<int> bytes;
 
-  final file = File(filePath);
+    final file = File(filePath);
 
-  // --------------------------------------------------------
-  // Jika file tersedia di filesystem,
-  // baca menggunakan File.
-  // --------------------------------------------------------
+    // --------------------------------------------------------
+    // Jika file tersedia di filesystem,
+    // baca menggunakan File.
+    // --------------------------------------------------------
 
-  if (await file.exists()) {
-    bytes = await file.readAsBytes();
-  } else {
-    // ------------------------------------------------------
-    // Jika file tidak tersedia sebagai filesystem,
-    // coba baca sebagai Flutter Asset.
-    // ------------------------------------------------------
+    if (await file.exists()) {
+      bytes = await file.readAsBytes();
+    } else {
+      // ------------------------------------------------------
+      // Jika file tidak tersedia sebagai filesystem,
+      // coba baca sebagai Flutter Asset.
+      // ------------------------------------------------------
 
-    try {
-      final assetData = await rootBundle.load(filePath);
+      try {
+        final assetData = await rootBundle.load(filePath);
 
-      bytes = assetData.buffer.asUint8List(
-        assetData.offsetInBytes,
-        assetData.lengthInBytes,
-      );
-    } catch (e) {
-      throw Exception(
-        'File Excel tidak ditemukan sebagai file maupun asset: $filePath',
-      );
+        bytes = assetData.buffer.asUint8List(
+          assetData.offsetInBytes,
+          assetData.lengthInBytes,
+        );
+      } catch (e) {
+        throw Exception(
+          'File Excel tidak ditemukan sebagai file maupun asset: $filePath',
+        );
+      }
     }
-  }
 
-  // --------------------------------------------------------
-  // 2. Membuka file Excel dari bytes.
-  // --------------------------------------------------------
+    // --------------------------------------------------------
+    // 2. Membuka file Excel dari bytes.
+    // --------------------------------------------------------
 
-  
     // --------------------------------------------------------
     // 3. Membuka file Excel.
     // --------------------------------------------------------
@@ -441,7 +440,7 @@ Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
 
     // Excel kadang menyimpan barcode sebagai teks
     // dengan apostrophe di bagian awal.
-    if (text.startsWith("'")) {
+    if (text.startsWith("'") || text.startsWith('`')) {
       text = text.substring(1).trim();
     }
 
