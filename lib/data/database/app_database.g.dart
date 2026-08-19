@@ -889,18 +889,419 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
   }
 }
 
+class $StorageLocationsTable extends StorageLocations
+    with TableInfo<$StorageLocationsTable, StorageLocation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StorageLocationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _locationCodeMeta = const VerificationMeta(
+    'locationCode',
+  );
+  @override
+  late final GeneratedColumn<String> locationCode = GeneratedColumn<String>(
+    'location_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('AVAILABLE'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    locationCode,
+    status,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'storage_locations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StorageLocation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('location_code')) {
+      context.handle(
+        _locationCodeMeta,
+        locationCode.isAcceptableOrUnknown(
+          data['location_code']!,
+          _locationCodeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_locationCodeMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StorageLocation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StorageLocation(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      locationCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_code'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StorageLocationsTable createAlias(String alias) {
+    return $StorageLocationsTable(attachedDatabase, alias);
+  }
+}
+
+class StorageLocation extends DataClass implements Insertable<StorageLocation> {
+  /// ----------------------------------------------------------
+  /// ID database
+  /// ----------------------------------------------------------
+  ///
+  /// Primary key otomatis.
+  /// ----------------------------------------------------------
+  final int id;
+
+  /// ----------------------------------------------------------
+  /// LOCATION CODE
+  /// ----------------------------------------------------------
+  ///
+  /// Contoh:
+  /// A01-01-01
+  ///
+  /// Dibuat unique agar satu kode lokasi tidak boleh
+  /// muncul dua kali di database.
+  /// ----------------------------------------------------------
+  final String locationCode;
+
+  /// ----------------------------------------------------------
+  /// STATUS LOKASI
+  /// ----------------------------------------------------------
+  ///
+  /// Nilai awal:
+  /// AVAILABLE
+  ///
+  /// Status akan berubah ketika pallet masuk/keluar.
+  /// ----------------------------------------------------------
+  final String status;
+
+  /// ----------------------------------------------------------
+  /// CREATED AT
+  /// ----------------------------------------------------------
+  ///
+  /// Waktu lokasi dibuat.
+  /// ----------------------------------------------------------
+  final DateTime createdAt;
+
+  /// ----------------------------------------------------------
+  /// UPDATED AT
+  /// ----------------------------------------------------------
+  ///
+  /// Waktu terakhir lokasi diperbarui.
+  /// ----------------------------------------------------------
+  final DateTime updatedAt;
+  const StorageLocation({
+    required this.id,
+    required this.locationCode,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['location_code'] = Variable<String>(locationCode);
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StorageLocationsCompanion toCompanion(bool nullToAbsent) {
+    return StorageLocationsCompanion(
+      id: Value(id),
+      locationCode: Value(locationCode),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StorageLocation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StorageLocation(
+      id: serializer.fromJson<int>(json['id']),
+      locationCode: serializer.fromJson<String>(json['locationCode']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'locationCode': serializer.toJson<String>(locationCode),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StorageLocation copyWith({
+    int? id,
+    String? locationCode,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => StorageLocation(
+    id: id ?? this.id,
+    locationCode: locationCode ?? this.locationCode,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StorageLocation copyWithCompanion(StorageLocationsCompanion data) {
+    return StorageLocation(
+      id: data.id.present ? data.id.value : this.id,
+      locationCode: data.locationCode.present
+          ? data.locationCode.value
+          : this.locationCode,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StorageLocation(')
+          ..write('id: $id, ')
+          ..write('locationCode: $locationCode, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, locationCode, status, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StorageLocation &&
+          other.id == this.id &&
+          other.locationCode == this.locationCode &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StorageLocationsCompanion extends UpdateCompanion<StorageLocation> {
+  final Value<int> id;
+  final Value<String> locationCode;
+  final Value<String> status;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const StorageLocationsCompanion({
+    this.id = const Value.absent(),
+    this.locationCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  StorageLocationsCompanion.insert({
+    this.id = const Value.absent(),
+    required String locationCode,
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : locationCode = Value(locationCode);
+  static Insertable<StorageLocation> custom({
+    Expression<int>? id,
+    Expression<String>? locationCode,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (locationCode != null) 'location_code': locationCode,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  StorageLocationsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? locationCode,
+    Value<String>? status,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return StorageLocationsCompanion(
+      id: id ?? this.id,
+      locationCode: locationCode ?? this.locationCode,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (locationCode.present) {
+      map['location_code'] = Variable<String>(locationCode.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StorageLocationsCompanion(')
+          ..write('id: $id, ')
+          ..write('locationCode: $locationCode, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $StockPalletsTable stockPallets = $StockPalletsTable(this);
+  late final $StorageLocationsTable storageLocations = $StorageLocationsTable(
+    this,
+  );
   late final StockPalletDao stockPalletDao = StockPalletDao(
+    this as AppDatabase,
+  );
+  late final StorageLocationDao storageLocationDao = StorageLocationDao(
     this as AppDatabase,
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [stockPallets];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    stockPallets,
+    storageLocations,
+  ];
 }
 
 typedef $$StockPalletsTableCreateCompanionBuilder =
@@ -1312,10 +1713,214 @@ typedef $$StockPalletsTableProcessedTableManager =
       StockPallet,
       PrefetchHooks Function()
     >;
+typedef $$StorageLocationsTableCreateCompanionBuilder =
+    StorageLocationsCompanion Function({
+      Value<int> id,
+      required String locationCode,
+      Value<String> status,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$StorageLocationsTableUpdateCompanionBuilder =
+    StorageLocationsCompanion Function({
+      Value<int> id,
+      Value<String> locationCode,
+      Value<String> status,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$StorageLocationsTableFilterComposer
+    extends Composer<_$AppDatabase, $StorageLocationsTable> {
+  $$StorageLocationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationCode => $composableBuilder(
+    column: $table.locationCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StorageLocationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StorageLocationsTable> {
+  $$StorageLocationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationCode => $composableBuilder(
+    column: $table.locationCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StorageLocationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StorageLocationsTable> {
+  $$StorageLocationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get locationCode => $composableBuilder(
+    column: $table.locationCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$StorageLocationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StorageLocationsTable,
+          StorageLocation,
+          $$StorageLocationsTableFilterComposer,
+          $$StorageLocationsTableOrderingComposer,
+          $$StorageLocationsTableAnnotationComposer,
+          $$StorageLocationsTableCreateCompanionBuilder,
+          $$StorageLocationsTableUpdateCompanionBuilder,
+          (
+            StorageLocation,
+            BaseReferences<
+              _$AppDatabase,
+              $StorageLocationsTable,
+              StorageLocation
+            >,
+          ),
+          StorageLocation,
+          PrefetchHooks Function()
+        > {
+  $$StorageLocationsTableTableManager(
+    _$AppDatabase db,
+    $StorageLocationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StorageLocationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StorageLocationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StorageLocationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> locationCode = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => StorageLocationsCompanion(
+                id: id,
+                locationCode: locationCode,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String locationCode,
+                Value<String> status = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => StorageLocationsCompanion.insert(
+                id: id,
+                locationCode: locationCode,
+                status: status,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StorageLocationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StorageLocationsTable,
+      StorageLocation,
+      $$StorageLocationsTableFilterComposer,
+      $$StorageLocationsTableOrderingComposer,
+      $$StorageLocationsTableAnnotationComposer,
+      $$StorageLocationsTableCreateCompanionBuilder,
+      $$StorageLocationsTableUpdateCompanionBuilder,
+      (
+        StorageLocation,
+        BaseReferences<_$AppDatabase, $StorageLocationsTable, StorageLocation>,
+      ),
+      StorageLocation,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$StockPalletsTableTableManager get stockPallets =>
       $$StockPalletsTableTableManager(_db, _db.stockPallets);
+  $$StorageLocationsTableTableManager get storageLocations =>
+      $$StorageLocationsTableTableManager(_db, _db.storageLocations);
 }

@@ -89,8 +89,10 @@ class AppDependencies {
   // Repository untuk master lokasi storage.
   // ==========================================================
 
-  final StorageLocationRepository storageLocationRepository =
-      const StorageLocationRepositoryImpl();
+  late final StorageLocationRepository storageLocationRepository =
+      StorageLocationRepositoryImpl(
+    database.storageLocationDao,
+  );
 
   // ==========================================================
   // PRODUCT REPOSITORY

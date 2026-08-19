@@ -16,21 +16,32 @@
 // ============================================================
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/native.dart';
 
+import 'package:warehouse_forklift/data/database/app_database.dart';
 import 'package:warehouse_forklift/data/repositories/storage_location_repository_impl.dart';
 
-
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-  // ==========================================================
-  // REPOSITORY
-  // ==========================================================
-  //
-  // Membuat instance repository yang akan diuji.
-  // ==========================================================
+  late AppDatabase database;
+  late StorageLocationRepositoryImpl repository;
 
-  const repository =
-      StorageLocationRepositoryImpl();
+  setUp(() async {
+    database = AppDatabase(
+      executor: NativeDatabase.memory(),
+    );
+
+    repository = StorageLocationRepositoryImpl(
+      database.storageLocationDao,
+    );
+
+    await repository.initializeMasterLocations();
+  });
+
+  tearDown(() async {
+    await database.close();
+  });
 
 
   // ==========================================================

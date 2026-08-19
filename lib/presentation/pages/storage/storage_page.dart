@@ -29,9 +29,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/di/app_dependencies.dart';
-import '../../../data/repositories/storage_location_repository_impl.dart';
 
 import '../../../domain/entities/storage_location.dart';
+import '../../../domain/repositories/storage_location_repository.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/entities/stock_pallet.dart';
 
@@ -62,8 +62,8 @@ class _StoragePageState extends State<StoragePage> {
   // REPOSITORY
   // ==========================================================
 
-  final StorageLocationRepositoryImpl _storageRepository =
-      const StorageLocationRepositoryImpl();
+  final StorageLocationRepository _storageRepository =
+      AppDependencies.instance.storageLocationRepository;
 
   final StockPalletRepository _palletRepository =
       AppDependencies.instance.stockPalletRepository;
