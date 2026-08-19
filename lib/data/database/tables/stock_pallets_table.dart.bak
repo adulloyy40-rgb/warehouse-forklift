@@ -54,23 +54,6 @@ class StockPallets extends Table {
   TextColumn get type => text()();
 
   // ----------------------------------------------------------
-  // OPERATOR NIK
-  //
-  // Menyimpan NIK operator yang melakukan proses pallet.
-  // ----------------------------------------------------------
-
-  TextColumn get operatorNik => text().withDefault(const Constant(''))();
-
-  // ----------------------------------------------------------
-  // KESESUAIAN MASTER
-  //
-  // true  = Tear dan Stack sesuai Master Barang
-  // false = terdapat perbedaan
-  // ----------------------------------------------------------
-
-  BoolColumn get sesuaiMaster => boolean().withDefault(const Constant(true))();
-
-  // ----------------------------------------------------------
   // DATA PALLET
   //
   // Nilai ini diisi operator saat Put Away/Edit Pallet.

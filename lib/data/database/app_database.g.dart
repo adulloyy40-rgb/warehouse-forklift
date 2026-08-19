@@ -103,6 +103,33 @@ class $StockPalletsTable extends StockPallets
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _operatorNikMeta = const VerificationMeta(
+    'operatorNik',
+  );
+  @override
+  late final GeneratedColumn<String> operatorNik = GeneratedColumn<String>(
+    'operator_nik',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _sesuaiMasterMeta = const VerificationMeta(
+    'sesuaiMaster',
+  );
+  @override
+  late final GeneratedColumn<bool> sesuaiMaster = GeneratedColumn<bool>(
+    'sesuai_master',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("sesuai_master" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _tearMeta = const VerificationMeta('tear');
   @override
   late final GeneratedColumn<int> tear = GeneratedColumn<int>(
@@ -183,6 +210,8 @@ class $StockPalletsTable extends StockPallets
     returHari,
     conv2,
     type,
+    operatorNik,
+    sesuaiMaster,
     tear,
     stack,
     qtyCtn,
@@ -275,6 +304,24 @@ class $StockPalletsTable extends StockPallets
       );
     } else if (isInserting) {
       context.missing(_typeMeta);
+    }
+    if (data.containsKey('operator_nik')) {
+      context.handle(
+        _operatorNikMeta,
+        operatorNik.isAcceptableOrUnknown(
+          data['operator_nik']!,
+          _operatorNikMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sesuai_master')) {
+      context.handle(
+        _sesuaiMasterMeta,
+        sesuaiMaster.isAcceptableOrUnknown(
+          data['sesuai_master']!,
+          _sesuaiMasterMeta,
+        ),
+      );
     }
     if (data.containsKey('tear')) {
       context.handle(
@@ -380,6 +427,14 @@ class $StockPalletsTable extends StockPallets
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
+      operatorNik: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operator_nik'],
+      )!,
+      sesuaiMaster: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}sesuai_master'],
+      )!,
       tear: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}tear'],
@@ -427,6 +482,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
   final int returHari;
   final int conv2;
   final String type;
+  final String operatorNik;
+  final bool sesuaiMaster;
   final int tear;
   final int stack;
   final int qtyCtn;
@@ -444,6 +501,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
     required this.returHari,
     required this.conv2,
     required this.type,
+    required this.operatorNik,
+    required this.sesuaiMaster,
     required this.tear,
     required this.stack,
     required this.qtyCtn,
@@ -464,6 +523,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
     map['retur_hari'] = Variable<int>(returHari);
     map['conv2'] = Variable<int>(conv2);
     map['type'] = Variable<String>(type);
+    map['operator_nik'] = Variable<String>(operatorNik);
+    map['sesuai_master'] = Variable<bool>(sesuaiMaster);
     map['tear'] = Variable<int>(tear);
     map['stack'] = Variable<int>(stack);
     map['qty_ctn'] = Variable<int>(qtyCtn);
@@ -485,6 +546,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
       returHari: Value(returHari),
       conv2: Value(conv2),
       type: Value(type),
+      operatorNik: Value(operatorNik),
+      sesuaiMaster: Value(sesuaiMaster),
       tear: Value(tear),
       stack: Value(stack),
       qtyCtn: Value(qtyCtn),
@@ -510,6 +573,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
       returHari: serializer.fromJson<int>(json['returHari']),
       conv2: serializer.fromJson<int>(json['conv2']),
       type: serializer.fromJson<String>(json['type']),
+      operatorNik: serializer.fromJson<String>(json['operatorNik']),
+      sesuaiMaster: serializer.fromJson<bool>(json['sesuaiMaster']),
       tear: serializer.fromJson<int>(json['tear']),
       stack: serializer.fromJson<int>(json['stack']),
       qtyCtn: serializer.fromJson<int>(json['qtyCtn']),
@@ -532,6 +597,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
       'returHari': serializer.toJson<int>(returHari),
       'conv2': serializer.toJson<int>(conv2),
       'type': serializer.toJson<String>(type),
+      'operatorNik': serializer.toJson<String>(operatorNik),
+      'sesuaiMaster': serializer.toJson<bool>(sesuaiMaster),
       'tear': serializer.toJson<int>(tear),
       'stack': serializer.toJson<int>(stack),
       'qtyCtn': serializer.toJson<int>(qtyCtn),
@@ -552,6 +619,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
     int? returHari,
     int? conv2,
     String? type,
+    String? operatorNik,
+    bool? sesuaiMaster,
     int? tear,
     int? stack,
     int? qtyCtn,
@@ -569,6 +638,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
     returHari: returHari ?? this.returHari,
     conv2: conv2 ?? this.conv2,
     type: type ?? this.type,
+    operatorNik: operatorNik ?? this.operatorNik,
+    sesuaiMaster: sesuaiMaster ?? this.sesuaiMaster,
     tear: tear ?? this.tear,
     stack: stack ?? this.stack,
     qtyCtn: qtyCtn ?? this.qtyCtn,
@@ -592,6 +663,12 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
       returHari: data.returHari.present ? data.returHari.value : this.returHari,
       conv2: data.conv2.present ? data.conv2.value : this.conv2,
       type: data.type.present ? data.type.value : this.type,
+      operatorNik: data.operatorNik.present
+          ? data.operatorNik.value
+          : this.operatorNik,
+      sesuaiMaster: data.sesuaiMaster.present
+          ? data.sesuaiMaster.value
+          : this.sesuaiMaster,
       tear: data.tear.present ? data.tear.value : this.tear,
       stack: data.stack.present ? data.stack.value : this.stack,
       qtyCtn: data.qtyCtn.present ? data.qtyCtn.value : this.qtyCtn,
@@ -616,6 +693,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
           ..write('returHari: $returHari, ')
           ..write('conv2: $conv2, ')
           ..write('type: $type, ')
+          ..write('operatorNik: $operatorNik, ')
+          ..write('sesuaiMaster: $sesuaiMaster, ')
           ..write('tear: $tear, ')
           ..write('stack: $stack, ')
           ..write('qtyCtn: $qtyCtn, ')
@@ -638,6 +717,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
     returHari,
     conv2,
     type,
+    operatorNik,
+    sesuaiMaster,
     tear,
     stack,
     qtyCtn,
@@ -659,6 +740,8 @@ class StockPallet extends DataClass implements Insertable<StockPallet> {
           other.returHari == this.returHari &&
           other.conv2 == this.conv2 &&
           other.type == this.type &&
+          other.operatorNik == this.operatorNik &&
+          other.sesuaiMaster == this.sesuaiMaster &&
           other.tear == this.tear &&
           other.stack == this.stack &&
           other.qtyCtn == this.qtyCtn &&
@@ -678,6 +761,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
   final Value<int> returHari;
   final Value<int> conv2;
   final Value<String> type;
+  final Value<String> operatorNik;
+  final Value<bool> sesuaiMaster;
   final Value<int> tear;
   final Value<int> stack;
   final Value<int> qtyCtn;
@@ -695,6 +780,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     this.returHari = const Value.absent(),
     this.conv2 = const Value.absent(),
     this.type = const Value.absent(),
+    this.operatorNik = const Value.absent(),
+    this.sesuaiMaster = const Value.absent(),
     this.tear = const Value.absent(),
     this.stack = const Value.absent(),
     this.qtyCtn = const Value.absent(),
@@ -713,6 +800,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     required int returHari,
     required int conv2,
     required String type,
+    this.operatorNik = const Value.absent(),
+    this.sesuaiMaster = const Value.absent(),
     required int tear,
     required int stack,
     required int qtyCtn,
@@ -745,6 +834,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     Expression<int>? returHari,
     Expression<int>? conv2,
     Expression<String>? type,
+    Expression<String>? operatorNik,
+    Expression<bool>? sesuaiMaster,
     Expression<int>? tear,
     Expression<int>? stack,
     Expression<int>? qtyCtn,
@@ -763,6 +854,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
       if (returHari != null) 'retur_hari': returHari,
       if (conv2 != null) 'conv2': conv2,
       if (type != null) 'type': type,
+      if (operatorNik != null) 'operator_nik': operatorNik,
+      if (sesuaiMaster != null) 'sesuai_master': sesuaiMaster,
       if (tear != null) 'tear': tear,
       if (stack != null) 'stack': stack,
       if (qtyCtn != null) 'qty_ctn': qtyCtn,
@@ -783,6 +876,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     Value<int>? returHari,
     Value<int>? conv2,
     Value<String>? type,
+    Value<String>? operatorNik,
+    Value<bool>? sesuaiMaster,
     Value<int>? tear,
     Value<int>? stack,
     Value<int>? qtyCtn,
@@ -801,6 +896,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
       returHari: returHari ?? this.returHari,
       conv2: conv2 ?? this.conv2,
       type: type ?? this.type,
+      operatorNik: operatorNik ?? this.operatorNik,
+      sesuaiMaster: sesuaiMaster ?? this.sesuaiMaster,
       tear: tear ?? this.tear,
       stack: stack ?? this.stack,
       qtyCtn: qtyCtn ?? this.qtyCtn,
@@ -841,6 +938,12 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
+    if (operatorNik.present) {
+      map['operator_nik'] = Variable<String>(operatorNik.value);
+    }
+    if (sesuaiMaster.present) {
+      map['sesuai_master'] = Variable<bool>(sesuaiMaster.value);
+    }
     if (tear.present) {
       map['tear'] = Variable<int>(tear.value);
     }
@@ -877,6 +980,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
           ..write('returHari: $returHari, ')
           ..write('conv2: $conv2, ')
           ..write('type: $type, ')
+          ..write('operatorNik: $operatorNik, ')
+          ..write('sesuaiMaster: $sesuaiMaster, ')
           ..write('tear: $tear, ')
           ..write('stack: $stack, ')
           ..write('qtyCtn: $qtyCtn, ')
@@ -1315,6 +1420,8 @@ typedef $$StockPalletsTableCreateCompanionBuilder =
       required int returHari,
       required int conv2,
       required String type,
+      Value<String> operatorNik,
+      Value<bool> sesuaiMaster,
       required int tear,
       required int stack,
       required int qtyCtn,
@@ -1334,6 +1441,8 @@ typedef $$StockPalletsTableUpdateCompanionBuilder =
       Value<int> returHari,
       Value<int> conv2,
       Value<String> type,
+      Value<String> operatorNik,
+      Value<bool> sesuaiMaster,
       Value<int> tear,
       Value<int> stack,
       Value<int> qtyCtn,
@@ -1394,6 +1503,16 @@ class $$StockPalletsTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operatorNik => $composableBuilder(
+    column: $table.operatorNik,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get sesuaiMaster => $composableBuilder(
+    column: $table.sesuaiMaster,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1487,6 +1606,16 @@ class $$StockPalletsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get operatorNik => $composableBuilder(
+    column: $table.operatorNik,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get sesuaiMaster => $composableBuilder(
+    column: $table.sesuaiMaster,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get tear => $composableBuilder(
     column: $table.tear,
     builder: (column) => ColumnOrderings(column),
@@ -1563,6 +1692,16 @@ class $$StockPalletsTableAnnotationComposer
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
+  GeneratedColumn<String> get operatorNik => $composableBuilder(
+    column: $table.operatorNik,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get sesuaiMaster => $composableBuilder(
+    column: $table.sesuaiMaster,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get tear =>
       $composableBuilder(column: $table.tear, builder: (column) => column);
 
@@ -1627,6 +1766,8 @@ class $$StockPalletsTableTableManager
                 Value<int> returHari = const Value.absent(),
                 Value<int> conv2 = const Value.absent(),
                 Value<String> type = const Value.absent(),
+                Value<String> operatorNik = const Value.absent(),
+                Value<bool> sesuaiMaster = const Value.absent(),
                 Value<int> tear = const Value.absent(),
                 Value<int> stack = const Value.absent(),
                 Value<int> qtyCtn = const Value.absent(),
@@ -1644,6 +1785,8 @@ class $$StockPalletsTableTableManager
                 returHari: returHari,
                 conv2: conv2,
                 type: type,
+                operatorNik: operatorNik,
+                sesuaiMaster: sesuaiMaster,
                 tear: tear,
                 stack: stack,
                 qtyCtn: qtyCtn,
@@ -1663,6 +1806,8 @@ class $$StockPalletsTableTableManager
                 required int returHari,
                 required int conv2,
                 required String type,
+                Value<String> operatorNik = const Value.absent(),
+                Value<bool> sesuaiMaster = const Value.absent(),
                 required int tear,
                 required int stack,
                 required int qtyCtn,
@@ -1680,6 +1825,8 @@ class $$StockPalletsTableTableManager
                 returHari: returHari,
                 conv2: conv2,
                 type: type,
+                operatorNik: operatorNik,
+                sesuaiMaster: sesuaiMaster,
                 tear: tear,
                 stack: stack,
                 qtyCtn: qtyCtn,

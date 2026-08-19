@@ -178,6 +178,38 @@ class StorageLocationRepositoryImpl
   }
 
   /// ==========================================================
+  /// IS AVAILABLE
+  /// ==========================================================
+  ///
+  /// Mengecek apakah lokasi:
+  ///
+  /// 1. Terdaftar di master location.
+  /// 2. Statusnya AVAILABLE.
+  ///
+  /// Return:
+  ///
+  /// true  -> lokasi dapat digunakan.
+  /// false -> lokasi tidak ditemukan / OCCUPIED / BLOCKED.
+  /// ==========================================================
+
+  @override
+  Future<bool> isAvailable(String code) async {
+    final normalizedCode = code.trim();
+
+    if (normalizedCode.isEmpty) {
+      return false;
+    }
+
+    final location = await dao.findByCode(normalizedCode);
+
+    if (location == null) {
+      return false;
+    }
+
+    return location.status.trim().toUpperCase() == 'AVAILABLE';
+  }
+
+  /// ==========================================================
   /// UPDATE STATUS
   /// ==========================================================
   ///
@@ -189,6 +221,7 @@ class StorageLocationRepositoryImpl
   /// BLOCKED    → AVAILABLE
   /// ==========================================================
 
+  @override
   Future<bool> updateStatus(
     String locationCode,
     String status,

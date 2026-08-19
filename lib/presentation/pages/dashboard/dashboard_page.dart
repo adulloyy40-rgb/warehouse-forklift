@@ -40,6 +40,7 @@ import '../../../domain/entities/storage_location.dart';
 import '../../../domain/entities/stock_pallet.dart';
 
 import '../storage/storage_page.dart';
+import '../import/excel_import_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -424,6 +425,22 @@ final _stockPalletRepository =
                           context,
                           MaterialPageRoute(
                             builder: (_) => const StoragePage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // ==================================================
+                    // EXCEL IMPORT
+                    // ==================================================
+                    _MenuCard(
+                      icon: Icons.file_upload_rounded,
+                      title: 'Excel Import',
+                      subtitle: 'Import data pallet',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ExcelImportPage(),
                           ),
                         );
                       },

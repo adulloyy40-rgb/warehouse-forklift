@@ -3,46 +3,42 @@
 // lib/domain/usecases/map_stock_pallet_import.dart
 //
 // FUNGSI:
-// Mengubah data hasil import Stock Pallet menjadi
+// Mengubah satu baris hasil import Stock Pallet menjadi
 // Domain Entity StockPallet.
 //
-// CATATAN:
-// Mapper ini TIDAK:
-// - membaca Excel
-// - mengakses database
-// - mengakses DAO
+// ALUR:
 //
-// Data master barang diberikan oleh caller.
+// Excel
+//   ↓
+// StockPalletExcelDataSource
+//   ↓
+// ImportStockPallet
+//   ↓
+// MapStockPalletImport
+//   ↓
+// Product (Master Barang)
+//   ↓
+// StockPallet
+//   ↓
+// StockPalletRepository
+//   ↓
+// SQLite
+//
+// ATURAN:
+// - Data identitas barang berasal dari Master Barang.
+// - Tear dan Stack berasal dari kondisi aktual pallet.
+// - sesuaiMaster dihitung dari perbandingan aktual vs master.
+// - Qty CTN dihitung dari tear × stack.
+// - Qty PCS dihitung dari qtyCtn × conv2 master.
+// - Expired Date wajib berasal dari data import.
 // ============================================================
 
+import '../entities/product.dart';
 import '../entities/stock_pallet.dart';
 
 // ============================================================
-// MASTER DATA YANG DIBUTUHKAN
-// ============================================================
-//
-// Data ini berasal dari Master Barang.
-//
-// Kita belum menggunakan entity MasterBarang secara langsung
-// agar mapper tetap fokus pada proses mapping.
-// ============================================================
-
-class StockPalletMasterData {
-  final String barcode;
-  final double price;
-  final int returHari;
-  final String type;
-
-  const StockPalletMasterData({
-    required this.barcode,
-    required this.price,
-    required this.returHari,
-    required this.type,
-  });
-}
-
-// ============================================================
-// MAPPER
+// CLASS:
+// MapStockPalletImport
 // ============================================================
 
 class MapStockPalletImport {
@@ -52,81 +48,159 @@ class MapStockPalletImport {
   // EXECUTE
   // ==========================================================
   //
-  // Mengubah satu row hasil parser menjadi StockPallet.
+  // Mengubah satu row Excel menjadi StockPallet.
   //
-  // Row berasal dari:
+  // Product:
+  // Master Barang berdasarkan PLU.
   //
-  // StockPalletExcelDataSource
+  // Row:
+  // Data pallet dari Excel.
   //
-  // Master berasal dari:
+  // operatorNik:
+  // NIK operator yang melakukan import.
   //
-  // Master Barang
+  // inputDate:
+  // Waktu proses import.
   // ==========================================================
 
   StockPallet execute({
     required Map<String, dynamic> row,
-    required StockPalletMasterData master,
+    required Product product,
     required String operatorNik,
     DateTime? inputDate,
   }) {
-    final locationCode = _requiredString(row, 'lokasi');
-
-    final plu = _requiredString(row, 'plu');
-
-    final description = _requiredString(row, 'desc');
-
-    final conv2 = _requiredInt(row, 'conv2');
-
-    final qtyCtn = _requiredInt(row, 'qty_so');
-
-    final stack = _requiredInt(row, 'stack');
-
-    final tear = _requiredInt(row, 'tear_aktual');
-
-    final expiredDate = _requiredDateTime(row, 'exp_date');
-
     // --------------------------------------------------------
-    // Qty PCS
-    //
-    // qtyCtn × conv2
+    // LOCATION
     // --------------------------------------------------------
 
-    final qtyPcs = qtyCtn * conv2;
+    final locationCode = _requiredString(
+      row,
+      'lokasi',
+    );
 
     // --------------------------------------------------------
-    // Validasi Tear / Stack terhadap master.
+    // PLU
+    // --------------------------------------------------------
     //
-    // Untuk sementara master tear/stack belum menjadi bagian
-    // dari StockPalletMasterData.
-    //
-    // Karena itu sesuaiMaster belum dapat ditentukan penuh
-    // pada tahap mapper ini.
-    //
-    // Untuk keamanan, kita set true karena data sudah lolos
-    // StockPalletImportValidator.
-    //
-    // Validasi master fisik akan kita sempurnakan ketika
-    // Master Barang entity sudah digunakan dalam import pipeline.
+    // PLU dari Excel harus sama dengan Master Barang.
     // --------------------------------------------------------
 
-    const sesuaiMaster = true;
+    final excelPlu = _requiredString(
+      row,
+      'plu',
+    );
+
+    if (excelPlu != product.plu.trim()) {
+      throw FormatException(
+        'PLU Excel "$excelPlu" tidak sesuai dengan '
+        'Master Barang "${product.plu}".',
+      );
+    }
+
+    // --------------------------------------------------------
+    // TEAR AKTUAL
+    // --------------------------------------------------------
+
+    final tear = _requiredInt(
+      row,
+      'tear_aktual',
+    );
+
+    // --------------------------------------------------------
+    // STACK AKTUAL
+    // --------------------------------------------------------
+
+    final stack = _requiredInt(
+      row,
+      'stack',
+    );
+
+    // --------------------------------------------------------
+    // QTY CTN
+    // --------------------------------------------------------
+    //
+    // Rumus:
+    //
+    // Tear × Stack
+    //
+    // Contoh:
+    // Tear = 2
+    // Stack = 5
+    //
+    // Qty CTN = 10
+    // --------------------------------------------------------
+
+    final qtyCtn = tear * stack;
+
+    // --------------------------------------------------------
+    // QTY PCS
+    // --------------------------------------------------------
+    //
+    // Menggunakan CONV2 dari Master Barang.
+    // --------------------------------------------------------
+
+    final qtyPcs = qtyCtn * product.conv2;
+
+    // --------------------------------------------------------
+    // EXPIRED DATE
+    // --------------------------------------------------------
+
+    final expiredDate = _requiredDateTime(
+      row,
+      'exp_date',
+    );
+
+    // --------------------------------------------------------
+    // VALIDASI TEAR / STACK
+    // --------------------------------------------------------
+    //
+    // Nilai aktual tidak diubah.
+    //
+    // Kita hanya menentukan apakah sesuai dengan master.
+    //
+    // Jika salah satu berbeda:
+    //
+    // sesuaiMaster = false
+    //
+    // UI nantinya dapat menampilkan indikator orange.
+    // --------------------------------------------------------
+
+    final sesuaiMaster =
+        tear == product.masterTear &&
+        stack == product.masterStack;
+
+    // --------------------------------------------------------
+    // OPERATOR
+    // --------------------------------------------------------
+
+    final normalizedOperatorNik = operatorNik.trim();
+
+    if (normalizedOperatorNik.isEmpty) {
+      throw FormatException(
+        'Operator NIK wajib diisi.',
+      );
+    }
+
+    // --------------------------------------------------------
+    // CREATE ENTITY
+    // --------------------------------------------------------
 
     return StockPallet(
       locationCode: locationCode,
-      plu: plu,
-      barcode: master.barcode,
-      description: description,
-      price: master.price,
-      returHari: master.returHari,
-      conv2: conv2,
-      type: master.type,
+      plu: product.plu.trim(),
+      barcode: product.barcode.trim(),
+      description: product.description.trim(),
+      price: product.price,
+      returHari: product.returHari,
+      conv2: product.conv2,
+      type: product.type.trim(),
       tear: tear,
       stack: stack,
       qtyCtn: qtyCtn,
       qtyPcs: qtyPcs,
       expiredDate: expiredDate,
       inputDate: inputDate ?? DateTime.now(),
-      operatorNik: operatorNik,
+      operatorNik: normalizedOperatorNik,
       sesuaiMaster: sesuaiMaster,
     );
   }
@@ -135,17 +209,24 @@ class MapStockPalletImport {
   // REQUIRED STRING
   // ==========================================================
 
-  String _requiredString(Map<String, dynamic> row, String key) {
+  String _requiredString(
+    Map<String, dynamic> row,
+    String key,
+  ) {
     final value = row[key];
 
     if (value == null) {
-      throw FormatException('Kolom "$key" wajib diisi.');
+      throw FormatException(
+        'Kolom "$key" wajib diisi.',
+      );
     }
 
     final result = value.toString().trim();
 
     if (result.isEmpty) {
-      throw FormatException('Kolom "$key" tidak boleh kosong.');
+      throw FormatException(
+        'Kolom "$key" tidak boleh kosong.',
+      );
     }
 
     return result;
@@ -155,11 +236,16 @@ class MapStockPalletImport {
   // REQUIRED INT
   // ==========================================================
 
-  int _requiredInt(Map<String, dynamic> row, String key) {
+  int _requiredInt(
+    Map<String, dynamic> row,
+    String key,
+  ) {
     final value = row[key];
 
     if (value == null) {
-      throw FormatException('Kolom "$key" wajib diisi.');
+      throw FormatException(
+        'Kolom "$key" wajib diisi.',
+      );
     }
 
     if (value is int) {
@@ -167,37 +253,74 @@ class MapStockPalletImport {
     }
 
     if (value is double) {
+      if (!value.isFinite) {
+        throw FormatException(
+          'Kolom "$key" harus berupa angka.',
+        );
+      }
+
       return value.toInt();
     }
 
-    final parsed = int.tryParse(value.toString().trim());
+    final text = value.toString().trim();
 
-    if (parsed == null) {
-      throw FormatException('Kolom "$key" harus berupa angka.');
+    if (text.isEmpty) {
+      throw FormatException(
+        'Kolom "$key" wajib diisi.',
+      );
     }
 
-    return parsed;
+    final parsedInt = int.tryParse(text);
+
+    if (parsedInt != null) {
+      return parsedInt;
+    }
+
+    final parsedDouble = double.tryParse(text);
+
+    if (parsedDouble != null && parsedDouble.isFinite) {
+      return parsedDouble.toInt();
+    }
+
+    throw FormatException(
+      'Kolom "$key" harus berupa angka.',
+    );
   }
 
   // ==========================================================
   // REQUIRED DATETIME
   // ==========================================================
 
-  DateTime _requiredDateTime(Map<String, dynamic> row, String key) {
+  DateTime _requiredDateTime(
+    Map<String, dynamic> row,
+    String key,
+  ) {
     final value = row[key];
 
     if (value == null) {
-      throw FormatException('Kolom "$key" wajib diisi.');
+      throw FormatException(
+        'Kolom "$key" wajib diisi.',
+      );
     }
 
     if (value is DateTime) {
       return value;
     }
 
-    final parsed = DateTime.tryParse(value.toString().trim());
+    final text = value.toString().trim();
+
+    if (text.isEmpty) {
+      throw FormatException(
+        'Kolom "$key" wajib diisi.',
+      );
+    }
+
+    final parsed = DateTime.tryParse(text);
 
     if (parsed == null) {
-      throw FormatException('Kolom "$key" harus berupa tanggal yang valid.');
+      throw FormatException(
+        'Kolom "$key" harus berupa tanggal yang valid.',
+      );
     }
 
     return parsed;
