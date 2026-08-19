@@ -32,12 +32,16 @@
 //
 // ============================================================
 
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/di/app_dependencies.dart';
 
 import '../../../domain/entities/storage_location.dart';
 import '../../../domain/entities/stock_pallet.dart';
+import '../../../domain/services/stock_pallet_export_service.dart';
 
 import '../storage/storage_page.dart';
 import '../import/excel_import_page.dart';
@@ -78,23 +82,24 @@ class _DashboardPageState extends State<DashboardPage> {
   // TOTAL LOCATION = 1.860
   // ==========================================================
 
- 
- // ==========================================================
-// DEPENDENCY
-// ==========================================================
-//
-// Dashboard menggunakan repository dari AppDependencies.
-//
-// Keuntungannya:
-// - tidak membuat AppDatabase baru
-// - tidak membuat repository baru
-// - seluruh halaman menggunakan database yang sama
-// ==========================================================
-final _storageLocationRepository =
-    AppDependencies.instance.storageLocationRepository;
+  // ==========================================================
+  // DEPENDENCY
+  // ==========================================================
+  //
+  // Dashboard menggunakan repository dari AppDependencies.
+  //
+  // Keuntungannya:
+  // - tidak membuat AppDatabase baru
+  // - tidak membuat repository baru
+  // - seluruh halaman menggunakan database yang sama
+  // ==========================================================
+  final _storageLocationRepository =
+      AppDependencies.instance.storageLocationRepository;
 
-final _stockPalletRepository =
-    AppDependencies.instance.stockPalletRepository; 
+  final _stockPalletRepository = AppDependencies.instance.stockPalletRepository;
+
+  // Service untuk membuat file Excel Stock Pallet.
+  final _stockPalletExportService = StockPalletExportService();
   // ==========================================================
   // DASHBOARD DATA
   // ==========================================================
@@ -121,6 +126,15 @@ final _stockPalletRepository =
   bool _isLoading = true;
 
   // ==========================================================
+  // EXPORT STATE
+  // ==========================================================
+
+  // Mencegah operator menekan Export berkali-kali
+  // ketika proses pembuatan dan penyimpanan Excel sedang berjalan.
+  // State ini berubah selama proses export: false → true → false.
+  bool _isExporting = false;
+
+  // ==========================================================
   // ERROR STATE
   // ==========================================================
 
@@ -139,6 +153,143 @@ final _stockPalletRepository =
     super.initState();
 
     _loadDashboardData();
+  }
+
+  // ==========================================================
+  // EXPORT STOCK PALLET
+  // ==========================================================
+  //
+  // Alur:
+  //
+  // SQLite
+  //   ↓
+  // StockPalletRepository
+  //   ↓
+  // StockPalletExportService
+  //   ↓
+  // Excel bytes
+  //   ↓
+  // FilePicker.saveFile()
+  //
+  // Database hanya dibaca.
+  // Tidak ada data yang diubah atau dihapus.
+  // ==========================================================
+
+  Future<void> _exportStockPallet() async {
+    // ==========================================================
+    // CEGAH EXPORT GANDA
+    // ==========================================================
+
+    if (_isExporting) {
+      return;
+    }
+
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      // ========================================================
+      // 1. AMBIL DATA STOCK PALLET
+      // ========================================================
+
+      final pallets = await _stockPalletRepository.getAll();
+
+      if (!mounted) {
+        return;
+      }
+
+      // ========================================================
+      // 2. VALIDASI DATA
+      // ========================================================
+
+      if (pallets.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tidak ada data Stock Pallet untuk diekspor.'),
+          ),
+        );
+
+        return;
+      }
+
+      // ========================================================
+      // 3. GENERATE FILE EXCEL
+      // ========================================================
+
+      final Uint8List bytes = _stockPalletExportService.export(pallets);
+
+      if (!mounted) {
+        return;
+      }
+
+      // ========================================================
+      // 4. SAVE FILE
+      // ========================================================
+
+      final uri = await FilePicker.saveFile(
+        fileName: 'stock_pallet_export.xlsx',
+        bytes: bytes,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dialogTitle: 'Simpan Export Stock Pallet',
+        type: FileType.custom,
+        allowedExtensions: const ['xlsx'],
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      // ========================================================
+      // 5. OPERATOR MEMBATALKAN
+      // ========================================================
+
+      if (uri == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Export dibatalkan.')));
+
+        return;
+      }
+
+      // ========================================================
+      // 6. EXPORT BERHASIL
+      // ========================================================
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Export berhasil: ${pallets.length} pallet.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      // ========================================================
+      // 7. ERROR
+      // ========================================================
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Export gagal: $e'),
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      // ========================================================
+      // 8. KEMBALIKAN STATE EXPORT
+      // ========================================================
+
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
+    }
   }
 
   // ==========================================================
@@ -447,6 +598,23 @@ final _stockPalletRepository =
                     ),
 
                     // ==================================================
+                    // EXPORT STOCK PALLET
+                    // ==================================================
+                    _MenuCard(
+                      icon: _isExporting
+                          ? Icons.hourglass_top_rounded
+                          : Icons.file_download_rounded,
+                      title: _isExporting
+                          ? 'Exporting...'
+                          : 'Export Stock Pallet',
+                      subtitle: _isExporting
+                          ? 'Menyiapkan file Excel'
+                          : 'Export data pallet',
+                      onTap: _isExporting ? null : _exportStockPallet,
+                      enabled: !_isExporting,
+                    ),
+
+                    // ==================================================
                     // PUTAWAY
                     // ==================================================
                     _MenuCard(
@@ -714,6 +882,7 @@ class _MenuCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.enabled = true,
   });
 
   final IconData icon;
@@ -722,17 +891,33 @@ class _MenuCard extends StatelessWidget {
 
   final String subtitle;
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final primaryColor = theme.colorScheme.primary;
+
+    final iconColor = enabled
+        ? primaryColor
+        : theme.colorScheme.onSurface.withValues(alpha: 0.38);
+
+    final titleColor = enabled
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.onSurface.withValues(alpha: 0.38);
+
+    final subtitleColor = enabled
+        ? theme.colorScheme.onSurfaceVariant
+        : theme.colorScheme.onSurface.withValues(alpha: 0.30);
+
     return Card(
       clipBehavior: Clip.antiAlias,
 
       child: InkWell(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
 
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -743,19 +928,27 @@ class _MenuCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
-              Icon(icon, size: 30, color: theme.colorScheme.primary),
+              if (enabled)
+                Icon(icon, size: 30, color: iconColor)
+              else
+                SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: primaryColor,
+                  ),
+                ),
 
               const SizedBox(height: 10),
 
               Text(
                 title,
-
                 maxLines: 1,
-
                 overflow: TextOverflow.ellipsis,
-
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
+                  color: titleColor,
                 ),
               ),
 
@@ -763,9 +956,10 @@ class _MenuCard extends StatelessWidget {
 
               Text(
                 subtitle,
-
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
+                  color: subtitleColor,
                 ),
               ),
             ],
