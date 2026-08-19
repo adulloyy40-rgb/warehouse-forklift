@@ -88,6 +88,24 @@ abstract class ProductRepository {
   Future<Product?> getProductByPlu(String plu);
 
   // ==========================================================
+  // GET PRODUCT BY BARCODE
+  // ==========================================================
+  //
+  // Fungsi:
+  // Mencari satu barang berdasarkan barcode.
+  //
+  // Digunakan oleh fitur Scan Barcode.
+  //
+  // Jika barcode ditemukan:
+  //   return Product
+  //
+  // Jika tidak ditemukan:
+  //   return null
+  // ==========================================================
+
+  Future<Product?> getProductByBarcode(String barcode);
+
+  // ==========================================================
   // searchProducts()
   // ==========================================================
   //

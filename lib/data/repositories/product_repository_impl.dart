@@ -133,6 +133,37 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   // ==========================================================
+  // GET PRODUCT BY BARCODE
+  // ==========================================================
+  //
+  // Digunakan oleh fitur Scan Barcode.
+  //
+  // Barcode harus cocok secara EXACT.
+  // Tidak menggunakan contains().
+  //
+  // Data diambil dari cache melalui getAllProducts().
+  // ==========================================================
+
+  @override
+  Future<Product?> getProductByBarcode(String barcode) async {
+    final normalizedBarcode = barcode.trim();
+
+    if (normalizedBarcode.isEmpty) {
+      return null;
+    }
+
+    final products = await getAllProducts();
+
+    for (final product in products) {
+      if (product.barcode.trim() == normalizedBarcode) {
+        return product;
+      }
+    }
+
+    return null;
+  }
+
+  // ==========================================================
   // SEARCH PRODUCTS
   // ==========================================================
 
