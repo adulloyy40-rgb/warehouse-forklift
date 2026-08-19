@@ -56,7 +56,7 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
   // ----------------------------------------------------------
 
   StockPalletRepositoryImpl(database.AppDatabase db)
-      : _dao = StockPalletDao(db);
+    : _dao = StockPalletDao(db);
 
   // ==========================================================
   // SAVE
@@ -78,9 +78,7 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
     // Cek apakah lokasi sudah mempunyai pallet.
     // --------------------------------------------------------
 
-    final existing = await _dao.findByLocation(
-      pallet.locationCode,
-    );
+    final existing = await _dao.findByLocation(pallet.locationCode);
 
     if (existing != null) {
       throw StateError(
@@ -101,6 +99,8 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
       returHari: pallet.returHari,
       conv2: pallet.conv2,
       type: pallet.type.trim(),
+      operatorNik: Value(pallet.operatorNik),
+      sesuaiMaster: Value(pallet.sesuaiMaster),
       tear: pallet.tear,
       stack: pallet.stack,
       qtyCtn: pallet.qtyCtn,
@@ -122,6 +122,37 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
   // ==========================================================
 
   @override
+  Future<void> saveAll(List<domain.StockPallet> pallets) async {
+    if (pallets.isEmpty) {
+      return;
+    }
+
+    final companions = pallets.map((pallet) {
+      return database.StockPalletsCompanion.insert(
+        locationCode: pallet.locationCode.trim(),
+        plu: pallet.plu.trim(),
+        barcode: pallet.barcode.trim(),
+        description: pallet.description.trim(),
+        price: pallet.price,
+        returHari: pallet.returHari,
+        conv2: pallet.conv2,
+        type: pallet.type.trim(),
+        operatorNik: Value(pallet.operatorNik),
+        sesuaiMaster: Value(pallet.sesuaiMaster),
+        tear: pallet.tear,
+        stack: pallet.stack,
+        qtyCtn: pallet.qtyCtn,
+        qtyPcs: pallet.qtyPcs,
+        expiredDate: pallet.expiredDate,
+        createdAt: pallet.inputDate,
+        updatedAt: pallet.inputDate,
+      );
+    }).toList();
+
+    await _dao.insertPallets(companions);
+  }
+
+  @override
   Future<List<domain.StockPallet>> getAll() async {
     final rows = await _dao.getAllPallets();
 
@@ -133,12 +164,8 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
   // ==========================================================
 
   @override
-  Future<domain.StockPallet?> findByLocationCode(
-    String locationCode,
-  ) async {
-    final row = await _dao.findByLocation(
-      locationCode,
-    );
+  Future<domain.StockPallet?> findByLocationCode(String locationCode) async {
+    final row = await _dao.findByLocation(locationCode);
 
     if (row == null) {
       return null;
@@ -169,9 +196,7 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
     // Cari pallet berdasarkan location.
     // --------------------------------------------------------
 
-    final existing = await _dao.findByLocation(
-      pallet.locationCode,
-    );
+    final existing = await _dao.findByLocation(pallet.locationCode);
 
     if (existing == null) {
       throw StateError(
@@ -190,76 +215,44 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
     final companion = database.StockPalletsCompanion(
       id: Value(existing.id),
 
-      locationCode: Value(
-        pallet.locationCode.trim(),
-      ),
+      locationCode: Value(pallet.locationCode.trim()),
 
-      plu: Value(
-        pallet.plu.trim(),
-      ),
+      plu: Value(pallet.plu.trim()),
 
-      barcode: Value(
-        pallet.barcode.trim(),
-      ),
+      barcode: Value(pallet.barcode.trim()),
 
-      description: Value(
-        pallet.description.trim(),
-      ),
+      description: Value(pallet.description.trim()),
 
-      price: Value(
-        pallet.price,
-      ),
+      price: Value(pallet.price),
 
-      returHari: Value(
-        pallet.returHari,
-      ),
+      returHari: Value(pallet.returHari),
 
-      conv2: Value(
-        pallet.conv2,
-      ),
+      conv2: Value(pallet.conv2),
 
-      type: Value(
-        pallet.type.trim(),
-      ),
+      type: Value(pallet.type.trim()),
 
-      tear: Value(
-        pallet.tear,
-      ),
+      tear: Value(pallet.tear),
 
-      stack: Value(
-        pallet.stack,
-      ),
+      stack: Value(pallet.stack),
 
-      qtyCtn: Value(
-        pallet.qtyCtn,
-      ),
+      qtyCtn: Value(pallet.qtyCtn),
 
-      qtyPcs: Value(
-        pallet.qtyPcs,
-      ),
+      qtyPcs: Value(pallet.qtyPcs),
 
-      expiredDate: Value(
-        pallet.expiredDate,
-      ),
+      expiredDate: Value(pallet.expiredDate),
 
       // createdAt tidak boleh berubah ketika EDIT.
-      createdAt: Value(
-        existing.createdAt,
-      ),
+      createdAt: Value(existing.createdAt),
 
       // updatedAt berubah setiap kali EDIT.
-      updatedAt: Value(
-        DateTime.now(),
-      ),
+      updatedAt: Value(DateTime.now()),
     );
 
     // --------------------------------------------------------
     // Update melalui DAO → SQLite.
     // --------------------------------------------------------
 
-    final updated = await _dao.updatePallet(
-      companion,
-    );
+    final updated = await _dao.updatePallet(companion);
 
     if (!updated) {
       throw StateError(
@@ -274,20 +267,14 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
   // ==========================================================
 
   @override
-  Future<void> deleteByLocationCode(
-    String locationCode,
-  ) async {
-    final existing = await _dao.findByLocation(
-      locationCode,
-    );
+  Future<void> deleteByLocationCode(String locationCode) async {
+    final existing = await _dao.findByLocation(locationCode);
 
     if (existing == null) {
       return;
     }
 
-    await _dao.deletePalletById(
-      existing.id,
-    );
+    await _dao.deletePalletById(existing.id);
   }
 
   // ==========================================================
@@ -311,10 +298,10 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
     return domain.StockPallet(
       locationCode: row.locationCode,
       plu: row.plu,
-      barcode: row.barcode,             // Tambahkan ini
-      price: row.price,                 // Tambahkan ini
-      returHari: row.returHari,         // Tambahkan ini
-      type: row.type,                   // Tambahkan ini
+      barcode: row.barcode, // Tambahkan ini
+      price: row.price, // Tambahkan ini
+      returHari: row.returHari, // Tambahkan ini
+      type: row.type, // Tambahkan ini
       description: row.description,
       tear: row.tear,
       stack: row.stack,
@@ -334,10 +321,7 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
       //
       // Nanti dapat kita sempurnakan berdasarkan
       // perbandingan Tear/Stack dengan Master Barang.
-      sesuaiMaster:
-          row.tear > 0 &&
-          row.stack > 0,
+      sesuaiMaster: row.tear > 0 && row.stack > 0,
     );
   }
 }
-

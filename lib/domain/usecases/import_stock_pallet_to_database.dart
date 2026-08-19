@@ -1,3 +1,5 @@
+import '../entities/product.dart';
+import '../entities/stock_pallet.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/stock_pallet_repository.dart';
 import 'map_stock_pallet_import.dart';
@@ -36,6 +38,89 @@ class ImportStockPalletToDatabase {
 
     final errors = <String>[];
 
+    // ==========================================================
+    // 1. LOAD MASTER BARANG SEKALI SAJA
+    // ==========================================================
+    //
+    // Sebelumnya getProductByPlu() dipanggil untuk setiap baris.
+    //
+    // Contoh 1.863 baris:
+    //
+    // 1.863 x baca Excel
+    //
+    // Ini sangat berat.
+    //
+    // Sekarang Master Barang dibaca SATU KALI.
+    // ==========================================================
+
+    final products = await productRepository.getAllProducts();
+
+    // ==========================================================
+    // 2. BUAT INDEX PLU DI MEMORY
+    // ==========================================================
+    //
+    // PLU → Product
+    //
+    // Dengan Map, pencarian PLU menjadi sangat cepat.
+    // Tidak perlu scan seluruh List<Product> berulang kali.
+    // ==========================================================
+
+    final productByPlu = <String, Product>{};
+
+    for (final product in products) {
+      final plu = product.plu.trim();
+
+      if (plu.isNotEmpty) {
+        productByPlu[plu] = product;
+      }
+    }
+
+    // ==========================================================
+    // 3. LOAD STOCK PALLET YANG SUDAH ADA SEKALI
+    // ==========================================================
+    //
+    // Sebelumnya:
+    //
+    // setiap baris →
+    // findByLocationCode() →
+    // SQLite
+    //
+    // Sekarang database dibaca SATU KALI.
+    // ==========================================================
+
+    final existingPallets = await stockPalletRepository.getAll();
+
+    final existingLocations = <String>{};
+
+    for (final pallet in existingPallets) {
+      final location = pallet.locationCode.trim();
+
+      if (location.isNotEmpty) {
+        existingLocations.add(location);
+      }
+    }
+
+    // ==========================================================
+    // 4. SIAPKAN DATA UNTUK BATCH INSERT
+    // ==========================================================
+    //
+    // Semua pallet yang valid dikumpulkan terlebih dahulu.
+    //
+    // Database belum disentuh satu per satu.
+    // ==========================================================
+
+    final palletsToSave = <StockPallet>[];
+
+    // Lokasi yang muncul di file import.
+    //
+    // Digunakan untuk mendeteksi duplicate location
+    // di dalam file Excel itu sendiri.
+    final importLocations = <String>{};
+
+    // ==========================================================
+    // 5. VALIDASI + MAPPING DI MEMORY
+    // ==========================================================
+
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
       final rowNumber = i + 2;
@@ -44,19 +129,22 @@ class ImportStockPalletToDatabase {
         final plu = row['plu']?.toString().trim() ?? '';
 
         if (plu.isEmpty) {
-          throw const FormatException(
-            'PLU kosong.',
-          );
+          throw const FormatException('PLU kosong.');
         }
 
-        final product =
-            await productRepository.getProductByPlu(plu);
+        // ------------------------------------------------------
+        // Cari Master Barang dari Map.
+        // ------------------------------------------------------
+
+        final product = productByPlu[plu];
 
         if (product == null) {
-          throw FormatException(
-            'PLU $plu tidak ditemukan di Master Barang.',
-          );
+          throw FormatException('PLU $plu tidak ditemukan di Master Barang.');
         }
+
+        // ------------------------------------------------------
+        // Mapping Excel → StockPallet.
+        // ------------------------------------------------------
 
         final pallet = mapper.execute(
           row: row,
@@ -64,28 +152,82 @@ class ImportStockPalletToDatabase {
           operatorNik: operatorNik,
         );
 
-        final existing =
-            await stockPalletRepository.findByLocationCode(
-          pallet.locationCode,
-        );
+        final location = pallet.locationCode.trim();
 
-        if (existing != null) {
+        if (location.isEmpty) {
+          throw const FormatException('Location kosong.');
+        }
+
+        // ------------------------------------------------------
+        // Cek lokasi yang sudah ada di database.
+        //
+        // Tidak perlu query SQLite.
+        // Cukup cek Set di memory.
+        // ------------------------------------------------------
+
+        if (existingLocations.contains(location)) {
+          throw StateError('Lokasi $location sudah memiliki pallet.');
+        }
+
+        // ------------------------------------------------------
+        // Cek duplicate location di file Excel.
+        // ------------------------------------------------------
+
+        if (!importLocations.add(location)) {
           throw StateError(
-            'Lokasi ${pallet.locationCode} sudah memiliki pallet.',
+            'Lokasi $location muncul lebih dari satu kali '
+            'di file import.',
           );
         }
 
-        await stockPalletRepository.save(pallet);
+        palletsToSave.add(pallet);
 
         successCount++;
       } catch (e) {
         failedCount++;
 
-        errors.add(
-          'Baris $rowNumber: ${e.toString()}',
-        );
+        errors.add('Baris $rowNumber: ${e.toString()}');
       }
     }
+
+    // ==========================================================
+    // 6. BATCH INSERT
+    // ==========================================================
+    //
+    // Hanya SATU operasi repository.
+    //
+    // Repository akan meneruskannya ke DAO batch insert.
+    //
+    // Ini jauh lebih ringan daripada:
+    //
+    // save()
+    // save()
+    // save()
+    // save()
+    // ...
+    //
+    // sampai 1.863 kali.
+    // ==========================================================
+
+    if (palletsToSave.isNotEmpty) {
+      try {
+        await stockPalletRepository.saveAll(palletsToSave);
+      } catch (e) {
+        // ------------------------------------------------------
+        // Jika batch database gagal, data tidak boleh dianggap
+        // berhasil tersimpan.
+        // ------------------------------------------------------
+
+        failedCount += successCount;
+        successCount = 0;
+
+        errors.add('Batch insert gagal: ${e.toString()}');
+      }
+    }
+
+    // ==========================================================
+    // 7. HASIL IMPORT
+    // ==========================================================
 
     return ImportStockPalletToDatabaseResult(
       successCount: successCount,

@@ -27,21 +27,16 @@ import 'package:drift/drift.dart';
 
 import '../app_database.dart';
 import '../tables/stock_pallets_table.dart';
+
 part 'stock_pallet_dao.g.dart';
 
 // ============================================================
 // CLASS: StockPalletDao
 // ============================================================
-//
-// Dengan @DriftAccessor, Drift akan membuat implementasi
-// DAO secara otomatis di file generated .g.dart.
-//
-// ============================================================
 
 @DriftAccessor(tables: [StockPallets])
 class StockPalletDao extends DatabaseAccessor<AppDatabase>
     with _$StockPalletDaoMixin {
-
   // ----------------------------------------------------------
   // CONSTRUCTOR
   // ----------------------------------------------------------
@@ -51,34 +46,17 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
   // ==========================================================
   // FIND PALLET BY LOCATION
   // ==========================================================
-  //
-  // Contoh:
-  //
-  // Location: 8001101
-  //
-  // Jika ada pallet:
-  //
-  // 8001101 → Pallet A
-  //
-  // maka data pallet dikembalikan.
-  //
-  // Jika belum ada:
-  //
-  // return null
-  //
-  // ==========================================================
 
   Future<StockPallet?> findByLocation(String locationCode) {
+    final normalizedLocation = locationCode.trim();
+
     return (select(stockPallets)
-          ..where((tbl) => tbl.locationCode.equals(locationCode.trim())))
+          ..where((tbl) => tbl.locationCode.equals(normalizedLocation)))
         .getSingleOrNull();
   }
 
   // ==========================================================
   // GET ALL PALLETS
-  // ==========================================================
-  //
-  // Mengambil seluruh pallet yang tersimpan di database.
   // ==========================================================
 
   Future<List<StockPallet>> getAllPallets() {
@@ -88,46 +66,46 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
   // ==========================================================
   // INSERT PALLET
   // ==========================================================
-  //
-  // Digunakan ketika operator melakukan PUT AWAY pertama kali.
-  //
-  // Location harus belum memiliki pallet.
-  //
-  // ==========================================================
 
   Future<int> insertPallet(StockPalletsCompanion pallet) {
     return into(stockPallets).insert(pallet);
   }
 
   // ==========================================================
-  // UPDATE PALLET
+  // INSERT BANYAK PALLET
   // ==========================================================
   //
-  // Digunakan ketika operator memilih:
+  // Digunakan khusus untuk proses import Excel.
   //
-  // [ EDIT PALLET ]
+  // Semua pallet dikirim ke SQLite dalam satu batch,
+  // sehingga tidak perlu melakukan INSERT satu per satu.
   //
-  // Data pallet lama diperbarui.
   // ==========================================================
 
-  Future<bool> updatePallet(StockPalletsCompanion pallet) {
-    return update(stockPallets).write(pallet).then((count) {
-      return count > 0;
+  Future<void> insertPallets(List<StockPalletsCompanion> pallets) async {
+    if (pallets.isEmpty) {
+      return;
+    }
+
+    await batch((batch) {
+      batch.insertAll(stockPallets, pallets);
     });
   }
 
   // ==========================================================
-  // DELETE PALLET
+  // UPDATE PALLET
   // ==========================================================
-  //
-  // Disediakan untuk kebutuhan administrasi/data correction.
-  // UI belum menggunakan fungsi ini.
-  //
+
+  Future<bool> updatePallet(StockPalletsCompanion pallet) async {
+    final count = await update(stockPallets).write(pallet);
+    return count > 0;
+  }
+
+  // ==========================================================
+  // DELETE PALLET BY ID
   // ==========================================================
 
   Future<int> deletePalletById(int id) {
-    return (delete(stockPallets)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (delete(stockPallets)..where((tbl) => tbl.id.equals(id))).go();
   }
 }

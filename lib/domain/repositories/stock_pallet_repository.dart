@@ -60,6 +60,23 @@ abstract class StockPalletRepository {
   Future<void> save(StockPallet pallet);
 
   // ==========================================================
+  // SAVE ALL
+  // ==========================================================
+  //
+  // FUNGSI:
+  // Menyimpan banyak pallet sekaligus.
+  //
+  // Digunakan terutama untuk:
+  // - Import Excel
+  // - Import data storage dalam jumlah besar
+  //
+  // Implementasi Data Layer akan menggunakan batch database
+  // agar proses import tidak melakukan INSERT satu per satu.
+  // ==========================================================
+
+  Future<void> saveAll(List<StockPallet> pallets);
+
+  // ==========================================================
   // GET ALL
   // ==========================================================
   //
