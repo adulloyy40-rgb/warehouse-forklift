@@ -45,6 +45,7 @@ import '../../../domain/services/stock_pallet_export_service.dart';
 
 import '../storage/storage_page.dart';
 import '../import/excel_import_page.dart';
+import '../barcode/scan_barcode_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -592,6 +593,22 @@ class _DashboardPageState extends State<DashboardPage> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const ExcelImportPage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // ==================================================
+                    // SCAN BARCODE
+                    // ==================================================
+                    _MenuCard(
+                      icon: Icons.qr_code_scanner_rounded,
+                      title: 'Scan Barcode',
+                      subtitle: 'Cari informasi barang',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ScanBarcodePage(),
                           ),
                         );
                       },
