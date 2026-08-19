@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/di/app_dependencies.dart';
@@ -17,27 +18,31 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
   final _productRepository = AppDependencies.instance.productRepository;
 
   Product? _product;
+
   String? _scannedBarcode;
   String? _errorMessage;
+
   bool _isSearching = false;
   bool _hasScanned = false;
 
   Future<void> _handleBarcode(String barcode) async {
     final normalizedBarcode = barcode.trim();
 
-    if (normalizedBarcode.isEmpty || _isSearching || _hasScanned) {
+    if (normalizedBarcode.isEmpty || _hasScanned || _isSearching) {
       return;
     }
 
     setState(() {
       _hasScanned = true;
       _isSearching = true;
-      _errorMessage = null;
       _product = null;
+      _errorMessage = null;
       _scannedBarcode = normalizedBarcode;
     });
 
     await _controller.stop();
+
+    await HapticFeedback.mediumImpact();
 
     try {
       final product = await _productRepository.getProductByBarcode(
@@ -53,9 +58,16 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
         _isSearching = false;
 
         if (product == null) {
-          _errorMessage = 'Barcode tidak ditemukan di Master Barang.';
+          _errorMessage =
+              'Barcode berhasil terbaca, tetapi tidak ditemukan di Master Barang.';
         }
       });
+
+      if (product != null) {
+        await HapticFeedback.heavyImpact();
+      } else {
+        await HapticFeedback.vibrate();
+      }
     } catch (e) {
       if (!mounted) {
         return;
@@ -63,7 +75,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
 
       setState(() {
         _isSearching = false;
-        _errorMessage = 'Gagal mencari barcode: $e';
+        _errorMessage = 'Gagal mencari barcode di Master Barang.';
       });
     }
   }
@@ -95,10 +107,21 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
         actions: [
-          IconButton(
-            tooltip: 'Flash',
-            onPressed: () => _controller.toggleTorch(),
-            icon: const Icon(Icons.flash_on_rounded),
+          ValueListenableBuilder<MobileScannerState>(
+            valueListenable: _controller,
+            builder: (context, state, child) {
+              return IconButton(
+                tooltip: state.torchState == TorchState.on
+                    ? 'Matikan flashlight'
+                    : 'Nyalakan flashlight',
+                onPressed: () => _controller.toggleTorch(),
+                icon: Icon(
+                  state.torchState == TorchState.on
+                      ? Icons.flash_on_rounded
+                      : Icons.flash_off_rounded,
+                ),
+              );
+            },
           ),
           IconButton(
             tooltip: 'Ganti kamera',
@@ -127,9 +150,20 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
                 },
               ),
 
+              const SizedBox(height: 14),
+
+              _ScannerStatus(
+                hasScanned: _hasScanned,
+                isSearching: _isSearching,
+              ),
+
               const SizedBox(height: 18),
 
-              if (_isSearching)
+              if (_scannedBarcode != null)
+                _ScannedBarcodeCard(barcode: _scannedBarcode!),
+
+              if (_isSearching) ...[
+                const SizedBox(height: 12),
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(20),
@@ -142,42 +176,55 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
                         ),
                         SizedBox(width: 14),
                         Expanded(
-                          child: Text('Mencari informasi Master Barang...'),
+                          child: Text(
+                            'Mencari informasi Master Barang...',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
+              ],
 
-              if (_errorMessage != null && !_isSearching)
+              if (_errorMessage != null && !_isSearching) ...[
+                const SizedBox(height: 12),
                 _ResultErrorCard(
                   barcode: _scannedBarcode,
                   message: _errorMessage!,
                   onScanAgain: _scanAgain,
                 ),
+              ],
 
-              if (_product != null && !_isSearching)
+              if (_product != null && !_isSearching) ...[
+                const SizedBox(height: 12),
                 _ProductResultCard(
                   product: _product!,
                   scannedBarcode: _scannedBarcode ?? _product!.barcode,
                   onScanAgain: _scanAgain,
                 ),
+              ],
 
-              if (!_hasScanned && !_isSearching)
+              if (!_hasScanned && !_isSearching) ...[
+                const SizedBox(height: 12),
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(18),
                     child: Row(
                       children: [
-                        Icon(Icons.qr_code_scanner_rounded),
+                        Icon(Icons.qr_code_scanner_rounded, size: 28),
                         SizedBox(width: 12),
                         Expanded(
-                          child: Text('Arahkan kamera ke barcode produk.'),
+                          child: Text(
+                            'Arahkan kamera ke barcode barang. '
+                            'Pastikan barcode terlihat jelas dan fokus.',
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
+              ],
             ],
           ),
         ),
@@ -197,21 +244,155 @@ class _ScannerPreview extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: SizedBox(
-        height: 300,
+        height: 320,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            MobileScanner(controller: controller, onDetect: onDetect),
-            IgnorePointer(
-              child: Center(
-                child: Container(
-                  width: 260,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 3),
-                    borderRadius: BorderRadius.circular(18),
+            MobileScanner(
+              controller: controller,
+              fit: BoxFit.cover,
+              onDetect: onDetect,
+            ),
+            const _ScannerOverlay(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerOverlay extends StatelessWidget {
+  const _ScannerOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.18),
+              ),
+            ),
+          ),
+          Center(
+            child: Container(
+              width: 280,
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 3),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    blurRadius: 12,
                   ),
-                ),
+                ],
+              ),
+            ),
+          ),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 18,
+            child: Text(
+              'Posisikan barcode di dalam kotak',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                shadows: [Shadow(blurRadius: 4, offset: Offset(0, 1))],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScannerStatus extends StatelessWidget {
+  const _ScannerStatus({required this.hasScanned, required this.isSearching});
+
+  final bool hasScanned;
+  final bool isSearching;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isSearching) {
+      return const _StatusCard(
+        icon: Icons.search_rounded,
+        text: 'Barcode terbaca. Sedang mencari Master Barang...',
+      );
+    }
+
+    if (hasScanned) {
+      return const _StatusCard(
+        icon: Icons.check_circle_outline_rounded,
+        text: 'Scan berhasil. Kamera dihentikan sementara.',
+      );
+    }
+
+    return const _StatusCard(
+      icon: Icons.center_focus_strong_rounded,
+      text: 'Siap scan barcode',
+    );
+  }
+}
+
+class _StatusCard extends StatelessWidget {
+  const _StatusCard({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(
+          children: [
+            Icon(icon),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannedBarcodeCard extends StatelessWidget {
+  const _ScannedBarcodeCard({required this.barcode});
+
+  final String barcode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Barcode Terbaca',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              barcode,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
               ),
             ),
           ],
@@ -262,9 +443,7 @@ class _ProductResultCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 18),
-
             _InfoRow(label: 'Barcode', value: scannedBarcode),
             _InfoRow(label: 'PLU', value: product.plu),
             _InfoRow(label: 'Nama Barang', value: product.description),
@@ -283,9 +462,7 @@ class _ProductResultCard extends StatelessWidget {
               label: 'Master Stack',
               value: product.masterStack.toString(),
             ),
-
             const SizedBox(height: 16),
-
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
@@ -328,7 +505,7 @@ class _ResultErrorCard extends StatelessWidget {
             ),
             if (barcode != null) ...[
               const SizedBox(height: 8),
-              Text('Barcode: $barcode'),
+              SelectableText('Barcode: $barcode'),
             ],
             const SizedBox(height: 16),
             SizedBox(
