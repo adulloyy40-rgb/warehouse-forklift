@@ -1,4 +1,5 @@
 import '../entities/product.dart';
+import 'dart:developer' as developer;
 import '../entities/stock_pallet.dart';
 import '../repositories/product_repository.dart';
 import '../repositories/stock_pallet_repository.dart';
@@ -33,6 +34,8 @@ class ImportStockPalletToDatabase {
     required List<Map<String, dynamic>> rows,
     required String operatorNik,
   }) async {
+    final totalStopwatch = Stopwatch()..start();
+
     var successCount = 0;
     var failedCount = 0;
 
@@ -53,7 +56,18 @@ class ImportStockPalletToDatabase {
     // Sekarang Master Barang dibaca SATU KALI.
     // ==========================================================
 
+    final masterStopwatch = Stopwatch()..start();
+
     final products = await productRepository.getAllProducts();
+
+    masterStopwatch.stop();
+
+    developer.log(
+      'PROFILE | Load Master Barang: '
+      '${masterStopwatch.elapsedMilliseconds} ms '
+      '(${products.length} products)',
+      name: 'StockPalletImport',
+    );
 
     // ==========================================================
     // 2. BUAT INDEX PLU DI MEMORY
@@ -88,7 +102,18 @@ class ImportStockPalletToDatabase {
     // Sekarang database dibaca SATU KALI.
     // ==========================================================
 
+    final existingStopwatch = Stopwatch()..start();
+
     final existingPallets = await stockPalletRepository.getAll();
+
+    existingStopwatch.stop();
+
+    developer.log(
+      'PROFILE | Load Existing Pallet: '
+      '${existingStopwatch.elapsedMilliseconds} ms '
+      '(${existingPallets.length} pallets)',
+      name: 'StockPalletImport',
+    );
 
     final existingLocations = <String>{};
 
@@ -120,6 +145,8 @@ class ImportStockPalletToDatabase {
     // ==========================================================
     // 5. VALIDASI + MAPPING DI MEMORY
     // ==========================================================
+
+    final mappingStopwatch = Stopwatch()..start();
 
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
@@ -190,6 +217,15 @@ class ImportStockPalletToDatabase {
       }
     }
 
+    mappingStopwatch.stop();
+
+    developer.log(
+      'PROFILE | Validasi + Mapping: '
+      '${mappingStopwatch.elapsedMilliseconds} ms '
+      '(${rows.length} rows)',
+      name: 'StockPalletImport',
+    );
+
     // ==========================================================
     // 6. BATCH INSERT
     // ==========================================================
@@ -209,6 +245,8 @@ class ImportStockPalletToDatabase {
     // sampai 1.863 kali.
     // ==========================================================
 
+    final batchStopwatch = Stopwatch()..start();
+
     if (palletsToSave.isNotEmpty) {
       try {
         await stockPalletRepository.saveAll(palletsToSave);
@@ -224,6 +262,25 @@ class ImportStockPalletToDatabase {
         errors.add('Batch insert gagal: ${e.toString()}');
       }
     }
+
+    batchStopwatch.stop();
+
+    developer.log(
+      'PROFILE | Batch Insert SQLite: '
+      '${batchStopwatch.elapsedMilliseconds} ms '
+      '(${palletsToSave.length} pallets)',
+      name: 'StockPalletImport',
+    );
+
+    totalStopwatch.stop();
+
+    developer.log(
+      'PROFILE | TOTAL IMPORT: '
+      '${totalStopwatch.elapsedMilliseconds} ms '
+      '| success=$successCount '
+      '| failed=$failedCount',
+      name: 'StockPalletImport',
+    );
 
     // ==========================================================
     // 7. HASIL IMPORT
