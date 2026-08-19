@@ -152,6 +152,7 @@ class StorageLocationRepositoryImpl
   /// InsertMode.insertOrIgnore.
   /// ==========================================================
 
+  @override
   Future<void> initializeMasterLocations() async {
     final existingTotal = await dao.getTotalLocation();
 

@@ -104,4 +104,7 @@ abstract class StorageLocationRepository {
     String locationCode,
     String status,
   );
+
+  /// Inisialisasi Master Storage Location saat database masih kosong.
+  Future<void> initializeMasterLocations();
 }

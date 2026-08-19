@@ -1,25 +1,15 @@
-// ============================================================
-// FILE:
-// lib/main.dart
-// ============================================================
-//
-// ENTRY POINT APLIKASI
-// ============================================================
-
 import 'package:flutter/material.dart';
 
+import 'core/di/app_dependencies.dart';
 import 'presentation/app/app.dart';
 
-// ============================================================
-// MAIN
-// ============================================================
-
-void main() {
-  // Memastikan Flutter binding sudah siap.
-
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Menjalankan aplikasi Warehouse Forklift.
+  final dependencies = AppDependencies.instance;
+
+  await dependencies.storageLocationRepository
+      .initializeMasterLocations();
 
   runApp(const WarehouseForkliftApp());
 }
