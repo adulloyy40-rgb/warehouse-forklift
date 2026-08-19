@@ -437,7 +437,15 @@ Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
       return '';
     }
 
-    return value.toString().trim();
+    var text = value.toString().trim();
+
+    // Excel kadang menyimpan barcode sebagai teks
+    // dengan apostrophe di bagian awal.
+    if (text.startsWith("'")) {
+      text = text.substring(1).trim();
+    }
+
+    return text;
   }
 
   // ==========================================================
