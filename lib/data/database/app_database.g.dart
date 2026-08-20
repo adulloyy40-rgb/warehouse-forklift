@@ -1386,6 +1386,689 @@ class StorageLocationsCompanion extends UpdateCompanion<StorageLocation> {
   }
 }
 
+class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProductsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _barcodeMeta = const VerificationMeta(
+    'barcode',
+  );
+  @override
+  late final GeneratedColumn<String> barcode = GeneratedColumn<String>(
+    'barcode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _pluMeta = const VerificationMeta('plu');
+  @override
+  late final GeneratedColumn<String> plu = GeneratedColumn<String>(
+    'plu',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+    'price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _returHariMeta = const VerificationMeta(
+    'returHari',
+  );
+  @override
+  late final GeneratedColumn<int> returHari = GeneratedColumn<int>(
+    'retur_hari',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _conv2Meta = const VerificationMeta('conv2');
+  @override
+  late final GeneratedColumn<int> conv2 = GeneratedColumn<int>(
+    'conv2',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _masterTearMeta = const VerificationMeta(
+    'masterTear',
+  );
+  @override
+  late final GeneratedColumn<int> masterTear = GeneratedColumn<int>(
+    'master_tear',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _masterStackMeta = const VerificationMeta(
+    'masterStack',
+  );
+  @override
+  late final GeneratedColumn<int> masterStack = GeneratedColumn<int>(
+    'master_stack',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    barcode,
+    plu,
+    description,
+    price,
+    returHari,
+    conv2,
+    type,
+    masterTear,
+    masterStack,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'products';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Product> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('barcode')) {
+      context.handle(
+        _barcodeMeta,
+        barcode.isAcceptableOrUnknown(data['barcode']!, _barcodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_barcodeMeta);
+    }
+    if (data.containsKey('plu')) {
+      context.handle(
+        _pluMeta,
+        plu.isAcceptableOrUnknown(data['plu']!, _pluMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pluMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+        _priceMeta,
+        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
+      );
+    }
+    if (data.containsKey('retur_hari')) {
+      context.handle(
+        _returHariMeta,
+        returHari.isAcceptableOrUnknown(data['retur_hari']!, _returHariMeta),
+      );
+    }
+    if (data.containsKey('conv2')) {
+      context.handle(
+        _conv2Meta,
+        conv2.isAcceptableOrUnknown(data['conv2']!, _conv2Meta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
+    if (data.containsKey('master_tear')) {
+      context.handle(
+        _masterTearMeta,
+        masterTear.isAcceptableOrUnknown(data['master_tear']!, _masterTearMeta),
+      );
+    }
+    if (data.containsKey('master_stack')) {
+      context.handle(
+        _masterStackMeta,
+        masterStack.isAcceptableOrUnknown(
+          data['master_stack']!,
+          _masterStackMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Product map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Product(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      barcode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}barcode'],
+      )!,
+      plu: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plu'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      price: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}price'],
+      )!,
+      returHari: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}retur_hari'],
+      )!,
+      conv2: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}conv2'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      masterTear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}master_tear'],
+      )!,
+      masterStack: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}master_stack'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ProductsTable createAlias(String alias) {
+    return $ProductsTable(attachedDatabase, alias);
+  }
+}
+
+class Product extends DataClass implements Insertable<Product> {
+  final int id;
+  final String barcode;
+  final String plu;
+  final String description;
+  final double price;
+  final int returHari;
+  final int conv2;
+  final String type;
+  final int masterTear;
+  final int masterStack;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Product({
+    required this.id,
+    required this.barcode,
+    required this.plu,
+    required this.description,
+    required this.price,
+    required this.returHari,
+    required this.conv2,
+    required this.type,
+    required this.masterTear,
+    required this.masterStack,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['barcode'] = Variable<String>(barcode);
+    map['plu'] = Variable<String>(plu);
+    map['description'] = Variable<String>(description);
+    map['price'] = Variable<double>(price);
+    map['retur_hari'] = Variable<int>(returHari);
+    map['conv2'] = Variable<int>(conv2);
+    map['type'] = Variable<String>(type);
+    map['master_tear'] = Variable<int>(masterTear);
+    map['master_stack'] = Variable<int>(masterStack);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ProductsCompanion toCompanion(bool nullToAbsent) {
+    return ProductsCompanion(
+      id: Value(id),
+      barcode: Value(barcode),
+      plu: Value(plu),
+      description: Value(description),
+      price: Value(price),
+      returHari: Value(returHari),
+      conv2: Value(conv2),
+      type: Value(type),
+      masterTear: Value(masterTear),
+      masterStack: Value(masterStack),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Product.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Product(
+      id: serializer.fromJson<int>(json['id']),
+      barcode: serializer.fromJson<String>(json['barcode']),
+      plu: serializer.fromJson<String>(json['plu']),
+      description: serializer.fromJson<String>(json['description']),
+      price: serializer.fromJson<double>(json['price']),
+      returHari: serializer.fromJson<int>(json['returHari']),
+      conv2: serializer.fromJson<int>(json['conv2']),
+      type: serializer.fromJson<String>(json['type']),
+      masterTear: serializer.fromJson<int>(json['masterTear']),
+      masterStack: serializer.fromJson<int>(json['masterStack']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'barcode': serializer.toJson<String>(barcode),
+      'plu': serializer.toJson<String>(plu),
+      'description': serializer.toJson<String>(description),
+      'price': serializer.toJson<double>(price),
+      'returHari': serializer.toJson<int>(returHari),
+      'conv2': serializer.toJson<int>(conv2),
+      'type': serializer.toJson<String>(type),
+      'masterTear': serializer.toJson<int>(masterTear),
+      'masterStack': serializer.toJson<int>(masterStack),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Product copyWith({
+    int? id,
+    String? barcode,
+    String? plu,
+    String? description,
+    double? price,
+    int? returHari,
+    int? conv2,
+    String? type,
+    int? masterTear,
+    int? masterStack,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Product(
+    id: id ?? this.id,
+    barcode: barcode ?? this.barcode,
+    plu: plu ?? this.plu,
+    description: description ?? this.description,
+    price: price ?? this.price,
+    returHari: returHari ?? this.returHari,
+    conv2: conv2 ?? this.conv2,
+    type: type ?? this.type,
+    masterTear: masterTear ?? this.masterTear,
+    masterStack: masterStack ?? this.masterStack,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Product copyWithCompanion(ProductsCompanion data) {
+    return Product(
+      id: data.id.present ? data.id.value : this.id,
+      barcode: data.barcode.present ? data.barcode.value : this.barcode,
+      plu: data.plu.present ? data.plu.value : this.plu,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      price: data.price.present ? data.price.value : this.price,
+      returHari: data.returHari.present ? data.returHari.value : this.returHari,
+      conv2: data.conv2.present ? data.conv2.value : this.conv2,
+      type: data.type.present ? data.type.value : this.type,
+      masterTear: data.masterTear.present
+          ? data.masterTear.value
+          : this.masterTear,
+      masterStack: data.masterStack.present
+          ? data.masterStack.value
+          : this.masterStack,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Product(')
+          ..write('id: $id, ')
+          ..write('barcode: $barcode, ')
+          ..write('plu: $plu, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('returHari: $returHari, ')
+          ..write('conv2: $conv2, ')
+          ..write('type: $type, ')
+          ..write('masterTear: $masterTear, ')
+          ..write('masterStack: $masterStack, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    barcode,
+    plu,
+    description,
+    price,
+    returHari,
+    conv2,
+    type,
+    masterTear,
+    masterStack,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Product &&
+          other.id == this.id &&
+          other.barcode == this.barcode &&
+          other.plu == this.plu &&
+          other.description == this.description &&
+          other.price == this.price &&
+          other.returHari == this.returHari &&
+          other.conv2 == this.conv2 &&
+          other.type == this.type &&
+          other.masterTear == this.masterTear &&
+          other.masterStack == this.masterStack &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ProductsCompanion extends UpdateCompanion<Product> {
+  final Value<int> id;
+  final Value<String> barcode;
+  final Value<String> plu;
+  final Value<String> description;
+  final Value<double> price;
+  final Value<int> returHari;
+  final Value<int> conv2;
+  final Value<String> type;
+  final Value<int> masterTear;
+  final Value<int> masterStack;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const ProductsCompanion({
+    this.id = const Value.absent(),
+    this.barcode = const Value.absent(),
+    this.plu = const Value.absent(),
+    this.description = const Value.absent(),
+    this.price = const Value.absent(),
+    this.returHari = const Value.absent(),
+    this.conv2 = const Value.absent(),
+    this.type = const Value.absent(),
+    this.masterTear = const Value.absent(),
+    this.masterStack = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ProductsCompanion.insert({
+    this.id = const Value.absent(),
+    required String barcode,
+    required String plu,
+    required String description,
+    this.price = const Value.absent(),
+    this.returHari = const Value.absent(),
+    this.conv2 = const Value.absent(),
+    this.type = const Value.absent(),
+    this.masterTear = const Value.absent(),
+    this.masterStack = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : barcode = Value(barcode),
+       plu = Value(plu),
+       description = Value(description);
+  static Insertable<Product> custom({
+    Expression<int>? id,
+    Expression<String>? barcode,
+    Expression<String>? plu,
+    Expression<String>? description,
+    Expression<double>? price,
+    Expression<int>? returHari,
+    Expression<int>? conv2,
+    Expression<String>? type,
+    Expression<int>? masterTear,
+    Expression<int>? masterStack,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (barcode != null) 'barcode': barcode,
+      if (plu != null) 'plu': plu,
+      if (description != null) 'description': description,
+      if (price != null) 'price': price,
+      if (returHari != null) 'retur_hari': returHari,
+      if (conv2 != null) 'conv2': conv2,
+      if (type != null) 'type': type,
+      if (masterTear != null) 'master_tear': masterTear,
+      if (masterStack != null) 'master_stack': masterStack,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ProductsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? barcode,
+    Value<String>? plu,
+    Value<String>? description,
+    Value<double>? price,
+    Value<int>? returHari,
+    Value<int>? conv2,
+    Value<String>? type,
+    Value<int>? masterTear,
+    Value<int>? masterStack,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return ProductsCompanion(
+      id: id ?? this.id,
+      barcode: barcode ?? this.barcode,
+      plu: plu ?? this.plu,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      returHari: returHari ?? this.returHari,
+      conv2: conv2 ?? this.conv2,
+      type: type ?? this.type,
+      masterTear: masterTear ?? this.masterTear,
+      masterStack: masterStack ?? this.masterStack,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (barcode.present) {
+      map['barcode'] = Variable<String>(barcode.value);
+    }
+    if (plu.present) {
+      map['plu'] = Variable<String>(plu.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (returHari.present) {
+      map['retur_hari'] = Variable<int>(returHari.value);
+    }
+    if (conv2.present) {
+      map['conv2'] = Variable<int>(conv2.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (masterTear.present) {
+      map['master_tear'] = Variable<int>(masterTear.value);
+    }
+    if (masterStack.present) {
+      map['master_stack'] = Variable<int>(masterStack.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductsCompanion(')
+          ..write('id: $id, ')
+          ..write('barcode: $barcode, ')
+          ..write('plu: $plu, ')
+          ..write('description: $description, ')
+          ..write('price: $price, ')
+          ..write('returHari: $returHari, ')
+          ..write('conv2: $conv2, ')
+          ..write('type: $type, ')
+          ..write('masterTear: $masterTear, ')
+          ..write('masterStack: $masterStack, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1393,12 +2076,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StorageLocationsTable storageLocations = $StorageLocationsTable(
     this,
   );
+  late final $ProductsTable products = $ProductsTable(this);
   late final StockPalletDao stockPalletDao = StockPalletDao(
     this as AppDatabase,
   );
   late final StorageLocationDao storageLocationDao = StorageLocationDao(
     this as AppDatabase,
   );
+  late final ProductDao productDao = ProductDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1406,6 +2091,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     stockPallets,
     storageLocations,
+    products,
   ];
 }
 
@@ -2062,6 +2748,333 @@ typedef $$StorageLocationsTableProcessedTableManager =
       StorageLocation,
       PrefetchHooks Function()
     >;
+typedef $$ProductsTableCreateCompanionBuilder =
+    ProductsCompanion Function({
+      Value<int> id,
+      required String barcode,
+      required String plu,
+      required String description,
+      Value<double> price,
+      Value<int> returHari,
+      Value<int> conv2,
+      Value<String> type,
+      Value<int> masterTear,
+      Value<int> masterStack,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$ProductsTableUpdateCompanionBuilder =
+    ProductsCompanion Function({
+      Value<int> id,
+      Value<String> barcode,
+      Value<String> plu,
+      Value<String> description,
+      Value<double> price,
+      Value<int> returHari,
+      Value<int> conv2,
+      Value<String> type,
+      Value<int> masterTear,
+      Value<int> masterStack,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$ProductsTableFilterComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get barcode => $composableBuilder(
+    column: $table.barcode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get plu => $composableBuilder(
+    column: $table.plu,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get returHari => $composableBuilder(
+    column: $table.returHari,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get conv2 => $composableBuilder(
+    column: $table.conv2,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get masterTear => $composableBuilder(
+    column: $table.masterTear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get masterStack => $composableBuilder(
+    column: $table.masterStack,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ProductsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get barcode => $composableBuilder(
+    column: $table.barcode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get plu => $composableBuilder(
+    column: $table.plu,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get returHari => $composableBuilder(
+    column: $table.returHari,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get conv2 => $composableBuilder(
+    column: $table.conv2,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get masterTear => $composableBuilder(
+    column: $table.masterTear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get masterStack => $composableBuilder(
+    column: $table.masterStack,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ProductsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get barcode =>
+      $composableBuilder(column: $table.barcode, builder: (column) => column);
+
+  GeneratedColumn<String> get plu =>
+      $composableBuilder(column: $table.plu, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<int> get returHari =>
+      $composableBuilder(column: $table.returHari, builder: (column) => column);
+
+  GeneratedColumn<int> get conv2 =>
+      $composableBuilder(column: $table.conv2, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get masterTear => $composableBuilder(
+    column: $table.masterTear,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get masterStack => $composableBuilder(
+    column: $table.masterStack,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ProductsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ProductsTable,
+          Product,
+          $$ProductsTableFilterComposer,
+          $$ProductsTableOrderingComposer,
+          $$ProductsTableAnnotationComposer,
+          $$ProductsTableCreateCompanionBuilder,
+          $$ProductsTableUpdateCompanionBuilder,
+          (Product, BaseReferences<_$AppDatabase, $ProductsTable, Product>),
+          Product,
+          PrefetchHooks Function()
+        > {
+  $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProductsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProductsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProductsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> barcode = const Value.absent(),
+                Value<String> plu = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<double> price = const Value.absent(),
+                Value<int> returHari = const Value.absent(),
+                Value<int> conv2 = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<int> masterTear = const Value.absent(),
+                Value<int> masterStack = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ProductsCompanion(
+                id: id,
+                barcode: barcode,
+                plu: plu,
+                description: description,
+                price: price,
+                returHari: returHari,
+                conv2: conv2,
+                type: type,
+                masterTear: masterTear,
+                masterStack: masterStack,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String barcode,
+                required String plu,
+                required String description,
+                Value<double> price = const Value.absent(),
+                Value<int> returHari = const Value.absent(),
+                Value<int> conv2 = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<int> masterTear = const Value.absent(),
+                Value<int> masterStack = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ProductsCompanion.insert(
+                id: id,
+                barcode: barcode,
+                plu: plu,
+                description: description,
+                price: price,
+                returHari: returHari,
+                conv2: conv2,
+                type: type,
+                masterTear: masterTear,
+                masterStack: masterStack,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ProductsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ProductsTable,
+      Product,
+      $$ProductsTableFilterComposer,
+      $$ProductsTableOrderingComposer,
+      $$ProductsTableAnnotationComposer,
+      $$ProductsTableCreateCompanionBuilder,
+      $$ProductsTableUpdateCompanionBuilder,
+      (Product, BaseReferences<_$AppDatabase, $ProductsTable, Product>),
+      Product,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2070,4 +3083,6 @@ class $AppDatabaseManager {
       $$StockPalletsTableTableManager(_db, _db.stockPallets);
   $$StorageLocationsTableTableManager get storageLocations =>
       $$StorageLocationsTableTableManager(_db, _db.storageLocations);
+  $$ProductsTableTableManager get products =>
+      $$ProductsTableTableManager(_db, _db.products);
 }

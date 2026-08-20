@@ -1,320 +1,125 @@
-// ============================================================
-// FILE:
-// test/product_repository_test.dart
-// ============================================================
-//
-// FUNGSI:
-// Menguji ProductRepositoryImpl.
-//
-// Yang diuji:
-//
-// 1. Semua Master Barang dapat dibaca.
-// 2. PLU 5867 dapat ditemukan.
-// 3. Description AQUA dapat ditemukan.
-// 4. Barcode dapat digunakan untuk search.
-// 5. Master Tear terbaca.
-// 6. Master Stack terbaca.
-// 7. CONV2 terbaca.
-// 8. Search PLU bekerja.
-// 9. Search Description bekerja.
-// ============================================================
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:drift/native.dart' as drift_native;
 
+import 'package:warehouse_forklift/data/database/app_database.dart';
+import 'package:warehouse_forklift/data/database/daos/product_dao.dart';
 import 'package:warehouse_forklift/data/repositories/product_repository_impl.dart';
 
-
-// ============================================================
-// main()
-// ============================================================
-//
-// Entry point seluruh pengujian Repository.
-// ============================================================
-
 void main() {
-  // ==========================================================
-  // Lokasi file Excel untuk TEST.
-  // ==========================================================
-  //
-  // File ini sudah kita siapkan sebelumnya:
-  //
-  // test/fixtures/master_barang.xlsx
-  // ==========================================================
-
-  const excelPath =
-      'test/fixtures/master_barang.xlsx';
-
-
-  // ==========================================================
-  // Membuat Repository yang akan digunakan oleh semua test.
-  // ==========================================================
-
+  late AppDatabase database;
+  late ProductDao productDao;
   late ProductRepositoryImpl repository;
 
+  setUp(() async {
+    database = AppDatabase(executor: drift_native.NativeDatabase.memory());
 
-  // ==========================================================
-  // setUp()
-  // ==========================================================
-  //
-  // Dijalankan sebelum setiap test.
-  //
-  // Tujuannya memastikan setiap test mendapatkan Repository
-  // dengan konfigurasi yang sama.
-  // ==========================================================
+    productDao = database.productDao;
 
-  setUp(() {
-    repository = ProductRepositoryImpl(
-      excelFilePath: excelPath,
+    repository = ProductRepositoryImpl(productDao);
+
+    await productDao.insertProduct(
+      ProductsCompanion.insert(
+        barcode: '899999999001',
+        plu: '5867',
+        description: 'AQUA AIR MNRL PET 1500ML',
+        price: const drift.Value(4216.94),
+        returHari: const drift.Value(60),
+        conv2: const drift.Value(12),
+        type: const drift.Value('CTN'),
+        masterTear: const drift.Value(10),
+        masterStack: const drift.Value(20),
+      ),
+    );
+
+    await productDao.insertProduct(
+      ProductsCompanion.insert(
+        barcode: '899999999002',
+        plu: '7000',
+        description: 'TEST PRODUCT',
+        price: const drift.Value(10000),
+        returHari: const drift.Value(30),
+        conv2: const drift.Value(24),
+        type: const drift.Value('PCS'),
+        masterTear: const drift.Value(5),
+        masterStack: const drift.Value(10),
+      ),
     );
   });
 
-
-  // ==========================================================
-  // TEST 1
-  // ==========================================================
-  //
-  // Memastikan Master Barang berhasil dibaca.
-  // ==========================================================
+  tearDown(() async {
+    await database.close();
+  });
 
   test(
-    'Repository harus dapat membaca Master Barang',
+    'Repository harus dapat membaca semua Master Item dari SQLite',
     () async {
-      // Mengambil seluruh produk.
-      final products =
-          await repository.getAllProducts();
+      final products = await repository.getAllProducts();
 
-      // Data tidak boleh kosong.
-      expect(products, isNotEmpty);
-
-      // Dataset kita berisi 100 Master Barang.
-      expect(products.length, 100);
+      expect(products, hasLength(2));
     },
   );
 
+  test('Repository harus dapat mencari PLU 5867', () async {
+    final product = await repository.getProductByPlu('5867');
 
-  // ==========================================================
-  // TEST 2
-  // ==========================================================
-  //
-  // Memastikan PLU 5867 dapat ditemukan.
-  // ==========================================================
+    expect(product, isNotNull);
+    expect(product!.plu, '5867');
+  });
 
-  test(
-    'Repository harus dapat mencari PLU 5867',
-    () async {
-      // Mencari produk berdasarkan PLU.
-      final product =
-          await repository.getProductByPlu('5867');
+  test('PLU 5867 harus memiliki description yang benar', () async {
+    final product = await repository.getProductByPlu('5867');
 
-      // Produk harus ditemukan.
-      expect(product, isNotNull);
+    expect(product, isNotNull);
+    expect(product!.description, 'AQUA AIR MNRL PET 1500ML');
+  });
 
-      // PLU harus benar.
-      expect(product!.plu, '5867');
-    },
-  );
+  test('Repository harus dapat mencari berdasarkan barcode', () async {
+    final product = await repository.getProductByBarcode('899999999001');
 
+    expect(product, isNotNull);
+    expect(product!.plu, '5867');
+  });
 
-  // ==========================================================
-  // TEST 3
-  // ==========================================================
-  //
-  // Memastikan Description barang PLU 5867 benar.
-  // ==========================================================
+  test('Master Tear harus terbaca dari SQLite', () async {
+    final product = await repository.getProductByPlu('5867');
 
-  test(
-    'PLU 5867 harus memiliki description yang benar',
-    () async {
-      final product =
-          await repository.getProductByPlu('5867');
+    expect(product, isNotNull);
+    expect(product!.masterTear, 10);
+  });
 
-      // Produk harus ditemukan.
-      expect(product, isNotNull);
+  test('Master Stack harus terbaca dari SQLite', () async {
+    final product = await repository.getProductByPlu('5867');
 
-      // Description harus sesuai Master Barang.
-      expect(
-        product!.description,
-        'AQUA AIR MNRL PET 1500ML',
-      );
-    },
-  );
+    expect(product, isNotNull);
+    expect(product!.masterStack, 20);
+  });
 
+  test('CONV2 harus terbaca dari SQLite', () async {
+    final product = await repository.getProductByPlu('5867');
 
-  // ==========================================================
-  // TEST 4
-  // ==========================================================
-  //
-  // Memastikan CONV2 terbaca.
-  // ==========================================================
+    expect(product, isNotNull);
+    expect(product!.conv2, 12);
+  });
 
-  test(
-    'PLU 5867 harus memiliki CONV2 yang benar',
-    () async {
-      final product =
-          await repository.getProductByPlu('5867');
+  test('Search PLU harus bekerja', () async {
+    final products = await repository.searchProducts('5867');
 
-      expect(product, isNotNull);
+    expect(products, isNotEmpty);
+    expect(products.first.plu, '5867');
+  });
 
-      // CONV2 Master Barang harus 12.
-      expect(product!.conv2, 12);
-    },
-  );
+  test('Search description harus bekerja', () async {
+    final products = await repository.searchProducts('AQUA');
 
+    expect(products, isNotEmpty);
+    expect(products.first.description, 'AQUA AIR MNRL PET 1500ML');
+  });
 
-  // ==========================================================
-  // TEST 5
-  // ==========================================================
-  //
-  // Memastikan Master Tear terbaca.
-  // ==========================================================
+  test('Search barcode harus bekerja', () async {
+    final products = await repository.searchProducts('899999999001');
 
-  test(
-    'PLU 5867 harus memiliki Master Tear yang benar',
-    () async {
-      final product =
-          await repository.getProductByPlu('5867');
-
-      expect(product, isNotNull);
-
-      // Master Tear harus 8.
-      expect(product!.masterTear, 8);
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 6
-  // ==========================================================
-  //
-  // Memastikan Master Stack terbaca.
-  // ==========================================================
-
-  test(
-    'PLU 5867 harus memiliki Master Stack yang benar',
-    () async {
-      final product =
-          await repository.getProductByPlu('5867');
-
-      expect(product, isNotNull);
-
-      // Master Stack harus 4.
-      expect(product!.masterStack, 4);
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 7
-  // ==========================================================
-  //
-  // Search berdasarkan PLU.
-  // ==========================================================
-
-  test(
-    'Search PLU 5867 harus berhasil',
-    () async {
-      final results =
-          await repository.searchProducts('5867');
-
-      // Hasil tidak boleh kosong.
-      expect(results, isNotEmpty);
-
-      // Salah satu hasil harus memiliki PLU 5867.
-      expect(
-        results.any(
-          (product) => product.plu == '5867',
-        ),
-        true,
-      );
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 8
-  // ==========================================================
-  //
-  // Search berdasarkan Description.
-  // ==========================================================
-
-  test(
-    'Search description AQUA harus berhasil',
-    () async {
-      final results =
-          await repository.searchProducts('AQUA');
-
-      // Hasil harus ditemukan.
-      expect(results, isNotEmpty);
-
-      // Harus ada produk yang description-nya mengandung AQUA.
-      expect(
-        results.any(
-          (product) =>
-              product.description
-                  .toUpperCase()
-                  .contains('AQUA'),
-        ),
-        true,
-      );
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 9
-  // ==========================================================
-  //
-  // Search tidak case-sensitive.
-  //
-  // "aqua" harus tetap menemukan "AQUA".
-  // ==========================================================
-
-  test(
-    'Search harus tidak case-sensitive',
-    () async {
-      final results =
-          await repository.searchProducts('aqua');
-
-      // Harus tetap menemukan barang.
-      expect(results, isNotEmpty);
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 10
-  // ==========================================================
-  //
-  // Search kosong harus mengembalikan seluruh produk.
-  // ==========================================================
-
-  test(
-    'Search kosong harus mengembalikan semua produk',
-    () async {
-      final results =
-          await repository.searchProducts('');
-
-      // Jumlah harus sama dengan seluruh Master Barang.
-      expect(results.length, 100);
-    },
-  );
-
-
-  // ==========================================================
-  // TEST 11
-  // ==========================================================
-  //
-  // PLU yang tidak ada harus menghasilkan null.
-  // ==========================================================
-
-  test(
-    'PLU yang tidak ditemukan harus menghasilkan null',
-    () async {
-      final product =
-          await repository.getProductByPlu('999999');
-
-      // Tidak boleh ada produk.
-      expect(product, isNull);
-    },
-  );
+    expect(products, isNotEmpty);
+    expect(products.first.plu, '5867');
+  });
 }

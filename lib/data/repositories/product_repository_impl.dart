@@ -1,100 +1,28 @@
-// ============================================================
-// FILE:
-// lib/data/repositories/product_repository_impl.dart
-// ============================================================
-//
-// FUNGSI:
-// Implementasi ProductRepository.
-//
-// Optimasi:
-// Master Barang hanya dibaca dari Excel satu kali selama
-// instance repository masih hidup.
-//
-// Ini penting untuk proses import Stock Pallet dalam jumlah
-// besar agar getProductByPlu() tidak membaca Excel berulang.
-// ============================================================
-
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/product_repository.dart';
-import '../datasources/excel_data_source.dart';
-
-// ============================================================
-// CLASS: ProductRepositoryImpl
-// ============================================================
+import '../database/daos/product_dao.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
-  // ==========================================================
-  // DATASOURCE
-  // ==========================================================
+  final ProductDao _dao;
 
-  final ExcelDataSource _dataSource;
-
-  // ==========================================================
-  // EXCEL FILE PATH
-  // ==========================================================
-
-  final String excelFilePath;
-
-  // ==========================================================
-  // CACHE MASTER BARANG
-  // ==========================================================
-  //
-  // null:
-  // Master Barang belum pernah dibaca.
-  //
-  // tidak null:
-  // Master Barang sudah tersedia di memory.
-  //
-  // Dengan demikian Excel tidak dibaca berulang kali.
-  // ==========================================================
-
-  List<Product>? _productsCache;
-
-  // ==========================================================
-  // CONSTRUCTOR
-  // ==========================================================
-
-  ProductRepositoryImpl({
-    required this.excelFilePath,
-    ExcelDataSource? dataSource,
-  }) : _dataSource = dataSource ?? ExcelDataSource();
+  ProductRepositoryImpl(this._dao);
 
   // ==========================================================
   // GET ALL PRODUCTS
   // ==========================================================
+  //
+  // Sumber data operasional:
+  // SQLite / Drift
+  //
+  // Excel TIDAK dibaca di sini.
+  // Excel hanya digunakan oleh proses import Master Item.
+  // ==========================================================
 
   @override
   Future<List<Product>> getAllProducts() async {
-    // --------------------------------------------------------
-    // Jika cache sudah tersedia, gunakan cache.
-    // --------------------------------------------------------
+    final rows = await _dao.getAllProducts();
 
-    final cachedProducts = _productsCache;
-
-    if (cachedProducts != null) {
-      return cachedProducts;
-    }
-
-    // --------------------------------------------------------
-    // Cache belum tersedia.
-    // Baca Master Barang satu kali.
-    // --------------------------------------------------------
-
-    final rows = await _dataSource.readMasterProduct(excelFilePath);
-
-    // --------------------------------------------------------
-    // Mapping Excel → Product.
-    // --------------------------------------------------------
-
-    final products = rows.map(_mapToProduct).toList();
-
-    // --------------------------------------------------------
-    // Simpan ke cache.
-    // --------------------------------------------------------
-
-    _productsCache = List.unmodifiable(products);
-
-    return _productsCache!;
+    return rows.map(_mapToProduct).toList();
   }
 
   // ==========================================================
@@ -103,45 +31,23 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getProductByPlu(String plu) async {
-    // --------------------------------------------------------
-    // Normalisasi PLU.
-    // --------------------------------------------------------
-
     final normalizedPlu = plu.trim();
 
     if (normalizedPlu.isEmpty) {
       return null;
     }
 
-    // --------------------------------------------------------
-    // getAllProducts() sekarang menggunakan cache.
-    // --------------------------------------------------------
+    final row = await _dao.findByPlu(normalizedPlu);
 
-    final products = await getAllProducts();
-
-    // --------------------------------------------------------
-    // Cari PLU.
-    // --------------------------------------------------------
-
-    for (final product in products) {
-      if (product.plu.trim() == normalizedPlu) {
-        return product;
-      }
+    if (row == null) {
+      return null;
     }
 
-    return null;
+    return _mapToProduct(row);
   }
 
   // ==========================================================
   // GET PRODUCT BY BARCODE
-  // ==========================================================
-  //
-  // Digunakan oleh fitur Scan Barcode.
-  //
-  // Barcode harus cocok secara EXACT.
-  // Tidak menggunakan contains().
-  //
-  // Data diambil dari cache melalui getAllProducts().
   // ==========================================================
 
   @override
@@ -152,15 +58,13 @@ class ProductRepositoryImpl implements ProductRepository {
       return null;
     }
 
-    final products = await getAllProducts();
+    final row = await _dao.findByBarcode(normalizedBarcode);
 
-    for (final product in products) {
-      if (product.barcode.trim() == normalizedBarcode) {
-        return product;
-      }
+    if (row == null) {
+      return null;
     }
 
-    return null;
+    return _mapToProduct(row);
   }
 
   // ==========================================================
@@ -169,100 +73,28 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<Product>> searchProducts(String query) async {
-    final normalizedQuery = query.trim().toLowerCase();
+    final normalizedQuery = query.trim();
 
-    if (normalizedQuery.isEmpty) {
-      return getAllProducts();
-    }
+    final rows = await _dao.searchProducts(normalizedQuery);
 
-    // --------------------------------------------------------
-    // getAllProducts() menggunakan cache.
-    // --------------------------------------------------------
-
-    final products = await getAllProducts();
-
-    return products.where((product) {
-      final pluMatch = product.plu.toLowerCase().contains(normalizedQuery);
-
-      final barcodeMatch = product.barcode.toLowerCase().contains(
-        normalizedQuery,
-      );
-
-      final descriptionMatch = product.description.toLowerCase().contains(
-        normalizedQuery,
-      );
-
-      return pluMatch || barcodeMatch || descriptionMatch;
-    }).toList();
+    return rows.map(_mapToProduct).toList();
   }
 
   // ==========================================================
-  // MAP TO PRODUCT
+  // MAP DATABASE ROW → DOMAIN ENTITY
   // ==========================================================
 
-  Product _mapToProduct(Map<String, dynamic> row) {
+  Product _mapToProduct(dynamic row) {
     return Product(
-      barcode: row['barcode']?.toString() ?? '',
-      plu: row['plu']?.toString() ?? '',
-      description: row['description']?.toString() ?? '',
-      price: _toDouble(row['price']),
-      returHari: _toInt(row['returHari']),
-      conv2: _toInt(row['conv2']),
-      type: row['type']?.toString() ?? '',
-      masterTear: _toInt(row['masterTear']),
-      masterStack: _toInt(row['masterStack']),
+      barcode: row.barcode,
+      plu: row.plu,
+      description: row.description,
+      price: row.price,
+      returHari: row.returHari,
+      conv2: row.conv2,
+      type: row.type,
+      masterTear: row.masterTear,
+      masterStack: row.masterStack,
     );
-  }
-
-  // ==========================================================
-  // TO INT
-  // ==========================================================
-
-  int _toInt(dynamic value) {
-    if (value == null) {
-      return 0;
-    }
-
-    if (value is int) {
-      return value;
-    }
-
-    if (value is double) {
-      return value.toInt();
-    }
-
-    final text = value.toString().trim();
-
-    if (text.isEmpty) {
-      return 0;
-    }
-
-    return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
-  }
-
-  // ==========================================================
-  // TO DOUBLE
-  // ==========================================================
-
-  double _toDouble(dynamic value) {
-    if (value == null) {
-      return 0;
-    }
-
-    if (value is double) {
-      return value;
-    }
-
-    if (value is int) {
-      return value.toDouble();
-    }
-
-    final text = value.toString().trim();
-
-    if (text.isEmpty) {
-      return 0;
-    }
-
-    return double.tryParse(text) ?? 0;
   }
 }

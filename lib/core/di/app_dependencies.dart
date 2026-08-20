@@ -106,9 +106,9 @@ class AppDependencies {
   //
   // ==========================================================
 
-  final ProductRepository productRepository =
+  late final ProductRepository productRepository =
       ProductRepositoryImpl(
-    excelFilePath: 'test/fixtures/master_barang.xlsx',
+    database.productDao,
   );
 
   // ==========================================================
