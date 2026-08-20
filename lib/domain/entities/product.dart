@@ -3,6 +3,17 @@
 
 // Entity Product mewakili satu data barang dari Master Item.
 class Product {
+  // ID internal SQLite.
+  //
+  // Nullable karena Product yang berasal dari:
+  // - Excel
+  // - proses import
+  // - form Create
+  // belum memiliki ID database.
+  //
+  // Setelah tersimpan di SQLite, ID akan diisi oleh database.
+  final int? id;
+
   // Barcode barang.
   final String barcode;
 
@@ -35,6 +46,7 @@ class Product {
 
   // Constructor untuk membuat object Product.
   const Product({
+    this.id,
     required this.barcode,
     required this.plu,
     required this.description,

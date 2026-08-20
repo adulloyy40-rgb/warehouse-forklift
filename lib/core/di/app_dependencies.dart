@@ -5,28 +5,15 @@
 // FUNGSI:
 // Dependency Injection utama aplikasi Warehouse Forklift.
 //
-// Prinsip:
-//
 // SATU AppDatabase
-//        |
-//        +-- StockPalletRepository
-//        |       |
-//        |       +-- StockPalletRepositoryImpl
 //        |
 //        +-- ProductRepository
 //        |       |
 //        |       +-- ProductRepositoryImpl
 //        |
+//        +-- StockPalletRepository
+//        |
 //        +-- StorageLocationRepository
-//
-// USE CASE:
-//
-// Product:
-//   GetProductByPlu
-//
-// Stock Pallet:
-//   PutAwayStockPallet
-//   UpdateStockPallet
 //
 // ============================================================
 
@@ -39,171 +26,93 @@ import '../../domain/repositories/product_repository.dart';
 import '../../domain/repositories/stock_pallet_repository.dart';
 import '../../domain/repositories/storage_location_repository.dart';
 
+import '../../domain/usecases/product/create_product.dart';
+import '../../domain/usecases/product/delete_product.dart';
+import '../../domain/usecases/product/get_product_by_id.dart';
 import '../../domain/usecases/product/get_product_by_plu.dart';
+import '../../domain/usecases/product/update_product.dart';
+
 import '../../domain/usecases/import_master_item_to_database.dart';
+import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
-import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 
 // ============================================================
 // CLASS
 // ============================================================
 
 class AppDependencies {
-  // ==========================================================
-  // PRIVATE CONSTRUCTOR
-  // ==========================================================
-
   AppDependencies._();
-
-  // ==========================================================
-  // SINGLETON
-  // ==========================================================
 
   static final AppDependencies instance = AppDependencies._();
 
   // ==========================================================
   // DATABASE
   // ==========================================================
-  //
-  // Hanya satu database digunakan seluruh aplikasi.
-  // ==========================================================
 
   final AppDatabase database = AppDatabase();
 
   // ==========================================================
-  // STOCK PALLET REPOSITORY
-  // ==========================================================
-  //
-  // Repository Stock Pallet menggunakan database yang sama.
-  // ==========================================================
-
-  late final StockPalletRepository stockPalletRepository =
-      StockPalletRepositoryImpl(
-    database,
-  );
-
-  // ==========================================================
-  // STORAGE LOCATION REPOSITORY
-  // ==========================================================
-  //
-  // Repository untuk master lokasi storage.
-  // ==========================================================
-
-  late final StorageLocationRepository storageLocationRepository =
-      StorageLocationRepositoryImpl(
-    database.storageLocationDao,
-  );
-
-  // ==========================================================
   // PRODUCT REPOSITORY
   // ==========================================================
-  //
-  // Repository Master Item.
-  //
-  // Untuk sekarang Master Item dibaca dari:
-  //
-  // test/fixtures/master_barang.xlsx
-  //
-  // ==========================================================
 
-  late final ProductRepository productRepository =
-      ProductRepositoryImpl(
+  late final ProductRepository productRepository = ProductRepositoryImpl(
     database.productDao,
   );
 
   // ==========================================================
-  // GET PRODUCT BY PLU
+  // STOCK PALLET REPOSITORY
   // ==========================================================
-  //
-  // Digunakan untuk mencari Master Item berdasarkan PLU.
-  //
-  // ALUR:
-  //
-  // UI
-  //  ↓
-  // GetProductByPlu
-  //  ↓
-  // ProductRepository
-  //  ↓
-  // Master Item
-  //
+
+  late final StockPalletRepository stockPalletRepository =
+      StockPalletRepositoryImpl(database);
+
+  // ==========================================================
+  // STORAGE LOCATION REPOSITORY
+  // ==========================================================
+
+  late final StorageLocationRepository storageLocationRepository =
+      StorageLocationRepositoryImpl(database.storageLocationDao);
+
+  // ==========================================================
+  // MASTER ITEM
   // ==========================================================
 
   GetProductByPlu get getProductByPlu {
-    return GetProductByPlu(
-      repository: productRepository,
-    );
+    return GetProductByPlu(repository: productRepository);
+  }
+
+  GetProductById get getProductById {
+    return GetProductById(repository: productRepository);
+  }
+
+  CreateProduct get createProduct {
+    return CreateProduct(repository: productRepository);
+  }
+
+  UpdateProduct get updateProduct {
+    return UpdateProduct(repository: productRepository);
+  }
+
+  DeleteProduct get deleteProduct {
+    return DeleteProduct(repository: productRepository);
   }
 
   // ==========================================================
   // IMPORT MASTER ITEM
   // ==========================================================
-  //
-  // Digunakan untuk memasukkan Master Item dari Excel
-  // ke SQLite.
-  //
-  // ALUR:
-  //
-  // UI
-  //  ↓
-  // ImportMasterItemToDatabase
-  //  ↓
-  // ProductDao
-  //  ↓
-  // SQLite
-  //
-  // ==========================================================
 
   ImportMasterItemToDatabase get importMasterItemToDatabase {
-    return ImportMasterItemToDatabase(
-      productDao: database.productDao,
-    );
+    return ImportMasterItemToDatabase(productDao: database.productDao);
   }
 
   // ==========================================================
-  // PUT AWAY STOCK PALLET
-  // ==========================================================
-  //
-  // Digunakan untuk memasukkan pallet baru ke lokasi kosong.
-  //
-  // ALUR:
-  //
-  // UI
-  //  ↓
-  // PutAwayStockPallet
-  //  ↓
-  // StockPalletRepository
-  //  ↓
-  // StockPalletRepositoryImpl
-  //  ↓
-  // StockPalletDao
-  //  ↓
-  // SQLite
-  //
+  // STOCK PALLET
   // ==========================================================
 
   PutAwayStockPallet get putAwayStockPallet {
-    return PutAwayStockPallet(
-      repository: stockPalletRepository,
-    );
+    return PutAwayStockPallet(repository: stockPalletRepository);
   }
-
-  // ==========================================================
-  // UPDATE STOCK PALLET
-  // ==========================================================
-  //
-  // Digunakan untuk EDIT pallet yang sudah tersimpan.
-  //
-  // Use Case membutuhkan DUA repository:
-  //
-  // 1. ProductRepository
-  //    Untuk mencari Master Item berdasarkan PLU.
-  //
-  // 2. StockPalletRepository
-  //    Untuk menyimpan perubahan pallet.
-  //
-  // ==========================================================
 
   UpdateStockPallet get updateStockPallet {
     return UpdateStockPallet(
@@ -212,28 +121,12 @@ class AppDependencies {
     );
   }
 
-  // ==========================================================
-  // DELETE STOCK PALLET
-  // ==========================================================
-  //
-  // Digunakan untuk mengosongkan pallet dari lokasi storage.
-  //
-  // Use Case menggunakan StockPalletRepository yang sama
-  // dengan PUT AWAY dan EDIT PALLET.
-  //
-  // ==========================================================
-
   DeleteStockPallet get deleteStockPallet {
-    return DeleteStockPallet(
-      stockPalletRepository: stockPalletRepository,
-    );
+    return DeleteStockPallet(stockPalletRepository: stockPalletRepository);
   }
 
   // ==========================================================
   // DISPOSE
-  // ==========================================================
-  //
-  // Menutup database dari instance yang sama.
   // ==========================================================
 
   Future<void> dispose() async {

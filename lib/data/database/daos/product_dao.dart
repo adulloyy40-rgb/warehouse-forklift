@@ -75,8 +75,11 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     });
   }
 
-  Future<bool> updateProduct(ProductsCompanion product) async {
-    final count = await update(products).write(product);
+  Future<bool> updateProductById(int id, ProductsCompanion product) async {
+    final count = await (update(
+      products,
+    )..where((tbl) => tbl.id.equals(id))).write(product);
+
     return count > 0;
   }
 

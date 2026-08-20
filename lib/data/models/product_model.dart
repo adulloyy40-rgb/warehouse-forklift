@@ -49,6 +49,18 @@ import '../../domain/entities/product.dart';
 
 class ProductModel {
   // ==========================================================
+  // DATABASE ID
+  // ==========================================================
+  //
+  // ID internal SQLite.
+  //
+  // Nullable karena data baru dari Excel/form belum tentu
+  // memiliki ID database.
+  // ==========================================================
+
+  final int? id;
+
+  // ==========================================================
   // BARCODE
   // ==========================================================
   //
@@ -180,6 +192,7 @@ class ProductModel {
   // ==========================================================
 
   const ProductModel({
+    this.id,
     required this.barcode,
     required this.plu,
     required this.description,
@@ -221,6 +234,9 @@ class ProductModel {
 
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
+      // Membaca ID database jika tersedia.
+      id: _toNullableInt(map['id']),
+
       // Membaca barcode.
       barcode: map['barcode']?.toString().trim() ?? '',
 
@@ -268,6 +284,9 @@ class ProductModel {
 
   factory ProductModel.fromEntity(Product product) {
     return ProductModel(
+      // Mengambil ID database dari Entity.
+      id: product.id,
+
       // Mengambil barcode dari Entity.
       barcode: product.barcode,
 
@@ -317,6 +336,9 @@ class ProductModel {
 
   Product toEntity() {
     return Product(
+      // Mengirim ID database ke Entity.
+      id: id,
+
       // Mengirim barcode ke Entity.
       barcode: barcode,
 
@@ -362,6 +384,7 @@ class ProductModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'barcode': barcode,
       'plu': plu,
       'description': description,
@@ -372,6 +395,45 @@ class ProductModel {
       'masterTear': masterTear,
       'masterStack': masterStack,
     };
+  }
+
+  // ==========================================================
+  // HELPER: _toNullableInt
+  // ==========================================================
+  //
+  // Mengubah nilai menjadi int nullable.
+  //
+  // null / kosong / invalid → null.
+  // ==========================================================
+
+  static int? _toNullableInt(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is int) {
+      return value;
+    }
+
+    if (value is double) {
+      return value.toInt();
+    }
+
+    final text = value.toString().trim();
+
+    if (text.isEmpty) {
+      return null;
+    }
+
+    final intValue = int.tryParse(text);
+
+    if (intValue != null) {
+      return intValue;
+    }
+
+    final doubleValue = double.tryParse(text);
+
+    return doubleValue?.toInt();
   }
 
   // ==========================================================

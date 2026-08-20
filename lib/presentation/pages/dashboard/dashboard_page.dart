@@ -46,7 +46,7 @@ import '../../../domain/services/stock_pallet_export_service.dart';
 import '../storage/storage_page.dart';
 import '../import/excel_import_page.dart';
 import '../barcode/scan_barcode_page.dart';
-import '../import/master_item_import_page.dart';
+import '../master_item/master_item_list_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -564,7 +564,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => const MasterItemImportPage(),
+                            builder: (_) => const MasterItemListPage(),
                           ),
                         );
                       },
