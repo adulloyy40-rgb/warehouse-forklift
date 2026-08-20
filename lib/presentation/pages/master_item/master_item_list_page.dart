@@ -4,6 +4,7 @@ import '../../../core/di/app_dependencies.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/repositories/product_repository.dart';
 import '../import/master_item_import_page.dart';
+import 'master_item_create_page.dart';
 import 'master_item_detail_page.dart';
 
 class MasterItemListPage extends StatefulWidget {
@@ -89,6 +90,18 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
     _loadItems();
   }
 
+  Future<void> _openCreateMasterItem() async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const MasterItemCreatePage()),
+    );
+
+    if (!mounted) return;
+
+    if (created == true) {
+      await _loadItems();
+    }
+  }
+
   Future<void> _openImportMasterItem() async {
     final imported = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const MasterItemImportPage()),
@@ -123,6 +136,11 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
       appBar: AppBar(
         title: const Text('Master Item'),
         actions: [
+          IconButton(
+            tooltip: 'Tambah Master Item',
+            onPressed: _loading ? null : _openCreateMasterItem,
+            icon: const Icon(Icons.add_box_rounded),
+          ),
           IconButton(
             tooltip: 'Refresh',
             onPressed: _loading ? null : _loadItems,
