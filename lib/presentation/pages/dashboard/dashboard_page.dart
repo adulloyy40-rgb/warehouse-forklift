@@ -46,6 +46,7 @@ import '../../../domain/services/stock_pallet_export_service.dart';
 import '../storage/storage_page.dart';
 import '../import/excel_import_page.dart';
 import '../barcode/scan_barcode_page.dart';
+import '../import/master_item_import_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -561,7 +562,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       title: 'Master Barang',
                       subtitle: 'Data produk',
                       onTap: () {
-                        // Belum dihubungkan.
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const MasterItemImportPage(),
+                          ),
+                        );
                       },
                     ),
 

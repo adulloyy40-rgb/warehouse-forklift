@@ -73,38 +73,13 @@ class ExcelDataSource {
   // ==========================================================
 
   Future<List<Map<String, dynamic>>> readMasterProduct(String filePath) async {
-    // --------------------------------------------------------
-    // 1. Membaca file Excel.
-    //
-    // Ada dua kemungkinan sumber file:
-    //
-    // A. Filesystem
-    //    Digunakan ketika menjalankan test/development.
-    //
-    // B. Flutter Asset
-    //    Digunakan ketika aplikasi berjalan di Android.
-    //
-    // Kita mencoba filesystem terlebih dahulu.
-    // Jika tidak ditemukan, kita mencoba Flutter Asset.
-    // --------------------------------------------------------
-
     List<int> bytes;
 
     final file = File(filePath);
 
-    // --------------------------------------------------------
-    // Jika file tersedia di filesystem,
-    // baca menggunakan File.
-    // --------------------------------------------------------
-
     if (await file.exists()) {
       bytes = await file.readAsBytes();
     } else {
-      // ------------------------------------------------------
-      // Jika file tidak tersedia sebagai filesystem,
-      // coba baca sebagai Flutter Asset.
-      // ------------------------------------------------------
-
       try {
         final assetData = await rootBundle.load(filePath);
 
@@ -119,6 +94,20 @@ class ExcelDataSource {
       }
     }
 
+    return _parseMasterProductBytes(bytes);
+  }
+
+  Future<List<Map<String, dynamic>>> readMasterProductBytes(
+    List<int> bytes,
+  ) async {
+    if (bytes.isEmpty) {
+      throw StateError('File Excel tidak dapat dibaca.');
+    }
+
+    return _parseMasterProductBytes(bytes);
+  }
+
+  List<Map<String, dynamic>> _parseMasterProductBytes(List<int> bytes) {
     // --------------------------------------------------------
     // 2. Membuka file Excel dari bytes.
     // --------------------------------------------------------
@@ -372,148 +361,148 @@ class ExcelDataSource {
 
     return products;
   }
+}
 
-  // ==========================================================
-  // _normalizeHeader()
-  // ==========================================================
-  //
-  // Membersihkan nama header Excel.
-  //
-  // Contoh:
-  //
-  // " barcode " → "BARCODE"
-  // "Barcode"   → "BARCODE"
-  // ==========================================================
+// ==========================================================
+// _normalizeHeader()
+// ==========================================================
+//
+// Membersihkan nama header Excel.
+//
+// Contoh:
+//
+// " barcode " → "BARCODE"
+// "Barcode"   → "BARCODE"
+// ==========================================================
 
-  String _normalizeHeader(String value) {
-    return value.trim().replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
+String _normalizeHeader(String value) {
+  return value.trim().replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
+}
+
+// ==========================================================
+// _containsMinimumHeaders()
+// ==========================================================
+//
+// Menentukan apakah suatu baris merupakan HEADER.
+//
+// Kita menggunakan BARCODE, PLU, dan DESC sebagai
+// identitas minimum header Master Barang.
+// ==========================================================
+
+bool _containsMinimumHeaders(Map<String, int> indexes) {
+  return indexes.containsKey('BARCODE') &&
+      indexes.containsKey('PLU') &&
+      indexes.containsKey('DESC');
+}
+
+// ==========================================================
+// _isEmptyRow()
+// ==========================================================
+//
+// Mengecek apakah satu baris Excel kosong.
+// ==========================================================
+
+bool _isEmptyRow(List<Data?> row) {
+  for (final cell in row) {
+    final value = cell?.value?.toString().trim() ?? '';
+
+    if (value.isNotEmpty) {
+      return false;
+    }
   }
 
-  // ==========================================================
-  // _containsMinimumHeaders()
-  // ==========================================================
-  //
-  // Menentukan apakah suatu baris merupakan HEADER.
-  //
-  // Kita menggunakan BARCODE, PLU, dan DESC sebagai
-  // identitas minimum header Master Barang.
-  // ==========================================================
+  return true;
+}
 
-  bool _containsMinimumHeaders(Map<String, int> indexes) {
-    return indexes.containsKey('BARCODE') &&
-        indexes.containsKey('PLU') &&
-        indexes.containsKey('DESC');
+// ==========================================================
+// _cleanValue()
+// ==========================================================
+//
+// Mengubah nilai Excel menjadi String yang bersih.
+// ==========================================================
+
+String _cleanValue(dynamic value) {
+  if (value == null) {
+    return '';
   }
 
-  // ==========================================================
-  // _isEmptyRow()
-  // ==========================================================
-  //
-  // Mengecek apakah satu baris Excel kosong.
-  // ==========================================================
+  var text = value.toString().trim();
 
-  bool _isEmptyRow(List<Data?> row) {
-    for (final cell in row) {
-      final value = cell?.value?.toString().trim() ?? '';
-
-      if (value.isNotEmpty) {
-        return false;
-      }
-    }
-
-    return true;
+  // Excel kadang menyimpan barcode sebagai teks
+  // dengan apostrophe di bagian awal.
+  if (text.startsWith("'") || text.startsWith('`')) {
+    text = text.substring(1).trim();
   }
 
-  // ==========================================================
-  // _cleanValue()
-  // ==========================================================
-  //
-  // Mengubah nilai Excel menjadi String yang bersih.
-  // ==========================================================
+  return text;
+}
 
-  String _cleanValue(dynamic value) {
-    if (value == null) {
-      return '';
-    }
+// ==========================================================
+// _toInt()
+// ==========================================================
+//
+// Mengubah nilai Excel menjadi integer.
+//
+// Contoh:
+//
+// "12"   → 12
+// 12     → 12
+// 12.0   → 12
+// kosong → 0
+// ==========================================================
 
-    var text = value.toString().trim();
-
-    // Excel kadang menyimpan barcode sebagai teks
-    // dengan apostrophe di bagian awal.
-    if (text.startsWith("'") || text.startsWith('`')) {
-      text = text.substring(1).trim();
-    }
-
-    return text;
+int _toInt(dynamic value) {
+  if (value == null) {
+    return 0;
   }
 
-  // ==========================================================
-  // _toInt()
-  // ==========================================================
-  //
-  // Mengubah nilai Excel menjadi integer.
-  //
-  // Contoh:
-  //
-  // "12"   → 12
-  // 12     → 12
-  // 12.0   → 12
-  // kosong → 0
-  // ==========================================================
-
-  int _toInt(dynamic value) {
-    if (value == null) {
-      return 0;
-    }
-
-    if (value is int) {
-      return value;
-    }
-
-    if (value is double) {
-      return value.toInt();
-    }
-
-    final text = value.toString().trim();
-
-    if (text.isEmpty) {
-      return 0;
-    }
-
-    return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
+  if (value is int) {
+    return value;
   }
 
-  // ==========================================================
-  // _toDouble()
-  // ==========================================================
-  //
-  // Mengubah nilai Excel menjadi double.
-  //
-  // Contoh:
-  //
-  // 4216.94 → 4216.94
-  // "4216.94" → 4216.94
-  // ==========================================================
-
-  double _toDouble(dynamic value) {
-    if (value == null) {
-      return 0;
-    }
-
-    if (value is double) {
-      return value;
-    }
-
-    if (value is int) {
-      return value.toDouble();
-    }
-
-    final text = value.toString().trim();
-
-    if (text.isEmpty) {
-      return 0;
-    }
-
-    return double.tryParse(text) ?? 0;
+  if (value is double) {
+    return value.toInt();
   }
+
+  final text = value.toString().trim();
+
+  if (text.isEmpty) {
+    return 0;
+  }
+
+  return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
+}
+
+// ==========================================================
+// _toDouble()
+// ==========================================================
+//
+// Mengubah nilai Excel menjadi double.
+//
+// Contoh:
+//
+// 4216.94 → 4216.94
+// "4216.94" → 4216.94
+// ==========================================================
+
+double _toDouble(dynamic value) {
+  if (value == null) {
+    return 0;
+  }
+
+  if (value is double) {
+    return value;
+  }
+
+  if (value is int) {
+    return value.toDouble();
+  }
+
+  final text = value.toString().trim();
+
+  if (text.isEmpty) {
+    return 0;
+  }
+
+  return double.tryParse(text) ?? 0;
 }
