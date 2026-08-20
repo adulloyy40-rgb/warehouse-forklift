@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/di/app_dependencies.dart';
 import '../../../domain/entities/product.dart';
+import '../../../domain/entities/stock_pallet_summary.dart';
+import '../../../domain/usecases/stock_pallet/get_stock_summary_for_plu.dart';
 import 'master_item_edit_page.dart';
 
 class MasterItemDetailPage extends StatefulWidget {
@@ -14,7 +16,10 @@ class MasterItemDetailPage extends StatefulWidget {
 }
 
 class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
+  late final GetStockSummaryForPlu _getStockSummaryForPlu;
+
   Product? _product;
+  StockPalletSummary? _stockSummary;
 
   bool _loading = true;
   String? _errorMessage;
@@ -22,6 +27,9 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
   @override
   void initState() {
     super.initState();
+
+    _getStockSummaryForPlu = AppDependencies.instance.getStockSummaryForPlu;
+
     _loadProduct();
   }
 
@@ -38,10 +46,17 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
         widget.productId,
       );
 
+      StockPalletSummary? stockSummary;
+
+      if (product != null) {
+        stockSummary = await _getStockSummaryForPlu(product.plu);
+      }
+
       if (!mounted) return;
 
       setState(() {
         _product = product;
+        _stockSummary = stockSummary;
         _loading = false;
       });
     } catch (e) {
@@ -49,6 +64,7 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
 
       setState(() {
         _product = null;
+        _stockSummary = null;
         _loading = false;
         _errorMessage = 'Gagal memuat Master Item: $e';
       });
@@ -183,6 +199,8 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
           _buildOperationalCard(context, product),
           const SizedBox(height: 12),
           _buildMasterReferenceCard(context, product),
+          const SizedBox(height: 12),
+          _buildStockSummaryCard(context, product),
           const SizedBox(height: 20),
           _buildActionButtons(context, product),
         ],
@@ -319,6 +337,40 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
           context,
           label: 'Master Stack',
           value: product.masterStack.toString(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStockSummaryCard(BuildContext context, Product product) {
+    final summary = _stockSummary;
+    final price = summary?.price ?? product.price;
+
+    return _buildSectionCard(
+      context,
+      title: 'Rekap Stok',
+      icon: Icons.inventory_2_outlined,
+      children: [
+        _buildDetailRow(
+          context,
+          label: 'Total Pallet',
+          value: '${summary?.totalPallet ?? 0}',
+        ),
+        _buildDetailRow(
+          context,
+          label: 'Total CTN',
+          value: '${summary?.totalQtyCtn ?? 0}',
+        ),
+        _buildDetailRow(
+          context,
+          label: 'Total PCS',
+          value: '${summary?.totalQtyPcs ?? 0}',
+        ),
+        _buildDetailRow(context, label: 'Harga', value: _formatCurrency(price)),
+        _buildDetailRow(
+          context,
+          label: 'Nilai Stok',
+          value: _formatCurrency(summary?.totalValue ?? 0),
         ),
       ],
     );
@@ -476,6 +528,17 @@ class _MasterItemDetailPageState extends State<MasterItemDetailPage> {
         ),
       ),
     );
+  }
+
+  String _formatCurrency(double value) {
+    final rounded = value.round().toString();
+
+    final formatted = rounded.replaceAllMapped(
+      RegExp(r'\\B(?=(\\d{3})+(?!\\d))'),
+      (_) => '.',
+    );
+
+    return 'Rp $formatted';
   }
 
   String _formatPrice(double value) {
