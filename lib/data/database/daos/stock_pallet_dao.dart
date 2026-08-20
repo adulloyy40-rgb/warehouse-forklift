@@ -72,7 +72,7 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
   //
   // Total Value dihitung dari:
   //
-  // SUM(qtyPcs * price)
+  // SUM(qty_pcs * price)
   //
   // sehingga harga setiap pallet tetap dihitung sesuai
   // harga yang tersimpan pada pallet tersebut.
@@ -87,9 +87,9 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
         MAX(description) AS description,
         MAX(price) AS price,
         COUNT(*) AS total_pallet,
-        COALESCE(SUM(qtyCtn), 0) AS total_qty_ctn,
-        COALESCE(SUM(qtyPcs), 0) AS total_qty_pcs,
-        COALESCE(SUM(qtyPcs * price), 0) AS total_value
+        COALESCE(SUM(qty_ctn), 0) AS total_qty_ctn,
+        COALESCE(SUM(qty_pcs), 0) AS total_qty_pcs,
+        COALESCE(SUM(qty_pcs * price), 0) AS total_value
       FROM stock_pallets
       GROUP BY plu
       ORDER BY description COLLATE NOCASE ASC
@@ -130,9 +130,9 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
         MAX(description) AS description,
         MAX(price) AS price,
         COUNT(*) AS total_pallet,
-        COALESCE(SUM(qtyCtn), 0) AS total_qty_ctn,
-        COALESCE(SUM(qtyPcs), 0) AS total_qty_pcs,
-        COALESCE(SUM(qtyPcs * price), 0) AS total_value
+        COALESCE(SUM(qty_ctn), 0) AS total_qty_ctn,
+        COALESCE(SUM(qty_pcs), 0) AS total_qty_pcs,
+        COALESCE(SUM(qty_pcs * price), 0) AS total_value
       FROM stock_pallets
       WHERE plu = ?
       GROUP BY plu
@@ -168,7 +168,7 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
     final row = await customSelect(
       '''
       SELECT
-        COALESCE(SUM(qtyPcs * price), 0) AS grand_total_value
+        COALESCE(SUM(qty_pcs * price), 0) AS grand_total_value
       FROM stock_pallets
       ''',
       readsFrom: {stockPallets},

@@ -155,7 +155,8 @@ class $StockPalletsTable extends StockPallets
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _qtyPcsMeta = const VerificationMeta('qtyPcs');
   @override
@@ -164,7 +165,8 @@ class $StockPalletsTable extends StockPallets
     aliasedName,
     false,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _expiredDateMeta = const VerificationMeta(
     'expiredDate',
@@ -344,16 +346,12 @@ class $StockPalletsTable extends StockPallets
         _qtyCtnMeta,
         qtyCtn.isAcceptableOrUnknown(data['qty_ctn']!, _qtyCtnMeta),
       );
-    } else if (isInserting) {
-      context.missing(_qtyCtnMeta);
     }
     if (data.containsKey('qty_pcs')) {
       context.handle(
         _qtyPcsMeta,
         qtyPcs.isAcceptableOrUnknown(data['qty_pcs']!, _qtyPcsMeta),
       );
-    } else if (isInserting) {
-      context.missing(_qtyPcsMeta);
     }
     if (data.containsKey('expired_date')) {
       context.handle(
@@ -804,8 +802,8 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
     this.sesuaiMaster = const Value.absent(),
     required int tear,
     required int stack,
-    required int qtyCtn,
-    required int qtyPcs,
+    this.qtyCtn = const Value.absent(),
+    this.qtyPcs = const Value.absent(),
     required DateTime expiredDate,
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -819,8 +817,6 @@ class StockPalletsCompanion extends UpdateCompanion<StockPallet> {
        type = Value(type),
        tear = Value(tear),
        stack = Value(stack),
-       qtyCtn = Value(qtyCtn),
-       qtyPcs = Value(qtyPcs),
        expiredDate = Value(expiredDate),
        createdAt = Value(createdAt),
        updatedAt = Value(updatedAt);
@@ -2110,8 +2106,8 @@ typedef $$StockPalletsTableCreateCompanionBuilder =
       Value<bool> sesuaiMaster,
       required int tear,
       required int stack,
-      required int qtyCtn,
-      required int qtyPcs,
+      Value<int> qtyCtn,
+      Value<int> qtyPcs,
       required DateTime expiredDate,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -2496,8 +2492,8 @@ class $$StockPalletsTableTableManager
                 Value<bool> sesuaiMaster = const Value.absent(),
                 required int tear,
                 required int stack,
-                required int qtyCtn,
-                required int qtyPcs,
+                Value<int> qtyCtn = const Value.absent(),
+                Value<int> qtyPcs = const Value.absent(),
                 required DateTime expiredDate,
                 required DateTime createdAt,
                 required DateTime updatedAt,

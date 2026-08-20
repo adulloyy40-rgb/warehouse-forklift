@@ -86,9 +86,9 @@ class StockPallets extends Table {
   // Qty CTN dan Qty PCS merupakan jumlah barang pada pallet.
   // ----------------------------------------------------------
 
-  IntColumn get qtyCtn => integer()();
+  IntColumn get qtyCtn => integer().withDefault(const Constant(0))();
 
-  IntColumn get qtyPcs => integer()();
+  IntColumn get qtyPcs => integer().withDefault(const Constant(0))();
 
   // ----------------------------------------------------------
   // TANGGAL EXPIRED

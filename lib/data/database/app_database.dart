@@ -27,22 +27,64 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase({QueryExecutor? executor}) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
     },
-    onUpgrade: (Migrator m, int from, int to) async {
-      if (from < 2) {
-        await m.addColumn(stockPallets, stockPallets.operatorNik);
 
-        await m.addColumn(stockPallets, stockPallets.sesuaiMaster);
+    onUpgrade: (Migrator m, int from, int to) async {
+      // --------------------------------------------------------
+      // VERSION 2
+      // --------------------------------------------------------
+      if (from < 2) {
+        await m.addColumn(
+          stockPallets,
+          stockPallets.operatorNik,
+        );
+
+        await m.addColumn(
+          stockPallets,
+          stockPallets.sesuaiMaster,
+        );
       }
 
+      // --------------------------------------------------------
+      // VERSION 3
+      // --------------------------------------------------------
       if (from < 3) {
         await m.createTable(products);
+      }
+
+      // --------------------------------------------------------
+      // VERSION 4
+      //
+      // Menambahkan quantity hasil perhitungan sistem:
+      //
+      // Qty CTN = Tear × Stack
+      // Qty PCS = Qty CTN × Conv2
+      //
+      // Data pallet lama tidak dihapus.
+      // --------------------------------------------------------
+      if (from < 4) {
+        await m.addColumn(
+          stockPallets,
+          stockPallets.qtyCtn,
+        );
+
+        await m.addColumn(
+          stockPallets,
+          stockPallets.qtyPcs,
+        );
+
+        await customStatement('''
+          UPDATE stock_pallets
+          SET
+            qty_ctn = tear * stack,
+            qty_pcs = tear * stack * conv2
+        ''');
       }
     },
   );
