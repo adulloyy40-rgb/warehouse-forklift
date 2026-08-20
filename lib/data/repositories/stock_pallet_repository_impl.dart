@@ -161,6 +161,31 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
   }
 
   // ==========================================================
+  // SEARCH PALLETS
+  // ==========================================================
+  //
+  // Mencari semua pallet berdasarkan PLU, Barcode,
+  // atau Description.
+  //
+  // DAO bertugas melakukan query database.
+  // Repository bertugas mengubah row database menjadi
+  // Domain Entity StockPallet.
+  // ==========================================================
+
+  @override
+  Future<List<domain.StockPallet>> searchPallets(String query) async {
+    final normalizedQuery = query.trim();
+
+    if (normalizedQuery.isEmpty) {
+      return <domain.StockPallet>[];
+    }
+
+    final rows = await _dao.searchPallets(normalizedQuery);
+
+    return rows.map(_mapToEntity).toList();
+  }
+
+  // ==========================================================
   // STOCK SUMMARY BY PLU
   // ==========================================================
   //
@@ -385,13 +410,13 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
 
       // Untuk sementara operator NIK belum disimpan
       // di tabel database.
-      operatorNik: '',
+      operatorNik: row.operatorNik,
 
       // Penanda sederhana sementara.
       //
       // Nanti dapat kita sempurnakan berdasarkan
       // perbandingan Tear/Stack dengan Master Item.
-      sesuaiMaster: row.tear > 0 && row.stack > 0,
+      sesuaiMaster: row.sesuaiMaster,
     );
   }
 }

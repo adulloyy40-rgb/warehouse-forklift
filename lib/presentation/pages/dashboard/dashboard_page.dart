@@ -47,6 +47,7 @@ import '../storage/storage_page.dart';
 import '../import/excel_import_page.dart';
 import '../barcode/scan_barcode_page.dart';
 import '../master_item/master_item_list_page.dart';
+import '../stock_pallet/search_stock_pallet_page.dart';
 // ============================================================
 // DASHBOARD PAGE
 // ============================================================
@@ -614,6 +615,22 @@ class _DashboardPageState extends State<DashboardPage> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const ScanBarcodePage(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // ==================================================
+                    // SEARCH STOCK PALLET
+                    // ==================================================
+                    _MenuCard(
+                      icon: Icons.search_rounded,
+                      title: 'Cari Stock Pallet',
+                      subtitle: 'Cari lokasi barang',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SearchStockPalletPage(),
                           ),
                         );
                       },

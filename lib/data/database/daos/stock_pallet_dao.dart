@@ -65,6 +65,47 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
   }
 
   // ==========================================================
+  // SEARCH PALLETS
+  // ==========================================================
+  //
+  // Mencari semua pallet berdasarkan:
+  // - PLU
+  // - Barcode
+  // - Description
+  //
+  // Digunakan oleh fitur:
+  // "Operator mencari item berada di lokasi mana saja".
+  //
+  // Hasil:
+  // Semua pallet aktif yang cocok dengan pencarian.
+  //
+  // Urutan:
+  // Location Code ASC
+  // ==========================================================
+
+  Future<List<StockPallet>> searchPallets(String query) async {
+    final normalizedQuery = query.trim();
+
+    if (normalizedQuery.isEmpty) {
+      return <StockPallet>[];
+    }
+
+    final keyword = '%${normalizedQuery.replaceAll('%', '\\%').replaceAll('_', '\\_')}%';
+
+    return (select(stockPallets)
+          ..where(
+            (tbl) =>
+                tbl.plu.like(keyword) |
+                tbl.barcode.like(keyword) |
+                tbl.description.like(keyword),
+          )
+          ..orderBy([
+            (tbl) => OrderingTerm.asc(tbl.locationCode),
+          ]))
+        .get();
+  }
+
+  // ==========================================================
   // GET STOCK SUMMARY BY PLU
   // ==========================================================
   //

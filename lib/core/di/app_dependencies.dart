@@ -25,11 +25,13 @@ import '../../data/repositories/storage_location_repository_impl.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../../domain/repositories/stock_pallet_repository.dart';
 import '../../domain/repositories/storage_location_repository.dart';
+import '../../domain/usecases/storage_location/get_all_storage_locations.dart';
 
 import '../../domain/usecases/product/create_product.dart';
 import '../../domain/usecases/product/delete_product.dart';
 import '../../domain/usecases/product/get_product_by_id.dart';
 import '../../domain/usecases/product/get_product_by_plu.dart';
+import '../../domain/usecases/product/get_all_products.dart';
 import '../../domain/usecases/product/update_product.dart';
 
 import '../../domain/usecases/import_master_item_to_database.dart';
@@ -39,6 +41,10 @@ import '../../domain/usecases/stock_pallet/get_stock_summary_for_plu.dart';
 import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
+import '../../domain/usecases/stock_pallet/find_stock_pallet_by_location.dart';
+import '../../domain/usecases/stock_pallet/get_all_stock_pallets.dart';
+import '../../domain/usecases/stock_pallet/search_stock_pallet_locations.dart';
+import '../../domain/usecases/stock_pallet/search_stock_pallets.dart';
 
 // ============================================================
 // CLASS
@@ -78,11 +84,23 @@ class AppDependencies {
       StorageLocationRepositoryImpl(database.storageLocationDao);
 
   // ==========================================================
+  // STORAGE LOCATION
+  // ==========================================================
+
+  GetAllStorageLocations get getAllStorageLocations {
+    return GetAllStorageLocations(repository: storageLocationRepository);
+  }
+
+  // ==========================================================
   // MASTER ITEM
   // ==========================================================
 
   GetProductByPlu get getProductByPlu {
     return GetProductByPlu(repository: productRepository);
+  }
+
+  GetAllProducts get getAllProducts {
+    return GetAllProducts(repository: productRepository);
   }
 
   GetProductById get getProductById {
@@ -126,6 +144,26 @@ class AppDependencies {
 
   DeleteStockPallet get deleteStockPallet {
     return DeleteStockPallet(stockPalletRepository: stockPalletRepository);
+  }
+
+  // ==========================================================
+  // STOCK PALLET QUERY
+  // ==========================================================
+
+  GetAllStockPallets get getAllStockPallets {
+    return GetAllStockPallets(repository: stockPalletRepository);
+  }
+
+  FindStockPalletByLocation get findStockPalletByLocation {
+    return FindStockPalletByLocation(repository: stockPalletRepository);
+  }
+
+  SearchStockPallets get searchStockPallets {
+    return SearchStockPallets(repository: stockPalletRepository);
+  }
+
+  SearchStockPalletLocations get searchStockPalletLocations {
+    return SearchStockPalletLocations(repository: stockPalletRepository);
   }
 
   // ==========================================================

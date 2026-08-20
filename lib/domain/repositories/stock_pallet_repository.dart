@@ -94,6 +94,21 @@ abstract class StockPalletRepository {
   Future<List<StockPallet>> getAll();
 
   // ==========================================================
+  // SEARCH PALLETS
+  // ==========================================================
+  //
+  // Mencari item berdasarkan:
+  // - PLU
+  // - Barcode
+  // - Nama / Description
+  //
+  // Return:
+  // seluruh pallet yang cocok beserta lokasi masing-masing.
+  // ==========================================================
+
+  Future<List<StockPallet>> searchPallets(String query);
+
+  // ==========================================================
   // STOCK SUMMARY BY PLU
   // ==========================================================
   //

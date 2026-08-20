@@ -31,12 +31,13 @@ import 'package:flutter/material.dart';
 import '../../../core/di/app_dependencies.dart';
 
 import '../../../domain/entities/storage_location.dart';
-import '../../../domain/repositories/storage_location_repository.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/entities/stock_pallet.dart';
+import '../../../domain/usecases/product/get_all_products.dart';
+import '../../../domain/usecases/stock_pallet/get_all_stock_pallets.dart';
+import '../../../domain/usecases/storage_location/get_all_storage_locations.dart';
 
 import '../../../domain/repositories/stock_pallet_repository.dart';
-import '../../../domain/repositories/product_repository.dart';
 
 import '../../../domain/services/pallet_status_calculator.dart';
 
@@ -62,14 +63,17 @@ class _StoragePageState extends State<StoragePage> {
   // REPOSITORY
   // ==========================================================
 
-  final StorageLocationRepository _storageRepository =
-      AppDependencies.instance.storageLocationRepository;
+  final GetAllStorageLocations _getAllStorageLocations =
+      AppDependencies.instance.getAllStorageLocations;
 
   final StockPalletRepository _palletRepository =
       AppDependencies.instance.stockPalletRepository;
 
-  final ProductRepository _productRepository =
-      AppDependencies.instance.productRepository;
+  final GetAllStockPallets _getAllStockPallets =
+      AppDependencies.instance.getAllStockPallets;
+
+  final GetAllProducts _getAllProducts =
+      AppDependencies.instance.getAllProducts;
 
   // ==========================================================
   // DATA
@@ -158,13 +162,13 @@ class _StoragePageState extends State<StoragePage> {
       // LOAD SEMUA STORAGE LOCATION
       // ========================================================
 
-      final locations = await _storageRepository.getAllLocations();
+      final locations = await _getAllStorageLocations();
 
       // ========================================================
       // LOAD SEMUA STOCK PALLET
       // ========================================================
 
-      final pallets = await _palletRepository.getAll();
+      final pallets = await _getAllStockPallets();
 
       // ========================================================
       // LOAD MASTER ITEM
@@ -175,7 +179,7 @@ class _StoragePageState extends State<StoragePage> {
       // Setelah itu digunakan sebagai lookup berdasarkan PLU.
       // ========================================================
 
-      final products = await _productRepository.getAllProducts();
+      final products = await _getAllProducts();
 
       final productByPlu = <String, Product>{
         for (final product in products) product.plu.trim(): product,
