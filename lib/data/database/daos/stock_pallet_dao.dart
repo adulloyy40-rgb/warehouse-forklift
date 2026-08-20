@@ -27,6 +27,7 @@ import 'package:drift/drift.dart';
 
 import '../app_database.dart';
 import '../tables/stock_pallets_table.dart';
+import '../../models/stock_pallet_summary_row.dart';
 
 part 'stock_pallet_dao.g.dart';
 
@@ -61,6 +62,119 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<StockPallet>> getAllPallets() {
     return select(stockPallets).get();
+  }
+
+  // ==========================================================
+  // GET STOCK SUMMARY BY PLU
+  // ==========================================================
+  //
+  // Mengambil rekap stok berdasarkan PLU.
+  //
+  // Total Value dihitung dari:
+  //
+  // SUM(qtyPcs * price)
+  //
+  // sehingga harga setiap pallet tetap dihitung sesuai
+  // harga yang tersimpan pada pallet tersebut.
+  // ==========================================================
+
+  Future<List<StockPalletSummaryRow>> getStockSummaryByPlu() async {
+    final rows = await customSelect(
+      '''
+      SELECT
+        plu,
+        MAX(barcode) AS barcode,
+        MAX(description) AS description,
+        MAX(price) AS price,
+        COUNT(*) AS total_pallet,
+        COALESCE(SUM(qtyCtn), 0) AS total_qty_ctn,
+        COALESCE(SUM(qtyPcs), 0) AS total_qty_pcs,
+        COALESCE(SUM(qtyPcs * price), 0) AS total_value
+      FROM stock_pallets
+      GROUP BY plu
+      ORDER BY description COLLATE NOCASE ASC
+      ''',
+      readsFrom: {stockPallets},
+    ).get();
+
+    return rows.map((row) {
+      return StockPalletSummaryRow(
+        plu: row.read<String>('plu'),
+        barcode: row.read<String>('barcode'),
+        description: row.read<String>('description'),
+        price: row.read<double>('price'),
+        totalPallet: row.read<int>('total_pallet'),
+        totalQtyCtn: row.read<int>('total_qty_ctn'),
+        totalQtyPcs: row.read<int>('total_qty_pcs'),
+        totalValue: row.read<double>('total_value'),
+      );
+    }).toList();
+  }
+
+  // ==========================================================
+  // GET STOCK SUMMARY FOR ONE PLU
+  // ==========================================================
+
+  Future<StockPalletSummaryRow?> getStockSummaryForPlu(String plu) async {
+    final normalizedPlu = plu.trim();
+
+    if (normalizedPlu.isEmpty) {
+      return null;
+    }
+
+    final rows = await customSelect(
+      '''
+      SELECT
+        plu,
+        MAX(barcode) AS barcode,
+        MAX(description) AS description,
+        MAX(price) AS price,
+        COUNT(*) AS total_pallet,
+        COALESCE(SUM(qtyCtn), 0) AS total_qty_ctn,
+        COALESCE(SUM(qtyPcs), 0) AS total_qty_pcs,
+        COALESCE(SUM(qtyPcs * price), 0) AS total_value
+      FROM stock_pallets
+      WHERE plu = ?
+      GROUP BY plu
+      LIMIT 1
+      ''',
+      variables: [Variable.withString(normalizedPlu)],
+      readsFrom: {stockPallets},
+    ).get();
+
+    if (rows.isEmpty) {
+      return null;
+    }
+
+    final row = rows.first;
+
+    return StockPalletSummaryRow(
+      plu: row.read<String>('plu'),
+      barcode: row.read<String>('barcode'),
+      description: row.read<String>('description'),
+      price: row.read<double>('price'),
+      totalPallet: row.read<int>('total_pallet'),
+      totalQtyCtn: row.read<int>('total_qty_ctn'),
+      totalQtyPcs: row.read<int>('total_qty_pcs'),
+      totalValue: row.read<double>('total_value'),
+    );
+  }
+
+  // ==========================================================
+  // GET GRAND TOTAL STOCK VALUE
+  // ==========================================================
+
+  Future<double> getGrandTotalStockValue() async {
+    final row = await customSelect(
+      '''
+      SELECT
+        COALESCE(SUM(qtyPcs * price), 0) AS grand_total_value
+      FROM stock_pallets
+      ''',
+      readsFrom: {stockPallets},
+    ).getSingle();
+
+    return row.read<double>('grand_total_value');
   }
 
   // ==========================================================

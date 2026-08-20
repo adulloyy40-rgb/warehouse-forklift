@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/di/app_dependencies.dart';
 import '../../../domain/entities/product.dart';
+import '../../../domain/entities/stock_pallet_summary.dart';
 import '../../../domain/repositories/product_repository.dart';
+import '../../../domain/usecases/stock_pallet/get_grand_total_stock_value.dart';
+import '../../../domain/usecases/stock_pallet/get_stock_summary_by_plu.dart';
 import '../import/master_item_import_page.dart';
 import 'master_item_create_page.dart';
 import 'master_item_detail_page.dart';
@@ -16,10 +19,16 @@ class MasterItemListPage extends StatefulWidget {
 
 class _MasterItemListPageState extends State<MasterItemListPage> {
   late final ProductRepository _repository;
+  late final GetStockSummaryByPlu _getStockSummaryByPlu;
+  late final GetGrandTotalStockValue _getGrandTotalStockValue;
 
   final TextEditingController _searchController = TextEditingController();
 
   List<Product> _items = [];
+
+  Map<String, StockPalletSummary> _stockSummaryByPlu = {};
+
+  double _grandTotalStockValue = 0;
 
   bool _loading = true;
   String? _errorMessage;
@@ -28,7 +37,11 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
   void initState() {
     super.initState();
 
-    _repository = AppDependencies.instance.productRepository;
+    final dependencies = AppDependencies.instance;
+
+    _repository = dependencies.productRepository;
+    _getStockSummaryByPlu = dependencies.getStockSummaryByPlu;
+    _getGrandTotalStockValue = dependencies.getGrandTotalStockValue;
 
     _loadItems();
   }
@@ -48,12 +61,26 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
     });
 
     try {
-      final items = await _repository.getAllProducts();
+      final results = await Future.wait([
+        _repository.getAllProducts(),
+        _getStockSummaryByPlu(),
+        _getGrandTotalStockValue(),
+      ]);
+
+      final items = results[0] as List<Product>;
+      final stockSummaries = results[1] as List<StockPalletSummary>;
+      final grandTotal = results[2] as double;
+
+      final summaryByPlu = <String, StockPalletSummary>{
+        for (final summary in stockSummaries) summary.plu: summary,
+      };
 
       if (!mounted) return;
 
       setState(() {
         _items = items;
+        _stockSummaryByPlu = summaryByPlu;
+        _grandTotalStockValue = grandTotal;
         _loading = false;
       });
     } catch (e) {
@@ -215,8 +242,9 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
           }
 
           final item = _items[index - 1];
+          final stockSummary = _stockSummaryByPlu[item.plu.trim()];
 
-          return _buildItemCard(context, item);
+          return _buildItemCard(context, item, stockSummary);
         },
       ),
     );
@@ -256,6 +284,20 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
                     '${_items.length} item tersedia',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Total Nilai Seluruh Stok',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _formatCurrency(_grandTotalStockValue),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -265,7 +307,11 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
     );
   }
 
-  Widget _buildItemCard(BuildContext context, Product item) {
+  Widget _buildItemCard(
+    BuildContext context,
+    Product item,
+    StockPalletSummary? stockSummary,
+  ) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -322,11 +368,73 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
                 label: 'CONV2',
                 value: '${item.conv2} PCS / CTN',
               ),
+
+              const SizedBox(height: 14),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              Text(
+                'Rekap Stok',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
+
+              const SizedBox(height: 8),
+
+              _buildInfoRow(
+                context,
+                label: 'Pallet',
+                value: '${stockSummary?.totalPallet ?? 0}',
+              ),
+
+              const SizedBox(height: 6),
+
+              _buildInfoRow(
+                context,
+                label: 'CTN',
+                value: '${stockSummary?.totalQtyCtn ?? 0}',
+              ),
+
+              const SizedBox(height: 6),
+
+              _buildInfoRow(
+                context,
+                label: 'PCS',
+                value: '${stockSummary?.totalQtyPcs ?? 0}',
+              ),
+
+              const SizedBox(height: 6),
+
+              _buildInfoRow(
+                context,
+                label: 'Harga',
+                value: _formatCurrency(stockSummary?.price ?? item.price),
+              ),
+
+              const SizedBox(height: 6),
+
+              _buildInfoRow(
+                context,
+                label: 'Nilai Stok',
+                value: _formatCurrency(stockSummary?.totalValue ?? 0),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _formatCurrency(double value) {
+    final rounded = value.round().toString();
+
+    final formatted = rounded.replaceAllMapped(
+      RegExp(r'\\B(?=(\\d{3})+(?!\\d))'),
+      (_) => '.',
+    );
+
+    return 'Rp $formatted';
   }
 
   Widget _buildInfoRow(

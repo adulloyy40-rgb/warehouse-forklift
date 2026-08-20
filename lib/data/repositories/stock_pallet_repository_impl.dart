@@ -27,6 +27,7 @@
 import 'package:drift/drift.dart' show Value;
 
 import '../../domain/entities/stock_pallet.dart' as domain;
+import '../../domain/entities/stock_pallet_summary.dart';
 import '../../domain/repositories/stock_pallet_repository.dart';
 
 import '../database/app_database.dart' as database;
@@ -157,6 +158,75 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
     final rows = await _dao.getAllPallets();
 
     return rows.map(_mapToEntity).toList();
+  }
+
+  // ==========================================================
+  // STOCK SUMMARY BY PLU
+  // ==========================================================
+  //
+  // Mengambil rekap stok seluruh PLU.
+  //
+  // DAO melakukan query database.
+  // Repository mengubah hasil Data Layer menjadi
+  // Domain Entity StockPalletSummary.
+  // ==========================================================
+
+  @override
+  Future<List<StockPalletSummary>> getStockSummaryByPlu() async {
+    final rows = await _dao.getStockSummaryByPlu();
+
+    return rows.map((row) {
+      return StockPalletSummary(
+        plu: row.plu,
+        barcode: row.barcode,
+        description: row.description,
+        price: row.price,
+        totalPallet: row.totalPallet,
+        totalQtyCtn: row.totalQtyCtn,
+        totalQtyPcs: row.totalQtyPcs,
+        totalValue: row.totalValue,
+      );
+    }).toList();
+  }
+
+  // ==========================================================
+  // STOCK SUMMARY FOR ONE PLU
+  // ==========================================================
+  //
+  // Mengambil rekap stok hanya untuk satu PLU.
+  // ==========================================================
+
+  @override
+  Future<StockPalletSummary?> getStockSummaryForPlu(String plu) async {
+    final row = await _dao.getStockSummaryForPlu(plu);
+
+    if (row == null) {
+      return null;
+    }
+
+    return StockPalletSummary(
+      plu: row.plu,
+      barcode: row.barcode,
+      description: row.description,
+      price: row.price,
+      totalPallet: row.totalPallet,
+      totalQtyCtn: row.totalQtyCtn,
+      totalQtyPcs: row.totalQtyPcs,
+      totalValue: row.totalValue,
+    );
+  }
+
+  // ==========================================================
+  // GRAND TOTAL STOCK VALUE
+  // ==========================================================
+  //
+  // Mengambil total nilai seluruh pallet aktif
+  // dari seluruh lokasi.
+  // ==========================================================
+
+  @override
+  Future<double> getGrandTotalStockValue() {
+    return _dao.getGrandTotalStockValue();
   }
 
   // ==========================================================

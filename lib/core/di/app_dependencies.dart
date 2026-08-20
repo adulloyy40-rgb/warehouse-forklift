@@ -33,6 +33,9 @@ import '../../domain/usecases/product/get_product_by_plu.dart';
 import '../../domain/usecases/product/update_product.dart';
 
 import '../../domain/usecases/import_master_item_to_database.dart';
+import '../../domain/usecases/stock_pallet/get_grand_total_stock_value.dart';
+import '../../domain/usecases/stock_pallet/get_stock_summary_by_plu.dart';
+import '../../domain/usecases/stock_pallet/get_stock_summary_for_plu.dart';
 import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
@@ -123,6 +126,22 @@ class AppDependencies {
 
   DeleteStockPallet get deleteStockPallet {
     return DeleteStockPallet(stockPalletRepository: stockPalletRepository);
+  }
+
+  // ==========================================================
+  // STOCK SUMMARY
+  // ==========================================================
+
+  GetStockSummaryByPlu get getStockSummaryByPlu {
+    return GetStockSummaryByPlu(repository: stockPalletRepository);
+  }
+
+  GetStockSummaryForPlu get getStockSummaryForPlu {
+    return GetStockSummaryForPlu(repository: stockPalletRepository);
+  }
+
+  GetGrandTotalStockValue get getGrandTotalStockValue {
+    return GetGrandTotalStockValue(repository: stockPalletRepository);
   }
 
   // ==========================================================

@@ -30,6 +30,7 @@
 // ============================================================
 
 import '../entities/stock_pallet.dart';
+import '../entities/stock_pallet_summary.dart';
 
 // ============================================================
 // ABSTRACT CLASS: StockPalletRepository
@@ -91,6 +92,33 @@ abstract class StockPalletRepository {
   // ==========================================================
 
   Future<List<StockPallet>> getAll();
+
+  // ==========================================================
+  // STOCK SUMMARY BY PLU
+  // ==========================================================
+  //
+  // Mengambil rekap stok berdasarkan PLU.
+  //
+  // Data yang direkap:
+  // - Total pallet
+  // - Total CTN
+  // - Total PCS
+  // - Total nilai stok
+  // ==========================================================
+
+  Future<List<StockPalletSummary>> getStockSummaryByPlu();
+
+  // ==========================================================
+  // STOCK SUMMARY FOR ONE PLU
+  // ==========================================================
+
+  Future<StockPalletSummary?> getStockSummaryForPlu(String plu);
+
+  // ==========================================================
+  // GRAND TOTAL STOCK VALUE
+  // ==========================================================
+
+  Future<double> getGrandTotalStockValue();
 
   // ==========================================================
   // FIND BY LOCATION
