@@ -4,6 +4,7 @@ import '../../../core/di/app_dependencies.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/repositories/product_repository.dart';
 import '../import/master_item_import_page.dart';
+import 'master_item_detail_page.dart';
 
 class MasterItemListPage extends StatefulWidget {
   const MasterItemListPage({super.key});
@@ -100,14 +101,18 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
     }
   }
 
-  void _openDetail(Product item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Detail ${item.description} akan kita buat pada tahap berikutnya.',
-        ),
+  Future<void> _openDetail(Product item) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => MasterItemDetailPage(productId: item.id!),
       ),
     );
+
+    if (!mounted) return;
+
+    if (changed == true) {
+      await _loadItems();
+    }
   }
 
   @override
