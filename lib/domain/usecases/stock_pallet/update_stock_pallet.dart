@@ -7,8 +7,8 @@
 //
 // TUGAS:
 // 1. Validasi input pallet.
-// 2. Memastikan PLU ada di Master Barang.
-// 3. Mengambil data Master Barang berdasarkan PLU.
+// 2. Memastikan PLU ada di Master Item.
+// 3. Mengambil data Master Item berdasarkan PLU.
 // 4. Mempertahankan Tear dan Stack aktual dari operator.
 // 5. Menghitung Qty CTN.
 // 6. Menghitung Qty PCS.
@@ -22,7 +22,7 @@
 // UpdateStockPallet
 //   ├── ProductRepository
 //   │       ↓
-//   │   Master Barang
+//   │   Master Item
 //   │
 //   └── StockPalletRepository
 //           ↓
@@ -47,7 +47,7 @@ class UpdateStockPallet {
   final StockPalletRepository stockPalletRepository;
 
   // ==========================================================
-  // REPOSITORY MASTER BARANG
+  // REPOSITORY MASTER ITEM
   // ==========================================================
 
   final ProductRepository productRepository;
@@ -111,10 +111,10 @@ class UpdateStockPallet {
     }
 
     // --------------------------------------------------------
-    // CARI MASTER BARANG
+    // CARI MASTER ITEM
     // --------------------------------------------------------
     //
-    // PLU operator digunakan untuk mencari Master Barang.
+    // PLU operator digunakan untuk mencari Master Item.
     // --------------------------------------------------------
 
     final Product? product =
@@ -129,7 +129,7 @@ class UpdateStockPallet {
 
     if (product == null) {
       throw StateError(
-        'PLU $plu tidak ditemukan di Master Barang.',
+        'PLU $plu tidak ditemukan di Master Item.',
       );
     }
 
@@ -139,7 +139,7 @@ class UpdateStockPallet {
 
     if (product.conv2 <= 0) {
       throw StateError(
-        'Conv2 Master Barang untuk PLU $plu tidak valid.',
+        'Conv2 Master Item untuk PLU $plu tidak valid.',
       );
     }
 
@@ -169,7 +169,7 @@ class UpdateStockPallet {
     // CEK KESESUAIAN MASTER
     // --------------------------------------------------------
     //
-    // Tear dan Stack aktual dibandingkan dengan Master Barang.
+    // Tear dan Stack aktual dibandingkan dengan Master Item.
     //
     // true:
     //   keduanya sama.
@@ -195,7 +195,7 @@ class UpdateStockPallet {
       locationCode: locationCode,
 
       // ------------------------------------------------------
-      // MASTER BARANG
+      // MASTER ITEM
       // ------------------------------------------------------
 
       plu: product.plu,

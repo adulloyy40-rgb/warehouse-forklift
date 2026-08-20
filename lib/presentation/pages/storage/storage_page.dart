@@ -92,7 +92,7 @@ class _StoragePageState extends State<StoragePage> {
   final Map<String, StockPallet> _palletByLocation = {};
 
   // ==========================================================
-  // MASTER BARANG CACHE
+  // MASTER ITEM CACHE
   // ==========================================================
   //
   // Key   : PLU
@@ -167,10 +167,10 @@ class _StoragePageState extends State<StoragePage> {
       final pallets = await _palletRepository.getAll();
 
       // ========================================================
-      // LOAD MASTER BARANG
+      // LOAD MASTER ITEM
       // ========================================================
       //
-      // Master Barang dimuat satu kali.
+      // Master Item dimuat satu kali.
       //
       // Setelah itu digunakan sebagai lookup berdasarkan PLU.
       // ========================================================
@@ -710,7 +710,7 @@ class _SummaryCard extends StatelessWidget {
 // ============================================================
 //
 // Menampilkan peringatan ketika nilai fisik pallet berbeda
-// dengan nilai Master Barang.
+// dengan nilai Master Item.
 //
 // Contoh:
 // - TEAR MISMATCH

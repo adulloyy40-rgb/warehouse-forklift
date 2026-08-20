@@ -555,11 +555,11 @@ class _DashboardPageState extends State<DashboardPage> {
 
                   children: [
                     // ==================================================
-                    // MASTER BARANG
+                    // MASTER ITEM
                     // ==================================================
                     _MenuCard(
                       icon: Icons.inventory_2_rounded,
-                      title: 'Master Barang',
+                      title: 'Master Item',
                       subtitle: 'Data produk',
                       onTap: () {
                         Navigator.of(context).push(

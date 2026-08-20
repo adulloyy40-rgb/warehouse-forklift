@@ -39,7 +39,7 @@ void main() {
   //
   // Semua field wajib StockPallet harus diisi.
   //
-  // Field master barang:
+  // Field master item:
   // - PLU
   // - Barcode
   // - Description
@@ -59,7 +59,7 @@ void main() {
     locationCode: '8101201',
 
     // --------------------------------------------------------
-    // MASTER BARANG
+    // MASTER ITEM
     // --------------------------------------------------------
 
     plu: '123456',
@@ -131,7 +131,7 @@ void main() {
       );
 
       // ------------------------------------------------------
-      // MASTER BARANG
+      // MASTER ITEM
       // ------------------------------------------------------
 
       expect(
@@ -242,7 +242,7 @@ void main() {
       final map = model.toMap();
 
       // ------------------------------------------------------
-      // MASTER BARANG
+      // MASTER ITEM
       // ------------------------------------------------------
 
       expect(

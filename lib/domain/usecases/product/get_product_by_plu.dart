@@ -4,7 +4,7 @@
 // ============================================================
 //
 // FUNGSI:
-// Use Case untuk mencari Master Barang berdasarkan PLU.
+// Use Case untuk mencari Master Item berdasarkan PLU.
 //
 // ALUR:
 //

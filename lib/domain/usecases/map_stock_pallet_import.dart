@@ -16,7 +16,7 @@
 //   ↓
 // MapStockPalletImport
 //   ↓
-// Product (Master Barang)
+// Product (Master Item)
 //   ↓
 // StockPallet
 //   ↓
@@ -25,7 +25,7 @@
 // SQLite
 //
 // ATURAN:
-// - Data identitas barang berasal dari Master Barang.
+// - Data identitas barang berasal dari Master Item.
 // - Tear dan Stack berasal dari kondisi aktual pallet.
 // - sesuaiMaster dihitung dari perbandingan aktual vs master.
 // - Qty CTN dihitung dari tear × stack.
@@ -51,7 +51,7 @@ class MapStockPalletImport {
   // Mengubah satu row Excel menjadi StockPallet.
   //
   // Product:
-  // Master Barang berdasarkan PLU.
+  // Master Item berdasarkan PLU.
   //
   // Row:
   // Data pallet dari Excel.
@@ -82,7 +82,7 @@ class MapStockPalletImport {
     // PLU
     // --------------------------------------------------------
     //
-    // PLU dari Excel harus sama dengan Master Barang.
+    // PLU dari Excel harus sama dengan Master Item.
     // --------------------------------------------------------
 
     final excelPlu = _requiredString(
@@ -93,7 +93,7 @@ class MapStockPalletImport {
     if (excelPlu != product.plu.trim()) {
       throw FormatException(
         'PLU Excel "$excelPlu" tidak sesuai dengan '
-        'Master Barang "${product.plu}".',
+        'Master Item "${product.plu}".',
       );
     }
 
@@ -136,7 +136,7 @@ class MapStockPalletImport {
     // QTY PCS
     // --------------------------------------------------------
     //
-    // Menggunakan CONV2 dari Master Barang.
+    // Menggunakan CONV2 dari Master Item.
     // --------------------------------------------------------
 
     final qtyPcs = qtyCtn * product.conv2;

@@ -4,7 +4,7 @@
 // ============================================================
 //
 // FUNGSI:
-// Interface/kontrak Repository untuk Master Barang.
+// Interface/kontrak Repository untuk Master Item.
 //
 // Repository berada di antara:
 // Presentation / UI
@@ -54,7 +54,7 @@ abstract class ProductRepository {
   // ==========================================================
   //
   // Fungsi:
-  // Mengambil seluruh Master Barang.
+  // Mengambil seluruh Master Item.
   //
   // Return:
   // List<Product>

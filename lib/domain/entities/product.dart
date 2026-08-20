@@ -1,7 +1,7 @@
 // File:
 // lib/domain/entities/product.dart
 
-// Entity Product mewakili satu data barang dari Master Barang.
+// Entity Product mewakili satu data barang dari Master Item.
 class Product {
   // Barcode barang.
   final String barcode;

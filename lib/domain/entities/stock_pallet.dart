@@ -26,7 +26,7 @@ class StockPallet {
   final String locationCode;
 
   // ----------------------------------------------------------
-  // MASTER BARANG
+  // MASTER ITEM
   // ----------------------------------------------------------
 
   // PLU barang.
@@ -41,7 +41,7 @@ class StockPallet {
   // Harga barang.
   final double price;
 
-  // Retur hari dari master barang.
+  // Retur hari dari master item.
   final int returHari;
 
   // Konversi CTN → PCS.

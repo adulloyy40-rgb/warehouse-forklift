@@ -4,7 +4,7 @@
 // ============================================================
 //
 // FUNGSI:
-// Model data untuk Master Barang.
+// Model data untuk Master Item.
 //
 // ALUR DATA:
 //
@@ -24,7 +24,7 @@
 //
 // CATATAN:
 // masterTear dan masterStack adalah nilai standar dari
-// Master Barang.
+// Master Item.
 //
 // Nilai fisik Tear dan Stack operator TIDAK disimpan
 // di ProductModel.
@@ -52,7 +52,7 @@ class ProductModel {
   // BARCODE
   // ==========================================================
   //
-  // Barcode resmi barang dari Master Barang.
+  // Barcode resmi barang dari Master Item.
   //
   // Contoh:
   // 899999999999
@@ -87,7 +87,7 @@ class ProductModel {
   // PRICE
   // ==========================================================
   //
-  // Harga barang dari Master Barang.
+  // Harga barang dari Master Item.
   // ==========================================================
 
   final double price;
@@ -144,7 +144,7 @@ class ProductModel {
   // MASTER TEAR
   // ==========================================================
   //
-  // Nilai Tear standar dari Master Barang.
+  // Nilai Tear standar dari Master Item.
   //
   // PENTING:
   // Nilai ini hanya sebagai REFERENSI / PEMBANDING.
@@ -159,7 +159,7 @@ class ProductModel {
   // MASTER STACK
   // ==========================================================
   //
-  // Nilai Stack standar dari Master Barang.
+  // Nilai Stack standar dari Master Item.
   //
   // PENTING:
   // Nilai ini hanya sebagai REFERENSI / PEMBANDING.
@@ -176,7 +176,7 @@ class ProductModel {
   // Constructor digunakan untuk membuat ProductModel.
   //
   // Semua field dibuat required karena seluruh informasi
-  // Master Barang dibutuhkan oleh aplikasi.
+  // Master Item dibutuhkan oleh aplikasi.
   // ==========================================================
 
   const ProductModel({

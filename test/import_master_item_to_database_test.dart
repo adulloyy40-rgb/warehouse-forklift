@@ -29,7 +29,7 @@ void main() {
   });
 
   test(
-    'Import Master Barang dari Excel ke SQLite harus berhasil 100 item',
+    'Import Master Item dari Excel ke SQLite harus berhasil 100 item',
     () async {
       final rows = await dataSource.readMasterProduct(excelPath);
 
@@ -49,7 +49,7 @@ void main() {
   );
 
   test(
-    'Data Master Barang hasil import harus memiliki field utama',
+    'Data Master Item hasil import harus memiliki field utama',
     () async {
       final rows = await dataSource.readMasterProduct(excelPath);
 
@@ -70,7 +70,7 @@ void main() {
   );
 
   test(
-    'Data Master Barang hasil import harus dapat dicari berdasarkan PLU',
+    'Data Master Item hasil import harus dapat dicari berdasarkan PLU',
     () async {
       final rows = await dataSource.readMasterProduct(excelPath);
 

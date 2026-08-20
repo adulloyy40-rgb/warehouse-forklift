@@ -42,7 +42,7 @@ class ImportStockPalletToDatabase {
     final errors = <String>[];
 
     // ==========================================================
-    // 1. LOAD MASTER BARANG SEKALI SAJA
+    // 1. LOAD MASTER ITEM SEKALI SAJA
     // ==========================================================
     //
     // Sebelumnya getProductByPlu() dipanggil untuk setiap baris.
@@ -53,7 +53,7 @@ class ImportStockPalletToDatabase {
     //
     // Ini sangat berat.
     //
-    // Sekarang Master Barang dibaca SATU KALI.
+    // Sekarang Master Item dibaca SATU KALI.
     // ==========================================================
 
     final masterStopwatch = Stopwatch()..start();
@@ -63,7 +63,7 @@ class ImportStockPalletToDatabase {
     masterStopwatch.stop();
 
     developer.log(
-      'PROFILE | Load Master Barang: '
+      'PROFILE | Load Master Item: '
       '${masterStopwatch.elapsedMilliseconds} ms '
       '(${products.length} products)',
       name: 'StockPalletImport',
@@ -160,13 +160,13 @@ class ImportStockPalletToDatabase {
         }
 
         // ------------------------------------------------------
-        // Cari Master Barang dari Map.
+        // Cari Master Item dari Map.
         // ------------------------------------------------------
 
         final product = productByPlu[plu];
 
         if (product == null) {
-          throw FormatException('PLU $plu tidak ditemukan di Master Barang.');
+          throw FormatException('PLU $plu tidak ditemukan di Master Item.');
         }
 
         // ------------------------------------------------------

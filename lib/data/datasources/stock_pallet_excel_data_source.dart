@@ -35,7 +35,7 @@
 //   ↓
 // Data mentah pallet
 //
-// Validasi Master Barang dan database akan dibuat
+// Validasi Master Item dan database akan dibuat
 // pada tahap berikutnya.
 // ============================================================
 

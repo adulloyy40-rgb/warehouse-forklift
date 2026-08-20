@@ -320,7 +320,7 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
       // Penanda sederhana sementara.
       //
       // Nanti dapat kita sempurnakan berdasarkan
-      // perbandingan Tear/Stack dengan Master Barang.
+      // perbandingan Tear/Stack dengan Master Item.
       sesuaiMaster: row.tear > 0 && row.stack > 0,
     );
   }

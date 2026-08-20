@@ -4,7 +4,7 @@
 // ============================================================
 //
 // FUNGSI:
-// Membaca Master Barang dari file Excel (.xlsx).
+// Membaca Master Item dari file Excel (.xlsx).
 //
 // Alur:
 //
@@ -32,7 +32,7 @@ import 'package:flutter/services.dart' show rootBundle;
 // CLASS: ExcelDataSource
 // ============================================================
 //
-// Bertugas khusus membaca data Master Barang dari Excel.
+// Bertugas khusus membaca data Master Item dari Excel.
 // ============================================================
 
 class ExcelDataSource {
@@ -61,7 +61,7 @@ class ExcelDataSource {
   // ==========================================================
   //
   // Fungsi:
-  // Membaca seluruh Master Barang dari file Excel.
+  // Membaca seluruh Master Item dari file Excel.
   //
   // Parameter:
   // filePath = lokasi file .xlsx
@@ -129,7 +129,7 @@ class ExcelDataSource {
     // --------------------------------------------------------
     // 5. Mengambil worksheet pertama.
     //
-    // File Master Barang kita menggunakan worksheet pertama.
+    // File Master Item kita menggunakan worksheet pertama.
     // --------------------------------------------------------
 
     final sheetName = excel.tables.keys.first;
@@ -200,7 +200,7 @@ class ExcelDataSource {
 
     if (headerRowIndex == null || headerIndexes == null) {
       throw Exception(
-        'Header Master Barang tidak ditemukan. '
+        'Header Master Item tidak ditemukan. '
         'Pastikan Excel memiliki kolom BARCODE, PLU, '
         'DESC, PRICE, RETUR HARI, C2, TYPE, STACK, dan TEAR.',
       );
@@ -356,7 +356,7 @@ class ExcelDataSource {
     }
 
     // --------------------------------------------------------
-    // 18. Mengembalikan seluruh Master Barang.
+    // 18. Mengembalikan seluruh Master Item.
     // --------------------------------------------------------
 
     return products;
@@ -386,7 +386,7 @@ String _normalizeHeader(String value) {
 // Menentukan apakah suatu baris merupakan HEADER.
 //
 // Kita menggunakan BARCODE, PLU, dan DESC sebagai
-// identitas minimum header Master Barang.
+// identitas minimum header Master Item.
 // ==========================================================
 
 bool _containsMinimumHeaders(Map<String, int> indexes) {

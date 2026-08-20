@@ -90,10 +90,10 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Konfirmasi Import Master Barang'),
+          title: const Text('Konfirmasi Import Master Item'),
           content: Text(
             'Sebanyak ${rows.length} item akan dimasukkan ke database SQLite.\n\n'
-            'Data Master Barang yang sudah ada tidak akan dihapus otomatis.',
+            'Data Master Item yang sudah ada tidak akan dihapus otomatis.',
           ),
           actions: [
             TextButton(
@@ -142,7 +142,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
 
       setState(() {
         _importing = false;
-        _errorMessage = 'Import Master Barang gagal: $e';
+        _errorMessage = 'Import Master Item gagal: $e';
       });
     }
   }
@@ -162,7 +162,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
                     : Icons.warning_amber_rounded,
               ),
               const SizedBox(width: 10),
-              const Expanded(child: Text('Hasil Import Master Barang')),
+              const Expanded(child: Text('Hasil Import Master Item')),
             ],
           ),
           content: SingleChildScrollView(
@@ -216,7 +216,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Master Barang'),
+        title: const Text('Master Item'),
         actions: [
           if (_fileName != null)
             IconButton(
@@ -268,7 +268,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Import Master Barang',
+                    'Import Master Item',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -278,7 +278,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Import data Master Barang dari file Excel '
+              'Import data Master Item dari file Excel '
               'ke database SQLite aplikasi.',
             ),
             const SizedBox(height: 12),
@@ -326,7 +326,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
               icon: const Icon(Icons.upload_file_rounded),
               label: Text(
                 _fileName == null
-                    ? 'Pilih File Master Barang'
+                    ? 'Pilih File Master Item'
                     : 'Pilih File Lain',
               ),
             ),
@@ -357,7 +357,7 @@ class _MasterItemImportPageState extends State<MasterItemImportPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text('${rows.length} item Master Barang'),
+                  Text('${rows.length} item Master Item'),
                 ],
               ),
             ),

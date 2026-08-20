@@ -36,7 +36,7 @@ class StockPallets extends Table {
   TextColumn get locationCode => text().unique()();
 
   // ----------------------------------------------------------
-  // DATA MASTER BARANG
+  // DATA MASTER ITEM
   // ----------------------------------------------------------
 
   TextColumn get plu => text()();
@@ -64,7 +64,7 @@ class StockPallets extends Table {
   // ----------------------------------------------------------
   // KESESUAIAN MASTER
   //
-  // true  = Tear dan Stack sesuai Master Barang
+  // true  = Tear dan Stack sesuai Master Item
   // false = terdapat perbedaan
   // ----------------------------------------------------------
 

@@ -59,7 +59,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
 
         if (product == null) {
           _errorMessage =
-              'Barcode berhasil terbaca, tetapi tidak ditemukan di Master Barang.';
+              'Barcode berhasil terbaca, tetapi tidak ditemukan di Master Item.';
         }
       });
 
@@ -75,7 +75,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
 
       setState(() {
         _isSearching = false;
-        _errorMessage = 'Gagal mencari barcode di Master Barang.';
+        _errorMessage = 'Gagal mencari barcode di Master Item.';
       });
     }
   }
@@ -177,7 +177,7 @@ class _ScanBarcodePageState extends State<ScanBarcodePage> {
                         SizedBox(width: 14),
                         Expanded(
                           child: Text(
-                            'Mencari informasi Master Barang...',
+                            'Mencari informasi Master Item...',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -323,7 +323,7 @@ class _ScannerStatus extends StatelessWidget {
     if (isSearching) {
       return const _StatusCard(
         icon: Icons.search_rounded,
-        text: 'Barcode terbaca. Sedang mencari Master Barang...',
+        text: 'Barcode terbaca. Sedang mencari Master Item...',
       );
     }
 

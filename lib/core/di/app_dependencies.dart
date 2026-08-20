@@ -99,9 +99,9 @@ class AppDependencies {
   // PRODUCT REPOSITORY
   // ==========================================================
   //
-  // Repository Master Barang.
+  // Repository Master Item.
   //
-  // Untuk sekarang Master Barang dibaca dari:
+  // Untuk sekarang Master Item dibaca dari:
   //
   // test/fixtures/master_barang.xlsx
   //
@@ -116,7 +116,7 @@ class AppDependencies {
   // GET PRODUCT BY PLU
   // ==========================================================
   //
-  // Digunakan untuk mencari Master Barang berdasarkan PLU.
+  // Digunakan untuk mencari Master Item berdasarkan PLU.
   //
   // ALUR:
   //
@@ -126,7 +126,7 @@ class AppDependencies {
   //  ↓
   // ProductRepository
   //  ↓
-  // Master Barang
+  // Master Item
   //
   // ==========================================================
 
@@ -140,7 +140,7 @@ class AppDependencies {
   // IMPORT MASTER ITEM
   // ==========================================================
   //
-  // Digunakan untuk memasukkan Master Barang dari Excel
+  // Digunakan untuk memasukkan Master Item dari Excel
   // ke SQLite.
   //
   // ALUR:
@@ -198,7 +198,7 @@ class AppDependencies {
   // Use Case membutuhkan DUA repository:
   //
   // 1. ProductRepository
-  //    Untuk mencari Master Barang berdasarkan PLU.
+  //    Untuk mencari Master Item berdasarkan PLU.
   //
   // 2. StockPalletRepository
   //    Untuk menyimpan perubahan pallet.

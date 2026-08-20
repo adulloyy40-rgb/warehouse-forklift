@@ -31,7 +31,7 @@ void main() {
 
   group('MapStockPalletImport', () {
     test(
-      'memetakan data Excel dan Master Barang menjadi StockPallet',
+      'memetakan data Excel dan Master Item menjadi StockPallet',
       () {
         final result = mapper.execute(
           row: validRow(),
@@ -74,13 +74,13 @@ void main() {
 
         expect(result.operatorNik, '12345678');
 
-        // Tear dan Stack aktual sama dengan Master Barang.
+        // Tear dan Stack aktual sama dengan Master Item.
         expect(result.sesuaiMaster, isTrue);
       },
     );
 
     test(
-      'qtyPcs dihitung dari qtyCtn dikali conv2 Master Barang',
+      'qtyPcs dihitung dari qtyCtn dikali conv2 Master Item',
       () {
         const productConv12 = Product(
           barcode: '8999999999999',
@@ -161,7 +161,7 @@ void main() {
     );
 
     test(
-      'PLU Excel harus sama dengan Master Barang',
+      'PLU Excel harus sama dengan Master Item',
       () {
         final row = validRow()
           ..['plu'] = '999999';

@@ -12,8 +12,8 @@
 // 3. Mengecek apakah lokasi AVAILABLE / OCCUPIED.
 // 4. Menampilkan informasi pallet jika lokasi terisi.
 // 5. PUT AWAY pallet ke lokasi yang masih AVAILABLE.
-// 6. Mencari Master Barang berdasarkan PLU.
-// 7. Membandingkan Tear dan Stack aktual dengan Master Barang.
+// 6. Mencari Master Item berdasarkan PLU.
+// 7. Membandingkan Tear dan Stack aktual dengan Master Item.
 // 8. Menghitung QTY CTN.
 // 9. Menghitung QTY PCS.
 // 10. Menyimpan pallet melalui PutAwayStockPallet.
@@ -1065,7 +1065,7 @@ class _InformationRow extends StatelessWidget {
 //
 // ATURAN:
 // - Location Code tidak dapat diubah.
-// - PLU dapat diganti dan harus valid di Master Barang.
+// - PLU dapat diganti dan harus valid di Master Item.
 // - Barcode, Description, Price, Conv2, dan Type mengikuti Master.
 // - Tear dan Stack dapat dikoreksi sesuai kondisi lapangan.
 // - Qty CTN dan Qty PCS dihitung otomatis.
@@ -1143,7 +1143,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
         if (product == null) {
           _errorMessage =
-              'Master Barang untuk PLU ${widget.pallet.plu} tidak ditemukan.';
+              'Master Item untuk PLU ${widget.pallet.plu} tidak ditemukan.';
         }
       });
     } catch (error) {
@@ -1157,7 +1157,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
       setState(() {
         _errorMessage =
-            'Gagal memuat Master Barang.';
+            'Gagal memuat Master Item.';
       });
     }
   }
@@ -1240,7 +1240,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
         _isSearching = false;
         _product = null;
         _errorMessage =
-            'Gagal mencari Master Barang.';
+            'Gagal mencari Master Item.';
       });
     }
   }
@@ -1316,7 +1316,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
     if (_product == null) {
       setState(() {
         _errorMessage =
-            'Master Barang belum valid. Cari PLU terlebih dahulu.';
+            'Master Item belum valid. Cari PLU terlebih dahulu.';
       });
       return;
     }
@@ -1937,7 +1937,7 @@ void _refreshQuantity() {
         _isSearching = false;
         _product = null;
         _errorMessage =
-            'Gagal mencari Master Barang.';
+            'Gagal mencari Master Item.';
       });
     }
   }
@@ -2431,7 +2431,7 @@ if (_errorMessage !=
               const SizedBox(height: 20),
 
               Text(
-                'Master Barang',
+                'Master Item',
                 style: theme
                     .textTheme
                     .titleMedium

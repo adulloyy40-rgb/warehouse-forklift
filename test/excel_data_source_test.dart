@@ -4,7 +4,7 @@
 // ============================================================
 //
 // FUNGSI:
-// Menguji pembacaan Master Barang dari Excel.
+// Menguji pembacaan Master Item dari Excel.
 //
 // Excel asli:
 // BARCODE
@@ -36,7 +36,7 @@ import 'package:warehouse_forklift/data/datasources/excel_data_source.dart';
 
 void main() {
   // ==========================================================
-  // LOKASI FILE EXCEL MASTER BARANG
+  // LOKASI FILE EXCEL MASTER ITEM
   // ==========================================================
 
   const excelPath = 'test/fixtures/master_barang.xlsx';
@@ -50,7 +50,7 @@ void main() {
   // ==========================================================
 
   test(
-    'Excel Master Barang harus dapat dibaca',
+    'Excel Master Item harus dapat dibaca',
     () async {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
@@ -70,16 +70,16 @@ void main() {
   // TEST 2
   // ==========================================================
   //
-  // Memastikan jumlah Master Barang adalah 100.
+  // Memastikan jumlah Master Item adalah 100.
   // ==========================================================
 
   test(
-    'Master Barang harus memiliki 100 item',
+    'Master Item harus memiliki 100 item',
     () async {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
 
-      // Membaca Master Barang.
+      // Membaca Master Item.
       final rows = await dataSource.readMasterProduct(
         excelPath,
       );
@@ -103,7 +103,7 @@ void main() {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
 
-      // Membaca Master Barang.
+      // Membaca Master Item.
       final rows = await dataSource.readMasterProduct(
         excelPath,
       );
@@ -219,7 +219,7 @@ void main() {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
 
-      // Membaca Master Barang.
+      // Membaca Master Item.
       final rows = await dataSource.readMasterProduct(
         excelPath,
       );
@@ -271,7 +271,7 @@ void main() {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
 
-      // Membaca Master Barang.
+      // Membaca Master Item.
       final rows = await dataSource.readMasterProduct(
         excelPath,
       );
@@ -334,7 +334,7 @@ void main() {
       // Membuat ExcelDataSource.
       final dataSource = ExcelDataSource();
 
-      // Membaca Master Barang.
+      // Membaca Master Item.
       final rows = await dataSource.readMasterProduct(
         excelPath,
       );

@@ -7,9 +7,9 @@ import 'package:drift/drift.dart';
 /// Menyimpan data pallet/barang yang benar-benar berada
 /// di dalam storage warehouse.
 ///
-/// Berbeda dengan Master Barang.
+/// Berbeda dengan Master Item.
 ///
-/// MASTER BARANG:
+/// MASTER ITEM:
 ///     Data referensi dari Excel.
 ///
 /// STOCK PALLET:
@@ -65,7 +65,7 @@ class StockPallets extends Table {
   /// Nama/deskripsi barang pada saat pallet disimpan.
   ///
   /// Kita simpan snapshot description supaya histori pallet
-  /// tetap dapat dibaca walaupun Master Barang berubah.
+  /// tetap dapat dibaca walaupun Master Item berubah.
   /// ----------------------------------------------------------
 
   TextColumn get description => text()();
@@ -74,7 +74,7 @@ class StockPallets extends Table {
   /// PRICE
   /// ----------------------------------------------------------
   ///
-  /// Harga dari Master Barang.
+  /// Harga dari Master Item.
   /// ----------------------------------------------------------
 
   RealColumn get price => real().withDefault(const Constant(0))();
@@ -83,7 +83,7 @@ class StockPallets extends Table {
   /// RETUR HARI
   /// ----------------------------------------------------------
   ///
-  /// Informasi retur/expired dari Master Barang.
+  /// Informasi retur/expired dari Master Item.
   /// ----------------------------------------------------------
 
   IntColumn get returHari => integer().withDefault(const Constant(0))();
@@ -110,7 +110,7 @@ class StockPallets extends Table {
   /// MASTER TEAR
   /// ----------------------------------------------------------
   ///
-  /// Nilai TEAR dari Master Barang.
+  /// Nilai TEAR dari Master Item.
   /// ----------------------------------------------------------
 
   IntColumn get masterTear => integer().withDefault(const Constant(0))();
@@ -119,7 +119,7 @@ class StockPallets extends Table {
   /// MASTER STACK
   /// ----------------------------------------------------------
   ///
-  /// Nilai STACK dari Master Barang.
+  /// Nilai STACK dari Master Item.
   /// ----------------------------------------------------------
 
   IntColumn get masterStack => integer().withDefault(const Constant(0))();
@@ -145,7 +145,7 @@ class StockPallets extends Table {
   /// Ini berbeda dengan RETUR HARI.
   ///
   /// RETUR HARI:
-  ///     Informasi dari Master Barang.
+  ///     Informasi dari Master Item.
   ///
   /// EXPIRED DATE:
   ///     Tanggal aktual batch barang yang sedang disimpan.

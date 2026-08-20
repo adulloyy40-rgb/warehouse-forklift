@@ -92,7 +92,7 @@ class StockPalletCalculator {
   //
   // tear  = Tear aktual pallet
   // stack = Stack aktual pallet
-  // conv2 = CONV2 dari Master Barang
+  // conv2 = CONV2 dari Master Item
   //
   // Rumus:
   //
