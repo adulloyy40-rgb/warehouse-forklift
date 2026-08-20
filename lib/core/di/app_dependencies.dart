@@ -40,6 +40,7 @@ import '../../domain/repositories/stock_pallet_repository.dart';
 import '../../domain/repositories/storage_location_repository.dart';
 
 import '../../domain/usecases/product/get_product_by_plu.dart';
+import '../../domain/usecases/import_master_item_to_database.dart';
 import '../../domain/usecases/stock_pallet/put_away_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/update_stock_pallet.dart';
 import '../../domain/usecases/stock_pallet/delete_stock_pallet.dart';
@@ -132,6 +133,31 @@ class AppDependencies {
   GetProductByPlu get getProductByPlu {
     return GetProductByPlu(
       repository: productRepository,
+    );
+  }
+
+  // ==========================================================
+  // IMPORT MASTER ITEM
+  // ==========================================================
+  //
+  // Digunakan untuk memasukkan Master Barang dari Excel
+  // ke SQLite.
+  //
+  // ALUR:
+  //
+  // UI
+  //  ↓
+  // ImportMasterItemToDatabase
+  //  ↓
+  // ProductDao
+  //  ↓
+  // SQLite
+  //
+  // ==========================================================
+
+  ImportMasterItemToDatabase get importMasterItemToDatabase {
+    return ImportMasterItemToDatabase(
+      productDao: database.productDao,
     );
   }
 
