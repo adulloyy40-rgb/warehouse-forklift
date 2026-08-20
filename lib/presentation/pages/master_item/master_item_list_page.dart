@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/di/app_dependencies.dart';
 import '../../../domain/entities/product.dart';
 import '../../../domain/repositories/product_repository.dart';
+import '../import/master_item_import_page.dart';
 
 class MasterItemListPage extends StatefulWidget {
   const MasterItemListPage({super.key});
@@ -85,6 +86,18 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
   void _clearSearch() {
     _searchController.clear();
     _loadItems();
+  }
+
+  Future<void> _openImportMasterItem() async {
+    final imported = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const MasterItemImportPage()),
+    );
+
+    if (!mounted) return;
+
+    if (imported == true) {
+      await _loadItems();
+    }
   }
 
   void _openDetail(Product item) {
@@ -320,19 +333,20 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
 
   Widget _buildEmptyState(BuildContext context) {
     final query = _searchController.text.trim();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               query.isEmpty
                   ? Icons.inventory_2_outlined
                   : Icons.search_off_rounded,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text(
@@ -351,14 +365,19 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
                   : 'Coba gunakan PLU, barcode, atau nama item yang lain.',
               textAlign: TextAlign.center,
             ),
-            if (query.isNotEmpty) ...[
-              const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            if (query.isEmpty)
+              FilledButton.icon(
+                onPressed: _loading ? null : _openImportMasterItem,
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Import Master Item'),
+              )
+            else
               OutlinedButton.icon(
                 onPressed: _clearSearch,
                 icon: const Icon(Icons.clear_rounded),
                 label: const Text('Hapus Pencarian'),
               ),
-            ],
           ],
         ),
       ),
