@@ -94,8 +94,15 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
   }
 
   Future<void> _searchItems(String query) async {
+    final normalizedQuery = query.trim();
+
+    if (normalizedQuery.isEmpty) {
+      await _loadItems();
+      return;
+    }
+
     try {
-      final items = await _repository.searchProducts(query);
+      final items = await _repository.searchProducts(normalizedQuery);
 
       if (!mounted) return;
 
@@ -430,7 +437,7 @@ class _MasterItemListPageState extends State<MasterItemListPage> {
     final rounded = value.round().toString();
 
     final formatted = rounded.replaceAllMapped(
-      RegExp(r'\\B(?=(\\d{3})+(?!\\d))'),
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (_) => '.',
     );
 
