@@ -1293,7 +1293,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
             ? error.message
             : error is ArgumentError
             ? error.message?.toString()
-            : 'Gagal menyimpan perubahan pallet.';
+            : 'ERROR ${error.runtimeType}: $error';
       });
     }
   }
