@@ -104,8 +104,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
     }
 
     try {
-      final pallet =
-          await widget.stockPalletRepository.findByLocationCode(
+      final pallet = await widget.stockPalletRepository.findByLocationCode(
         widget.location.code,
       );
 
@@ -122,9 +121,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
         return;
       }
 
-      debugPrint(
-        'StorageDetailPage load error: $error',
-      );
+      debugPrint('StorageDetailPage load error: $error');
 
       setState(() {
         _isLoading = false;
@@ -217,9 +214,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Kosongkan Pallet?',
-          ),
+          title: const Text('Kosongkan Pallet?'),
           content: Text(
             'Pallet dengan PLU ${pallet.plu} '
             'akan dihapus dari lokasi ${widget.location.code}. '
@@ -253,9 +248,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
     // --------------------------------------------------------
 
     try {
-      await deleteStockPallet(
-        widget.location.code,
-      );
+      await deleteStockPallet(widget.location.code);
 
       if (!mounted) {
         return;
@@ -274,27 +267,17 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Pallet berhasil dikosongkan.',
-          ),
-        ),
+        const SnackBar(content: Text('Pallet berhasil dikosongkan.')),
       );
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      debugPrint(
-        'StorageDetailPage delete pallet error: $error',
-      );
+      debugPrint('StorageDetailPage delete pallet error: $error');
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Gagal mengosongkan pallet.',
-          ),
-        ),
+        const SnackBar(content: Text('Gagal mengosongkan pallet.')),
       );
     }
   }
@@ -327,9 +310,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('EDIT PALLET berhasil disimpan.'),
-        ),
+        const SnackBar(content: Text('EDIT PALLET berhasil disimpan.')),
       );
     }
   }
@@ -348,17 +329,13 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
       appBar: AppBar(
         title: const Text(
           'Storage Detail',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
             onPressed: _loadLocationData,
-            icon: const Icon(
-              Icons.refresh_rounded,
-            ),
+            icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
@@ -369,13 +346,11 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ==================================================
                 // LOCATION HEADER
                 // ==================================================
-
                 _LocationHeader(
                   location: widget.location,
                   isOccupied: isOccupied,
@@ -386,7 +361,6 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                 // ==================================================
                 // ERROR
                 // ==================================================
-
                 if (_errorMessage != null)
                   _ErrorCard(
                     message: _errorMessage!,
@@ -396,31 +370,25 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                 // ==================================================
                 // LOCATION INFORMATION
                 // ==================================================
-
                 Text(
                   'Informasi Lokasi',
-                  style:
-                      theme.textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
 
                 const SizedBox(height: 12),
 
-                _LocationInformationCard(
-                  location: widget.location,
-                ),
+                _LocationInformationCard(location: widget.location),
 
                 const SizedBox(height: 24),
 
                 // ==================================================
                 // PALLET INFORMATION
                 // ==================================================
-
                 Text(
                   'Informasi Pallet',
-                  style:
-                      theme.textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -430,9 +398,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                 if (_isLoading)
                   const _LoadingCard()
                 else if (isOccupied) ...[
-                  _PalletInformationCard(
-                    pallet: _pallet!,
-                  ),
+                  _PalletInformationCard(pallet: _pallet!),
 
                   const SizedBox(height: 16),
 
@@ -444,14 +410,10 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: _openEditPalletForm,
-                          icon: const Icon(
-                            Icons.edit_note_rounded,
-                          ),
+                          icon: const Icon(Icons.edit_note_rounded),
                           label: const Text(
                             'EDIT PALLET',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w800),
                           ),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
@@ -467,14 +429,10 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: _confirmDeletePallet,
-                          icon: const Icon(
-                            Icons.delete_outline_rounded,
-                          ),
+                          icon: const Icon(Icons.delete_outline_rounded),
                           label: const Text(
                             'KOSONGKAN',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w800),
                           ),
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(52),
@@ -493,9 +451,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                     height: 52,
                     child: FilledButton.icon(
                       onPressed: _openPutAwayForm,
-                      icon: const Icon(
-                        Icons.move_to_inbox_rounded,
-                      ),
+                      icon: const Icon(Icons.move_to_inbox_rounded),
                       label: const Text(
                         'PUT AWAY',
                         style: TextStyle(
@@ -512,10 +468,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
                 // ==================================================
                 // SYSTEM INFORMATION
                 // ==================================================
-
-                _SystemInformationCard(
-                  isOccupied: isOccupied,
-                ),
+                _SystemInformationCard(isOccupied: isOccupied),
               ],
             ),
           ),
@@ -530,10 +483,7 @@ class _StorageDetailPageState extends State<StorageDetailPage> {
 // ============================================================
 
 class _LocationHeader extends StatelessWidget {
-  const _LocationHeader({
-    required this.location,
-    required this.isOccupied,
-  });
+  const _LocationHeader({required this.location, required this.isOccupied});
 
   final StorageLocation location;
   final bool isOccupied;
@@ -542,11 +492,9 @@ class _LocationHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final statusColor =
-        isOccupied ? Colors.orange : Colors.green;
+    final statusColor = isOccupied ? Colors.orange : Colors.green;
 
-    final statusText =
-        isOccupied ? 'OCCUPIED' : 'AVAILABLE';
+    final statusText = isOccupied ? 'OCCUPIED' : 'AVAILABLE';
 
     return Card(
       child: Padding(
@@ -557,10 +505,8 @@ class _LocationHeader extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary
-                    .withValues(alpha: 0.10),
-                borderRadius:
-                    BorderRadius.circular(16),
+                color: theme.colorScheme.primary.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
                 Icons.location_on_rounded,
@@ -573,13 +519,11 @@ class _LocationHeader extends StatelessWidget {
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Location Code',
-                    style:
-                        theme.textTheme.bodySmall?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.grey.shade600,
                     ),
                   ),
@@ -588,9 +532,7 @@ class _LocationHeader extends StatelessWidget {
 
                   Text(
                     location.code,
-                    style: theme
-                        .textTheme.headlineSmall
-                        ?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -598,16 +540,13 @@ class _LocationHeader extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor
-                          .withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(20),
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       statusText,
@@ -632,11 +571,8 @@ class _LocationHeader extends StatelessWidget {
 // LOCATION INFORMATION CARD
 // ============================================================
 
-class _LocationInformationCard
-    extends StatelessWidget {
-  const _LocationInformationCard({
-    required this.location,
-  });
+class _LocationInformationCard extends StatelessWidget {
+  const _LocationInformationCard({required this.location});
 
   final StorageLocation location;
 
@@ -666,8 +602,7 @@ class _LocationInformationCard
             _InformationRow(
               icon: Icons.layers_outlined,
               title: 'Shelving',
-              value:
-                  _displayNullable(location.shelving),
+              value: _displayNullable(location.shelving),
             ),
 
             const Divider(height: 24),
@@ -675,8 +610,7 @@ class _LocationInformationCard
             _InformationRow(
               icon: Icons.space_dashboard_outlined,
               title: 'Position',
-              value:
-                  _displayNullable(location.position),
+              value: _displayNullable(location.position),
             ),
           ],
         ),
@@ -693,11 +627,8 @@ class _LocationInformationCard
 // PALLET INFORMATION CARD
 // ============================================================
 
-class _PalletInformationCard
-    extends StatelessWidget {
-  const _PalletInformationCard({
-    required this.pallet,
-  });
+class _PalletInformationCard extends StatelessWidget {
+  const _PalletInformationCard({required this.pallet});
 
   final StockPallet pallet;
 
@@ -775,9 +706,7 @@ class _PalletInformationCard
             _InformationRow(
               icon: Icons.calendar_today_outlined,
               title: 'Expired',
-              value: _formatDate(
-                pallet.expiredDate,
-              ),
+              value: _formatDate(pallet.expiredDate),
             ),
           ],
         ),
@@ -786,14 +715,11 @@ class _PalletInformationCard
   }
 
   String _formatDate(DateTime date) {
-    final day =
-        date.day.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
 
-    final month =
-        date.month.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
 
-    final year =
-        date.year.toString();
+    final year = date.year.toString();
 
     return '$day/$month/$year';
   }
@@ -817,8 +743,7 @@ class _AvailableCard extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color:
-                    Colors.green.withValues(alpha: 0.12),
+                color: Colors.green.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -832,10 +757,7 @@ class _AvailableCard extends StatelessWidget {
 
             const Text(
               'Location Available',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
 
             const SizedBox(height: 6),
@@ -843,9 +765,7 @@ class _AvailableCard extends StatelessWidget {
             Text(
               'Lokasi ini belum ditempati pallet.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -866,9 +786,7 @@ class _LoadingCard extends StatelessWidget {
     return const Card(
       child: Padding(
         padding: EdgeInsets.all(24),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }
@@ -879,10 +797,7 @@ class _LoadingCard extends StatelessWidget {
 // ============================================================
 
 class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorCard({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -894,23 +809,16 @@ class _ErrorCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline_rounded, color: Colors.red),
 
             const SizedBox(width: 12),
 
-            Expanded(
-              child: Text(message),
-            ),
+            Expanded(child: Text(message)),
 
             IconButton(
               tooltip: 'Coba lagi',
               onPressed: onRetry,
-              icon: const Icon(
-                Icons.refresh_rounded,
-              ),
+              icon: const Icon(Icons.refresh_rounded),
             ),
           ],
         ),
@@ -923,11 +831,8 @@ class _ErrorCard extends StatelessWidget {
 // SYSTEM INFORMATION CARD
 // ============================================================
 
-class _SystemInformationCard
-    extends StatelessWidget {
-  const _SystemInformationCard({
-    required this.isOccupied,
-  });
+class _SystemInformationCard extends StatelessWidget {
+  const _SystemInformationCard({required this.isOccupied});
 
   final bool isOccupied;
 
@@ -937,8 +842,7 @@ class _SystemInformationCard
         ? 'Lokasi ini sedang ditempati pallet.'
         : 'Lokasi ini siap digunakan untuk penyimpanan pallet.';
 
-    final statusColor =
-        isOccupied ? Colors.orange : Colors.green;
+    final statusColor = isOccupied ? Colors.orange : Colors.green;
 
     return Card(
       child: Padding(
@@ -949,8 +853,7 @@ class _SystemInformationCard
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: statusColor
-                    .withValues(alpha: 0.12),
+                color: statusColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -965,17 +868,11 @@ class _SystemInformationCard
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isOccupied
-                        ? 'Storage Occupied'
-                        : 'Storage Available',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(
+                    isOccupied ? 'Storage Occupied' : 'Storage Available',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -984,13 +881,10 @@ class _SystemInformationCard
 
                   Text(
                     description,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey.shade600,
                     ),
-       ),
+                  ),
                 ],
               ),
             ),
@@ -1022,19 +916,14 @@ class _InformationRow extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 22,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(icon, size: 22, color: theme.colorScheme.primary),
 
         const SizedBox(width: 14),
 
         Expanded(
           child: Text(
             title,
-            style:
-                theme.textTheme.bodyLarge?.copyWith(
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1045,8 +934,7 @@ class _InformationRow extends StatelessWidget {
             value,
             textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
-            style:
-                theme.textTheme.bodyLarge?.copyWith(
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -1089,17 +977,13 @@ class _EditPalletForm extends StatefulWidget {
 }
 
 class _EditPalletFormState extends State<_EditPalletForm> {
-  final TextEditingController _pluController =
-      TextEditingController();
+  final TextEditingController _pluController = TextEditingController();
 
-  final TextEditingController _tearController =
-      TextEditingController();
+  final TextEditingController _tearController = TextEditingController();
 
-  final TextEditingController _stackController =
-      TextEditingController();
+  final TextEditingController _stackController = TextEditingController();
 
-  final TextEditingController _expiredDateController =
-      TextEditingController();
+  final TextEditingController _expiredDateController = TextEditingController();
 
   Product? _product;
 
@@ -1120,8 +1004,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
     _pluController.text = widget.pallet.plu;
     _tearController.text = widget.pallet.tear.toString();
     _stackController.text = widget.pallet.stack.toString();
-    _expiredDateController.text =
-        _formatDate(widget.pallet.expiredDate);
+    _expiredDateController.text = _formatDate(widget.pallet.expiredDate);
 
     _tearController.addListener(_refresh);
     _stackController.addListener(_refresh);
@@ -1131,8 +1014,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
   Future<void> _loadInitialProduct() async {
     try {
-      final product =
-          await getProductByPlu(widget.pallet.plu);
+      final product = await getProductByPlu(widget.pallet.plu);
 
       if (!mounted) {
         return;
@@ -1151,13 +1033,10 @@ class _EditPalletFormState extends State<_EditPalletForm> {
         return;
       }
 
-      debugPrint(
-        'Edit pallet initial product error: $error',
-      );
+      debugPrint('Edit pallet initial product error: $error');
 
       setState(() {
-        _errorMessage =
-            'Gagal memuat Master Item.';
+        _errorMessage = 'Gagal memuat Master Item.';
       });
     }
   }
@@ -1176,7 +1055,44 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
   int get _stack => _parseInt(_stackController.text);
 
-  int get _qtyCtn => _tear * _stack;
+  // ==========================================================
+  // QTY CTN EDIT
+  // ==========================================================
+  //
+  // Aturan:
+  //
+  // 1. Qty CTN hasil import adalah Qty fisik/lapangan.
+  // 2. Jika Tear dan Stack belum diubah, pertahankan Qty CTN
+  //    yang sudah tersimpan di database.
+  // 3. Jika Tear atau Stack diubah, hitung ulang Qty CTN
+  //    berdasarkan Tear × Stack baru.
+  //
+  // Contoh:
+  //
+  // Database:
+  //   Qty CTN = 140
+  //   Tear    = 12
+  //   Stack   = 6
+  //
+  // Edit tanggal saja:
+  //   Qty CTN tetap 140.
+  //
+  // Edit Tear:
+  //   Tear 12 → 25
+  //   Stack tetap 6
+  //   Qty CTN = 25 × 6 = 150.
+  // ==========================================================
+
+  bool get _tearStackChanged =>
+      _tear != widget.pallet.tear || _stack != widget.pallet.stack;
+
+  int get _qtyCtn {
+    if (_tearStackChanged) {
+      return _tear * _stack;
+    }
+
+    return widget.pallet.qtyCtn;
+  }
 
   int get _qtyPcs {
     if (_product == null) {
@@ -1191,8 +1107,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
       return false;
     }
 
-    return _tear == _product!.masterTear &&
-        _stack == _product!.masterStack;
+    return _tear == _product!.masterTear && _stack == _product!.masterStack;
   }
 
   Future<void> _searchProduct() async {
@@ -1232,22 +1147,18 @@ class _EditPalletFormState extends State<_EditPalletForm> {
         return;
       }
 
-      debugPrint(
-        'Edit pallet product search error: $error',
-      );
+      debugPrint('Edit pallet product search error: $error');
 
       setState(() {
         _isSearching = false;
         _product = null;
-        _errorMessage =
-            'Gagal mencari Master Item.';
+        _errorMessage = 'Gagal mencari Master Item.';
       });
     }
   }
 
   Future<void> _selectExpiredDate() async {
-    final current =
-        _getExpiredDate() ?? DateTime.now();
+    final current = _getExpiredDate() ?? DateTime.now();
 
     final selected = await showDatePicker(
       context: context,
@@ -1260,15 +1171,13 @@ class _EditPalletFormState extends State<_EditPalletForm> {
       return;
     }
 
-    _expiredDateController.text =
-        _formatDate(selected);
+    _expiredDateController.text = _formatDate(selected);
 
     setState(() {});
   }
 
   DateTime? _getExpiredDate() {
-    final value =
-        _expiredDateController.text.trim();
+    final value = _expiredDateController.text.trim();
 
     if (value.isEmpty) {
       return null;
@@ -1284,9 +1193,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
     final month = int.tryParse(parts[1]);
     final year = int.tryParse(parts[2]);
 
-    if (day == null ||
-        month == null ||
-        year == null) {
+    if (day == null || month == null || year == null) {
       return null;
     }
 
@@ -1294,9 +1201,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
     // Mencegah tanggal seperti 31/02/2026
     // berubah diam-diam menjadi tanggal lain.
-    if (date.year != year ||
-        date.month != month ||
-        date.day != day) {
+    if (date.year != year || date.month != month || date.day != day) {
       return null;
     }
 
@@ -1304,10 +1209,8 @@ class _EditPalletFormState extends State<_EditPalletForm> {
   }
 
   String _formatDate(DateTime date) {
-    final day =
-        date.day.toString().padLeft(2, '0');
-    final month =
-        date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
 
     return '$day/$month/${date.year}';
   }
@@ -1315,24 +1218,21 @@ class _EditPalletFormState extends State<_EditPalletForm> {
   Future<void> _saveEdit() async {
     if (_product == null) {
       setState(() {
-        _errorMessage =
-            'Master Item belum valid. Cari PLU terlebih dahulu.';
+        _errorMessage = 'Master Item belum valid. Cari PLU terlebih dahulu.';
       });
       return;
     }
 
     if (_tear <= 0) {
       setState(() {
-        _errorMessage =
-            'Tear harus lebih besar dari 0.';
+        _errorMessage = 'Tear harus lebih besar dari 0.';
       });
       return;
     }
 
     if (_stack <= 0) {
       setState(() {
-        _errorMessage =
-            'Stack harus lebih besar dari 0.';
+        _errorMessage = 'Stack harus lebih besar dari 0.';
       });
       return;
     }
@@ -1341,8 +1241,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
 
     if (expiredDate == null) {
       setState(() {
-        _errorMessage =
-            'Tanggal expired tidak valid.';
+        _errorMessage = 'Tanggal expired tidak valid.';
       });
       return;
     }
@@ -1386,17 +1285,15 @@ class _EditPalletFormState extends State<_EditPalletForm> {
         return;
       }
 
-      debugPrint(
-        'Edit pallet save error: $error',
-      );
+      debugPrint('Edit pallet save error: $error');
 
       setState(() {
         _isSaving = false;
         _errorMessage = error is StateError
             ? error.message
             : error is ArgumentError
-                ? error.message?.toString()
-                : 'Gagal menyimpan perubahan pallet.';
+            ? error.message?.toString()
+            : 'Gagal menyimpan perubahan pallet.';
       });
     }
   }
@@ -1420,23 +1317,18 @@ class _EditPalletFormState extends State<_EditPalletForm> {
         left: 20,
         right: 20,
         top: 20,
-        bottom:
-            MediaQuery.of(context).viewInsets.bottom +
-                20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Expanded(
                   child: Text(
                     'Edit Pallet',
-                    style: theme
-                        .textTheme.headlineSmall
-                        ?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -1481,8 +1373,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                     onSubmitted: (_) => _searchProduct(),
                     decoration: const InputDecoration(
                       labelText: 'PLU',
-                      prefixIcon:
-                          Icon(Icons.tag_rounded),
+                      prefixIcon: Icon(Icons.tag_rounded),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -1498,14 +1389,9 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                         ? const SizedBox(
                             width: 22,
                             height: 22,
-                            child:
-                                CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(
-                            Icons.search_rounded,
-                          ),
+                        : const Icon(Icons.search_rounded),
                   ),
                 ),
               ],
@@ -1518,19 +1404,12 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.red.withValues(alpha: 0.08),
-                  borderRadius:
-                      BorderRadius.circular(12),
-                  border: Border.all(
-                    color:
-                        Colors.red.withValues(alpha: 0.20),
-                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.20)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.error_outline_rounded,
-                      color: Colors.red,
-                    ),
+                    const Icon(Icons.error_outline_rounded, color: Colors.red),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -1549,9 +1428,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
             if (_product != null) ...[
               const SizedBox(height: 16),
 
-              _PutAwayProductCard(
-                product: _product!,
-              ),
+              _PutAwayProductCard(product: _product!),
 
               const SizedBox(height: 16),
 
@@ -1570,8 +1447,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                 enabled: !_isSaving,
                 decoration: const InputDecoration(
                   labelText: 'Tear',
-                  prefixIcon:
-                      Icon(Icons.layers_rounded),
+                  prefixIcon: Icon(Icons.layers_rounded),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -1593,8 +1469,7 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                 enabled: !_isSaving,
                 decoration: const InputDecoration(
                   labelText: 'Stack',
-                  prefixIcon:
-                      Icon(Icons.view_module_rounded),
+                  prefixIcon: Icon(Icons.view_module_rounded),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -1617,10 +1492,8 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                 onTap: _selectExpiredDate,
                 decoration: const InputDecoration(
                   labelText: 'Tanggal Expired',
-                  prefixIcon:
-                      Icon(Icons.calendar_today_rounded),
-                  suffixIcon:
-                      Icon(Icons.arrow_drop_down_rounded),
+                  prefixIcon: Icon(Icons.calendar_today_rounded),
+                  suffixIcon: Icon(Icons.arrow_drop_down_rounded),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -1654,19 +1527,12 @@ class _EditPalletFormState extends State<_EditPalletForm> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child:
-                              CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
+                          child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save_rounded),
                   label: Text(
-                    _isSaving
-                        ? 'MENYIMPAN...'
-                        : 'SIMPAN PERUBAHAN',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                    ),
+                    _isSaving ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN',
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -1692,31 +1558,24 @@ class _PutAwayForm extends StatefulWidget {
   final StockPalletRepository stockPalletRepository;
 
   @override
-  State<_PutAwayForm> createState() =>
-      _PutAwayFormState();
+  State<_PutAwayForm> createState() => _PutAwayFormState();
 }
 // ============================================================
 // PUT AWAY FORM STATE
 // ============================================================
 
-class _PutAwayFormState
-    extends State<_PutAwayForm> {
+class _PutAwayFormState extends State<_PutAwayForm> {
   // ==========================================================
   // CONTROLLERS
   // ==========================================================
 
-  final TextEditingController _pluController =
-      TextEditingController();
+  final TextEditingController _pluController = TextEditingController();
 
-  final TextEditingController _tearController =
-      TextEditingController();
+  final TextEditingController _tearController = TextEditingController();
 
-  final TextEditingController _stackController =
-      TextEditingController();
+  final TextEditingController _stackController = TextEditingController();
 
-  final TextEditingController
-      _expiredDateController =
-      TextEditingController();
+  final TextEditingController _expiredDateController = TextEditingController();
 
   // ==========================================================
   // PRODUCT
@@ -1747,20 +1606,15 @@ class _PutAwayFormState
   // ==========================================================
 
   GetProductByPlu get getProductByPlu {
-    return AppDependencies
-        .instance
-        .getProductByPlu;
+    return AppDependencies.instance.getProductByPlu;
   }
 
   // ==========================================================
   // PUT AWAY USE CASE
   // ==========================================================
 
-  PutAwayStockPallet
-      get putAwayStockPallet {
-    return AppDependencies
-        .instance
-        .putAwayStockPallet;
+  PutAwayStockPallet get putAwayStockPallet {
+    return AppDependencies.instance.putAwayStockPallet;
   }
 
   // ==========================================================
@@ -1772,19 +1626,15 @@ class _PutAwayFormState
     super.initState();
 
     // Listener untuk menghitung quantity secara realtime.
-    _tearController.addListener(
-      _refreshQuantity,
-    );
+    _tearController.addListener(_refreshQuantity);
 
-    _stackController.addListener(
-      _refreshQuantity,
-    );
+    _stackController.addListener(_refreshQuantity);
   }
 
   // ==========================================================
   // REFRESH QUANTITY
   // ==========================================================
-void _refreshQuantity() {
+  void _refreshQuantity() {
     if (!mounted) {
       return;
     }
@@ -1811,10 +1661,7 @@ void _refreshQuantity() {
   // ==========================================================
 
   int _parseInt(String value) {
-    return int.tryParse(
-          value.trim(),
-        ) ??
-        0;
+    return int.tryParse(value.trim()) ?? 0;
   }
 
   // ==========================================================
@@ -1822,9 +1669,7 @@ void _refreshQuantity() {
   // ==========================================================
 
   int get _tear {
-    return _parseInt(
-      _tearController.text,
-    );
+    return _parseInt(_tearController.text);
   }
 
   // ==========================================================
@@ -1832,9 +1677,7 @@ void _refreshQuantity() {
   // ==========================================================
 
   int get _stack {
-    return _parseInt(
-      _stackController.text,
-    );
+    return _parseInt(_stackController.text);
   }
 
   // ==========================================================
@@ -1844,7 +1687,7 @@ void _refreshQuantity() {
   int get _qtyCtn {
     return _tear * _stack;
   }
-// ==========================================================
+  // ==========================================================
   // QTY PCS
   // ==========================================================
 
@@ -1865,10 +1708,7 @@ void _refreshQuantity() {
       return false;
     }
 
-    return _tear ==
-            _product!.masterTear &&
-        _stack ==
-            _product!.masterStack;
+    return _tear == _product!.masterTear && _stack == _product!.masterStack;
   }
 
   // ==========================================================
@@ -1876,14 +1716,12 @@ void _refreshQuantity() {
   // ==========================================================
 
   Future<void> _searchProduct() async {
-    final plu =
-        _pluController.text.trim();
+    final plu = _pluController.text.trim();
 
     if (plu.isEmpty) {
       setState(() {
         _product = null;
-        _errorMessage =
-            'PLU wajib diisi.';
+        _errorMessage = 'PLU wajib diisi.';
       });
 
       return;
@@ -1898,8 +1736,7 @@ void _refreshQuantity() {
     });
 
     try {
-      final product =
-          await getProductByPlu(plu);
+      final product = await getProductByPlu(plu);
 
       if (!mounted) {
         return;
@@ -1910,34 +1747,28 @@ void _refreshQuantity() {
         _product = product;
 
         if (product == null) {
-          _errorMessage =
-              'Barang dengan PLU $plu tidak ditemukan.';
+          _errorMessage = 'Barang dengan PLU $plu tidak ditemukan.';
         }
       });
 
       // Isi Tear dan Stack menggunakan
       // nilai Master sebagai nilai awal.
       if (product != null) {
-        _tearController.text =
-            product.masterTear.toString();
+        _tearController.text = product.masterTear.toString();
 
-        _stackController.text =
-            product.masterStack.toString();
+        _stackController.text = product.masterStack.toString();
       }
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      debugPrint(
-        'Search product error: $error',
-      );
+      debugPrint('Search product error: $error');
 
       setState(() {
         _isSearching = false;
         _product = null;
-        _errorMessage =
-            'Gagal mencari Master Item.';
+        _errorMessage = 'Gagal mencari Master Item.';
       });
     }
   }
@@ -1945,43 +1776,27 @@ void _refreshQuantity() {
   // ==========================================================
   // SELECT EXPIRED DATE
   // ==========================================================
-Future<void> _selectExpiredDate() async {
+  Future<void> _selectExpiredDate() async {
     final now = DateTime.now();
 
-    final selected =
-        await showDatePicker(
+    final selected = await showDatePicker(
       context: context,
-      firstDate: DateTime(
-        now.year - 10,
-      ),
-      lastDate: DateTime(
-        now.year + 20,
-      ),
+      firstDate: DateTime(now.year - 10),
+      lastDate: DateTime(now.year + 20),
       initialDate: now,
     );
 
-    if (selected == null ||
-        !mounted) {
+    if (selected == null || !mounted) {
       return;
     }
 
-    final day =
-        selected.day.toString().padLeft(
-              2,
-              '0',
-            );
+    final day = selected.day.toString().padLeft(2, '0');
 
-    final month =
-        selected.month.toString().padLeft(
-              2,
-              '0',
-            );
+    final month = selected.month.toString().padLeft(2, '0');
 
-    final year =
-        selected.year.toString();
+    final year = selected.year.toString();
 
-    _expiredDateController.text =
-        '$day/$month/$year';
+    _expiredDateController.text = '$day/$month/$year';
 
     setState(() {});
   }
@@ -1991,8 +1806,7 @@ Future<void> _selectExpiredDate() async {
   // ==========================================================
 
   DateTime? _getExpiredDate() {
-    final value =
-        _expiredDateController.text.trim();
+    final value = _expiredDateController.text.trim();
 
     if (value.isEmpty) {
       return null;
@@ -2004,26 +1818,17 @@ Future<void> _selectExpiredDate() async {
       return null;
     }
 
-    final day =
-        int.tryParse(parts[0]);
+    final day = int.tryParse(parts[0]);
 
-    final month =
-        int.tryParse(parts[1]);
+    final month = int.tryParse(parts[1]);
 
-    final year =
-        int.tryParse(parts[2]);
+    final year = int.tryParse(parts[2]);
 
-    if (day == null ||
-        month == null ||
-        year == null) {
+    if (day == null || month == null || year == null) {
       return null;
     }
 
-    return DateTime(
-      year,
-      month,
-      day,
-    );
+    return DateTime(year, month, day);
   }
 
   // ==========================================================
@@ -2034,10 +1839,9 @@ Future<void> _selectExpiredDate() async {
     // ----------------------------------------------------------
     // PRODUCT
     // ----------------------------------------------------------
-if (_product == null) {
+    if (_product == null) {
       setState(() {
-        _errorMessage =
-            'Cari barang berdasarkan PLU terlebih dahulu.';
+        _errorMessage = 'Cari barang berdasarkan PLU terlebih dahulu.';
       });
 
       return;
@@ -2049,8 +1853,7 @@ if (_product == null) {
 
     if (_tear <= 0) {
       setState(() {
-        _errorMessage =
-            'Tear harus lebih besar dari 0.';
+        _errorMessage = 'Tear harus lebih besar dari 0.';
       });
 
       return;
@@ -2062,8 +1865,7 @@ if (_product == null) {
 
     if (_stack <= 0) {
       setState(() {
-        _errorMessage =
-            'Stack harus lebih besar dari 0.';
+        _errorMessage = 'Stack harus lebih besar dari 0.';
       });
 
       return;
@@ -2073,13 +1875,11 @@ if (_product == null) {
     // VALIDATE EXPIRED DATE
     // ----------------------------------------------------------
 
-    final expiredDate =
-        _getExpiredDate();
+    final expiredDate = _getExpiredDate();
 
     if (expiredDate == null) {
       setState(() {
-        _errorMessage =
-            'Tanggal expired wajib diisi.';
+        _errorMessage = 'Tanggal expired wajib diisi.';
       });
 
       return;
@@ -2095,70 +1895,52 @@ if (_product == null) {
       _isSaving = true;
       _errorMessage = null;
     });
-try {
+    try {
       // --------------------------------------------------------
       // BUAT STOCK PALLET DOMAIN ENTITY
       // --------------------------------------------------------
 
       final pallet = StockPallet(
-        locationCode:
-            widget.location.code,
+        locationCode: widget.location.code,
 
-        plu:
-            _product!.plu,
+        plu: _product!.plu,
 
-        barcode:
-            _product!.barcode,
+        barcode: _product!.barcode,
 
-        description:
-            _product!.description,
+        description: _product!.description,
 
-        price:
-            _product!.price,
+        price: _product!.price,
 
-        returHari:
-            _product!.returHari,
+        returHari: _product!.returHari,
 
-        conv2:
-            _product!.conv2,
+        conv2: _product!.conv2,
 
-        type:
-            _product!.type,
+        type: _product!.type,
 
-        tear:
-            _tear,
+        tear: _tear,
 
-        stack:
-            _stack,
+        stack: _stack,
 
-        qtyCtn:
-            _qtyCtn,
+        qtyCtn: _qtyCtn,
 
-        qtyPcs:
-            _qtyPcs,
+        qtyPcs: _qtyPcs,
 
-        expiredDate:
-            expiredDate,
+        expiredDate: expiredDate,
 
-        inputDate:
-            DateTime.now(),
+        inputDate: DateTime.now(),
 
         // Operator NIK belum mempunyai
         // sistem login pada tahap ini.
-        operatorNik:
-            '',
+        operatorNik: '',
 
-        sesuaiMaster:
-            _sesuaiMaster,
+        sesuaiMaster: _sesuaiMaster,
       );
 
       // --------------------------------------------------------
       // SIMPAN MELALUI USE CASE
       // --------------------------------------------------------
 
-      await putAwayStockPallet(
-        pallet,
-      );
+      await putAwayStockPallet(pallet);
 
       if (!mounted) {
         return;
@@ -2174,78 +1956,57 @@ try {
       // NOTIFICATION
       // --------------------------------------------------------
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'PUT AWAY berhasil disimpan.',
-          ),
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PUT AWAY berhasil disimpan.')),
       );
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      debugPrint(
-        'Put Away save error: $error',
-      );
+      debugPrint('Put Away save error: $error');
 
       setState(() {
         _isSaving = false;
 
         if (error is StateError) {
-          _errorMessage =
-              error.message;
+          _errorMessage = error.message;
         } else {
-          _errorMessage =
-              'Gagal menyimpan PUT AWAY.';
+          _errorMessage = 'Gagal menyimpan PUT AWAY.';
         }
       });
     }
   }
 
-// ==========================================================
+  // ==========================================================
   // BUILD
   // ==========================================================
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Theme.of(context);
+    final theme = Theme.of(context);
 
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 20,
-        bottom:
-            MediaQuery.of(context)
-                    .viewInsets
-                    .bottom +
-                20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ==================================================
             // HEADER
             // ==================================================
-
             Row(
               children: [
                 Expanded(
                   child: Text(
                     'Put Away Pallet',
-                    style: theme
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(
-                      fontWeight:
-                          FontWeight.w900,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ),
@@ -2255,13 +2016,9 @@ try {
                   onPressed: _isSaving
                       ? null
                       : () {
-                          Navigator.of(
-                            context,
-                          ).pop();
+                          Navigator.of(context).pop();
                         },
-                  icon: const Icon(
-                    Icons.close_rounded,
-                  ),
+                  icon: const Icon(Icons.close_rounded),
                 ),
               ],
             ),
@@ -2270,14 +2027,9 @@ try {
 
             Text(
               'Lokasi tujuan: ${widget.location.code}',
-              style: theme
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(
-                color:
-                    Colors.grey.shade600,
-                fontWeight:
-                    FontWeight.w600,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
               ),
             ),
 
@@ -2286,15 +2038,10 @@ try {
             // ==================================================
             // PLU
             // ==================================================
-
             Text(
               'PLU Barang',
-              style: theme
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                fontWeight:
-                    FontWeight.w800,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
 
@@ -2304,30 +2051,18 @@ try {
               children: [
                 Expanded(
                   child: TextField(
-                    controller:
-                        _pluController,
-                    textInputAction:
-                        TextInputAction.search,
-                    keyboardType:
-                        TextInputType.number,
-                    enabled:
-                        !_isSaving,
-                    onSubmitted:
-                        (_) {
+                    controller: _pluController,
+                    textInputAction: TextInputAction.search,
+                    keyboardType: TextInputType.number,
+                    enabled: !_isSaving,
+                    onSubmitted: (_) {
                       _searchProduct();
                     },
-                    decoration:
-                        const InputDecoration(
-                      labelText:
-                          'Masukkan PLU',
-                      hintText:
-                          'Contoh: 5867',
-                      prefixIcon:
-                          Icon(
-                        Icons.qr_code_2_rounded,
-                      ),
-                      border:
-                          OutlineInputBorder(),
+                    decoration: const InputDecoration(
+                      labelText: 'Masukkan PLU',
+                      hintText: 'Contoh: 5867',
+                      prefixIcon: Icon(Icons.qr_code_2_rounded),
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -2336,27 +2071,17 @@ try {
 
                 SizedBox(
                   height: 56,
-                  child:
-                      FilledButton(
-                    onPressed:
-                        _isSearching ||
-                                _isSaving
-                            ? null
-                            : _searchProduct,
-                    child:
-                        _isSearching
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child:
-                                    CircularProgressIndicator(
-                                  strokeWidth:
-                                      2,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.search_rounded,
-                              ),
+                  child: FilledButton(
+                    onPressed: _isSearching || _isSaving
+                        ? null
+                        : _searchProduct,
+                    child: _isSearching
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.search_rounded),
                   ),
                 ),
               ],
@@ -2365,56 +2090,29 @@ try {
             // ==================================================
             // ERROR
             // ==================================================
-if (_errorMessage !=
-                null) ...[
+            if (_errorMessage != null) ...[
               const SizedBox(height: 16),
 
               Container(
-                width:
-                    double.infinity,
-                padding:
-                    const EdgeInsets.all(
-                  14,
-                ),
-                decoration:
-                    BoxDecoration(
-                  color: Colors.red
-                      .withValues(
-                    alpha: 0.08,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
-                  border: Border.all(
-                    color: Colors.red
-                        .withValues(
-                      alpha: 0.20,
-                    ),
-                  ),
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.20)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons
-                          .error_outline_rounded,
-                      color:
-                          Colors.red,
-                    ),
+                    const Icon(Icons.error_outline_rounded, color: Colors.red),
 
-                    const SizedBox(
-                      width: 10,
-                    ),
+                    const SizedBox(width: 10),
 
                     Expanded(
                       child: Text(
                         _errorMessage!,
-                        style:
-                            const TextStyle(
-                          color:
-                              Colors.red,
-                          fontWeight:
-                              FontWeight.w600,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -2426,106 +2124,69 @@ if (_errorMessage !=
             // ==================================================
             // PRODUCT
             // ==================================================
-
             if (_product != null) ...[
               const SizedBox(height: 20),
 
               Text(
                 'Master Item',
-                style: theme
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                  fontWeight:
-                      FontWeight.w800,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              _PutAwayProductCard(
-                product:
-                    _product!,
-              ),
+              _PutAwayProductCard(product: _product!),
 
               const SizedBox(height: 20),
 
               // =================================================
               // TEAR
               // =================================================
-
               Text(
                 'Tear Aktual',
-                style: theme
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                  fontWeight:
-                      FontWeight.w800,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
               const SizedBox(height: 8),
 
               TextField(
-                controller:
-                    _tearController,
-                keyboardType:
-                    TextInputType.number,
-                enabled:
-                    !_isSaving,
-                decoration:
-                    InputDecoration(
-                  labelText:
-                      'Tear',
-                  hintText:
-                      'Master: ${_product!.masterTear}',
-                  prefixIcon:
-                      const Icon(
-                    Icons.layers_rounded,
-                  ),
-                  border:
-                      const OutlineInputBorder(),
+                controller: _tearController,
+                keyboardType: TextInputType.number,
+                enabled: !_isSaving,
+                decoration: InputDecoration(
+                  labelText: 'Tear',
+                  hintText: 'Master: ${_product!.masterTear}',
+                  prefixIcon: const Icon(Icons.layers_rounded),
+                  border: const OutlineInputBorder(),
                 ),
               ),
 
               const SizedBox(height: 16),
-// =================================================
+
+              // =================================================
               // STACK
               // =================================================
-
               Text(
                 'Stack Aktual',
-                style: theme
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                  fontWeight:
-                      FontWeight.w800,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
               const SizedBox(height: 8),
 
               TextField(
-                controller:
-                    _stackController,
-                keyboardType:
-                    TextInputType.number,
-                enabled:
-                    !_isSaving,
-                decoration:
-                    InputDecoration(
-                  labelText:
-                      'Stack',
-                  hintText:
-                      'Master: ${_product!.masterStack}',
-                  prefixIcon:
-                      const Icon(
-                    Icons.view_module_rounded,
-                  ),
-                  border:
-                      const OutlineInputBorder(),
+                controller: _stackController,
+                keyboardType: TextInputType.number,
+                enabled: !_isSaving,
+                decoration: InputDecoration(
+                  labelText: 'Stack',
+                  hintText: 'Master: ${_product!.masterStack}',
+                  prefixIcon: const Icon(Icons.view_module_rounded),
+                  border: const OutlineInputBorder(),
                 ),
               ),
 
@@ -2534,61 +2195,38 @@ if (_errorMessage !=
               // =================================================
               // EXPIRED DATE
               // =================================================
-
               Text(
                 'Tanggal Expired',
-                style: theme
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(
-                  fontWeight:
-                      FontWeight.w800,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
               const SizedBox(height: 8),
 
               TextField(
-                controller:
-                    _expiredDateController,
+                controller: _expiredDateController,
                 readOnly: true,
-                enabled:
-                    !_isSaving,
-                onTap:
-                    _selectExpiredDate,
-                decoration:
-                    const InputDecoration(
-                  labelText:
-                      'Tanggal Expired',
-                  hintText:
-                      'DD/MM/YYYY',
-                  prefixIcon:
-                      Icon(
-                    Icons
-                        .calendar_today_rounded,
-                  ),
-                  suffixIcon:
-                      Icon(
-                    Icons
-                        .arrow_drop_down_rounded,
-                  ),
-                  border:
-                      OutlineInputBorder(),
+                enabled: !_isSaving,
+                onTap: _selectExpiredDate,
+                decoration: const InputDecoration(
+                  labelText: 'Tanggal Expired',
+                  hintText: 'DD/MM/YYYY',
+                  prefixIcon: Icon(Icons.calendar_today_rounded),
+                  suffixIcon: Icon(Icons.arrow_drop_down_rounded),
+                  border: OutlineInputBorder(),
                 ),
               ),
 
               const SizedBox(height: 20),
-// =================================================
+
+              // =================================================
               // QUANTITY
               // =================================================
-
               _PutAwayQuantityCard(
-                qtyCtn:
-                    _qtyCtn,
-                qtyPcs:
-                    _qtyPcs,
-                conv2:
-                    _product!.conv2,
+                qtyCtn: _qtyCtn,
+                qtyPcs: _qtyPcs,
+                conv2: _product!.conv2,
               ),
 
               const SizedBox(height: 16),
@@ -2596,18 +2234,12 @@ if (_errorMessage !=
               // =================================================
               // MASTER STATUS
               // =================================================
-
               _PutAwayMasterStatusCard(
-                sesuaiMaster:
-                    _sesuaiMaster,
-                masterTear:
-                    _product!.masterTear,
-                masterStack:
-                    _product!.masterStack,
-                actualTear:
-                    _tear,
-                actualStack:
-                    _stack,
+                sesuaiMaster: _sesuaiMaster,
+                masterTear: _product!.masterTear,
+                masterStack: _product!.masterStack,
+                actualTear: _tear,
+                actualStack: _stack,
               ),
 
               const SizedBox(height: 20),
@@ -2615,41 +2247,23 @@ if (_errorMessage !=
               // =================================================
               // SAVE BUTTON
               // =================================================
-SizedBox(
-                width:
-                    double.infinity,
+              SizedBox(
+                width: double.infinity,
                 height: 54,
-                child:
-                    FilledButton.icon(
-                  onPressed:
-                      _isSaving
-                          ? null
-                          : _savePutAway,
-                  icon:
-                      _isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child:
-                                  CircularProgressIndicator(
-                                strokeWidth:
-                                    2,
-                              ),
-                            )
-                          : const Icon(
-                              Icons
-                                  .save_rounded,
-                            ),
+                child: FilledButton.icon(
+                  onPressed: _isSaving ? null : _savePutAway,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save_rounded),
                   label: Text(
-                    _isSaving
-                        ? 'MENYIMPAN...'
-                        : 'SIMPAN PUT AWAY',
-                    style:
-                        const TextStyle(
-                      fontSize:
-                          15,
-                      fontWeight:
-                          FontWeight.w800,
+                    _isSaving ? 'MENYIMPAN...' : 'SIMPAN PUT AWAY',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -2666,11 +2280,8 @@ SizedBox(
 // PUT AWAY PRODUCT CARD
 // ============================================================
 
-class _PutAwayProductCard
-    extends StatelessWidget {
-  const _PutAwayProductCard({
-    required this.product,
-  });
+class _PutAwayProductCard extends StatelessWidget {
+  const _PutAwayProductCard({required this.product});
 
   final Product product;
 
@@ -2678,84 +2289,53 @@ class _PutAwayProductCard
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
-        padding:
-            const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             _InformationRow(
-              icon:
-                  Icons.qr_code_rounded,
-              title:
-                  'Barcode',
-              value:
-                  product.barcode,
+              icon: Icons.qr_code_rounded,
+              title: 'Barcode',
+              value: product.barcode,
             ),
 
-            const Divider(
-              height: 24,
-            ),
+            const Divider(height: 24),
 
             _InformationRow(
-              icon:
-                  Icons.tag_rounded,
-              title:
-                  'PLU',
-              value:
-                  product.plu,
+              icon: Icons.tag_rounded,
+              title: 'PLU',
+              value: product.plu,
             ),
 
-            const Divider(
-              height: 24,
-            ),
+            const Divider(height: 24),
 
             _InformationRow(
-              icon:
-                  Icons.inventory_2_rounded,
-              title:
-                  'Description',
-              value:
-                  product.description,
+              icon: Icons.inventory_2_rounded,
+              title: 'Description',
+              value: product.description,
             ),
 
-            const Divider(
-              height: 24,
-            ),
+            const Divider(height: 24),
 
             _InformationRow(
-              icon:
-                  Icons.swap_horiz_rounded,
-              title:
-                  'Conv2',
-              value:
-                  product.conv2.toString(),
+              icon: Icons.swap_horiz_rounded,
+              title: 'Conv2',
+              value: product.conv2.toString(),
             ),
 
-            const Divider(
-              height: 24,
-            ),
+            const Divider(height: 24),
 
             _InformationRow(
-              icon:
-                  Icons.layers_rounded,
-              title:
-                  'Master Tear',
-              value:
-                  product.masterTear
-                      .toString(),
+              icon: Icons.layers_rounded,
+              title: 'Master Tear',
+              value: product.masterTear.toString(),
             ),
 
-            const Divider(
-              height: 24,
-            ),
+            const Divider(height: 24),
 
             _InformationRow(
-              icon:
-                  Icons.view_module_rounded,
-              title:
-                  'Master Stack',
-              value:
-                  product.masterStack
-                      .toString(),
+              icon: Icons.view_module_rounded,
+              title: 'Master Stack',
+              value: product.masterStack.toString(),
             ),
           ],
         ),
@@ -2768,8 +2348,7 @@ class _PutAwayProductCard
 // QUANTITY CARD
 // ============================================================
 
-class _PutAwayQuantityCard
-    extends StatelessWidget {
+class _PutAwayQuantityCard extends StatelessWidget {
   const _PutAwayQuantityCard({
     required this.qtyCtn,
     required this.qtyPcs,
@@ -2782,25 +2361,18 @@ class _PutAwayQuantityCard
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Theme.of(context);
+    final theme = Theme.of(context);
 
     return Card(
       child: Padding(
-        padding:
-            const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Perhitungan Quantity',
-              style: theme
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                fontWeight:
-                    FontWeight.w800,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
             ),
 
@@ -2809,26 +2381,18 @@ class _PutAwayQuantityCard
             Row(
               children: [
                 Expanded(
-                  child:
-                      _QuantityItem(
-                    title:
-                        'QTY CTN',
-                    value:
-                        qtyCtn.toString(),
+                  child: _QuantityItem(
+                    title: 'QTY CTN',
+                    value: qtyCtn.toString(),
                   ),
                 ),
 
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
 
                 Expanded(
-                  child:
-                      _QuantityItem(
-                    title:
-                        'QTY PCS',
-                    value:
-                        qtyPcs.toString(),
+                  child: _QuantityItem(
+                    title: 'QTY PCS',
+                    value: qtyPcs.toString(),
                   ),
                 ),
               ],
@@ -2838,12 +2402,8 @@ class _PutAwayQuantityCard
 
             Text(
               'PCS = CTN × Conv2 ($conv2)',
-              style: theme
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(
-                color:
-                    Colors.grey.shade600,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade600,
               ),
             ),
           ],
@@ -2857,49 +2417,31 @@ class _PutAwayQuantityCard
 // QUANTITY ITEM
 // ============================================================
 
-class _QuantityItem
-    extends StatelessWidget {
-  const _QuantityItem({
-    required this.title,
-    required this.value,
-  });
+class _QuantityItem extends StatelessWidget {
+  const _QuantityItem({required this.title, required this.value});
 
   final String title;
   final String value;
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-        Theme.of(context);
+    final theme = Theme.of(context);
 
     return Container(
-      padding:
-          const EdgeInsets.all(16),
-      decoration:
-          BoxDecoration(
-        color: theme
-            .colorScheme
-            .primary
-            .withValues(
-          alpha: 0.08,
-        ),
-        borderRadius:
-            BorderRadius.circular(
-          14,
-        ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: TextStyle(
-              color:
-                  Colors.grey.shade600,
+              color: Colors.grey.shade600,
               fontSize: 12,
-              fontWeight:
-                  FontWeight.w700,
+              fontWeight: FontWeight.w700,
             ),
           ),
 
@@ -2907,12 +2449,7 @@ class _QuantityItem
 
           Text(
             value,
-            style:
-                const TextStyle(
-              fontSize: 24,
-              fontWeight:
-                  FontWeight.w900,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -2924,8 +2461,7 @@ class _QuantityItem
 // MASTER STATUS CARD
 // ============================================================
 
-class _PutAwayMasterStatusCard
-    extends StatelessWidget {
+class _PutAwayMasterStatusCard extends StatelessWidget {
   const _PutAwayMasterStatusCard({
     required this.sesuaiMaster,
     required this.masterTear,
@@ -2942,65 +2478,44 @@ class _PutAwayMasterStatusCard
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        sesuaiMaster
-            ? Colors.green
-            : Colors.orange;
+    final color = sesuaiMaster ? Colors.green : Colors.orange;
 
     return Card(
       child: Padding(
-        padding:
-            const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(18),
         child: Row(
           children: [
             Icon(
-              sesuaiMaster
-                  ? Icons
-                      .check_circle_rounded
-                  : Icons.warning_rounded,
+              sesuaiMaster ? Icons.check_circle_rounded : Icons.warning_rounded,
               color: color,
               size: 32,
             ),
 
-            const SizedBox(
-              width: 14,
-            ),
+            const SizedBox(width: 14),
 
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sesuaiMaster
-                        ? 'Sesuai Master'
-                        : 'Berbeda dari Master',
+                    sesuaiMaster ? 'Sesuai Master' : 'Berbeda dari Master',
                     style: TextStyle(
                       color: color,
                       fontSize: 16,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 5,
-                  ),
+                  const SizedBox(height: 5),
 
                   Text(
                     'Master: Tear $masterTear × Stack $masterStack',
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
 
                   Text(
                     'Aktual: Tear $actualTear × Stack $actualStack',
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -3011,4 +2526,3 @@ class _PutAwayMasterStatusCard
     );
   }
 }
-

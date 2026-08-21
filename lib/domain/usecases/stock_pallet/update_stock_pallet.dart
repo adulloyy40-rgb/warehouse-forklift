@@ -73,9 +73,7 @@ class UpdateStockPallet {
     final locationCode = pallet.locationCode.trim();
 
     if (locationCode.isEmpty) {
-      throw ArgumentError(
-        'Location Code tidak boleh kosong.',
-      );
+      throw ArgumentError('Location Code tidak boleh kosong.');
     }
 
     // --------------------------------------------------------
@@ -85,9 +83,7 @@ class UpdateStockPallet {
     final plu = pallet.plu.trim();
 
     if (plu.isEmpty) {
-      throw ArgumentError(
-        'PLU tidak boleh kosong.',
-      );
+      throw ArgumentError('PLU tidak boleh kosong.');
     }
 
     // --------------------------------------------------------
@@ -95,9 +91,7 @@ class UpdateStockPallet {
     // --------------------------------------------------------
 
     if (pallet.tear <= 0) {
-      throw ArgumentError(
-        'Tear harus lebih besar dari 0.',
-      );
+      throw ArgumentError('Tear harus lebih besar dari 0.');
     }
 
     // --------------------------------------------------------
@@ -105,9 +99,7 @@ class UpdateStockPallet {
     // --------------------------------------------------------
 
     if (pallet.stack <= 0) {
-      throw ArgumentError(
-        'Stack harus lebih besar dari 0.',
-      );
+      throw ArgumentError('Stack harus lebih besar dari 0.');
     }
 
     // --------------------------------------------------------
@@ -117,8 +109,7 @@ class UpdateStockPallet {
     // PLU operator digunakan untuk mencari Master Item.
     // --------------------------------------------------------
 
-    final Product? product =
-        await productRepository.getProductByPlu(plu);
+    final Product? product = await productRepository.getProductByPlu(plu);
 
     // --------------------------------------------------------
     // MASTER TIDAK DITEMUKAN
@@ -128,9 +119,7 @@ class UpdateStockPallet {
     // --------------------------------------------------------
 
     if (product == null) {
-      throw StateError(
-        'PLU $plu tidak ditemukan di Master Item.',
-      );
+      throw StateError('PLU $plu tidak ditemukan di Master Item.');
     }
 
     // --------------------------------------------------------
@@ -138,29 +127,53 @@ class UpdateStockPallet {
     // --------------------------------------------------------
 
     if (product.conv2 <= 0) {
-      throw StateError(
-        'Conv2 Master Item untuk PLU $plu tidak valid.',
-      );
+      throw StateError('Conv2 Master Item untuk PLU $plu tidak valid.');
     }
 
     // --------------------------------------------------------
-    // HITUNG QTY CTN
+    // QTY CTN AKTUAL
     // --------------------------------------------------------
     //
-    // Rumus:
+    // PENTING:
     //
-    // Tear × Stack
+    // Qty CTN berasal dari jumlah fisik/lapangan.
+    //
+    // Tear dan Stack TIDAK digunakan untuk menghitung Qty CTN.
+    // Tear dan Stack hanya digunakan untuk membandingkan
+    // kondisi pallet aktual dengan Master Item.
+    //
+    // Contoh:
+    //
+    // Master:
+    //   Tear  = 12
+    //   Stack = 6
+    //
+    // Aktual:
+    //   Tear  = 25
+    //   Stack = 6
+    //   Qty CTN = 150
+    //
+    // Hasil:
+    //   Qty CTN = 150
+    //   Mismatch = true
+    //
     // --------------------------------------------------------
 
-    final qtyCtn = pallet.tear * pallet.stack;
+    final qtyCtn = pallet.qtyCtn;
+
+    if (qtyCtn < 0) {
+      throw ArgumentError('Qty CTN tidak boleh kurang dari 0.');
+    }
 
     // --------------------------------------------------------
     // HITUNG QTY PCS
     // --------------------------------------------------------
     //
+    // Qty PCS selalu mengikuti Qty CTN aktual.
+    //
     // Rumus:
     //
-    // Qty CTN × Conv2
+    // Qty PCS = Qty CTN × Conv2
     // --------------------------------------------------------
 
     final qtyPcs = qtyCtn * product.conv2;
@@ -197,7 +210,6 @@ class UpdateStockPallet {
       // ------------------------------------------------------
       // MASTER ITEM
       // ------------------------------------------------------
-
       plu: product.plu,
       barcode: product.barcode,
       description: product.description,
@@ -209,34 +221,29 @@ class UpdateStockPallet {
       // ------------------------------------------------------
       // DATA AKTUAL PALLET
       // ------------------------------------------------------
-
       tear: pallet.tear,
       stack: pallet.stack,
 
       // ------------------------------------------------------
       // QUANTITY HASIL PERHITUNGAN SISTEM
       // ------------------------------------------------------
-
       qtyCtn: qtyCtn,
       qtyPcs: qtyPcs,
 
       // ------------------------------------------------------
       // TANGGAL
       // ------------------------------------------------------
-
       expiredDate: pallet.expiredDate,
       inputDate: pallet.inputDate,
 
       // ------------------------------------------------------
       // OPERATOR
       // ------------------------------------------------------
-
       operatorNik: pallet.operatorNik.trim(),
 
       // ------------------------------------------------------
       // HASIL PERBANDINGAN DENGAN MASTER
       // ------------------------------------------------------
-
       sesuaiMaster: sesuaiMaster,
     );
 
@@ -247,8 +254,6 @@ class UpdateStockPallet {
     // Database hanya disentuh setelah seluruh validasi berhasil.
     // --------------------------------------------------------
 
-    await stockPalletRepository.update(
-      updatedPallet,
-    );
+    await stockPalletRepository.update(updatedPallet);
   }
 }
