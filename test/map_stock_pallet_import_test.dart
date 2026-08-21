@@ -23,6 +23,7 @@ void main() {
     return {
       'lokasi': '8001101',
       'plu': '123456',
+      'qty_so': 10,
       'tear_aktual': 5,
       'stack': 2,
       'exp_date': '2026-12-31',
@@ -30,152 +31,119 @@ void main() {
   }
 
   group('MapStockPalletImport', () {
-    test(
-      'memetakan data Excel dan Master Item menjadi StockPallet',
-      () {
-        final result = mapper.execute(
-          row: validRow(),
-          product: product,
-          operatorNik: '12345678',
-          inputDate: DateTime(2026, 8, 19, 10, 30),
-        );
+    test('memetakan data Excel dan Master Item menjadi StockPallet', () {
+      final result = mapper.execute(
+        row: validRow(),
+        product: product,
+        operatorNik: '12345678',
+        inputDate: DateTime(2026, 8, 19, 10, 30),
+      );
 
-        expect(result, isA<StockPallet>());
+      expect(result, isA<StockPallet>());
 
-        expect(result.locationCode, '8001101');
-        expect(result.plu, '123456');
-        expect(result.description, 'Barang Test');
+      expect(result.locationCode, '8001101');
+      expect(result.plu, '123456');
+      expect(result.description, 'Barang Test');
 
-        expect(result.barcode, '8999999999999');
-        expect(result.price, 25000);
-        expect(result.returHari, 60);
-        expect(result.type, 'FG');
+      expect(result.barcode, '8999999999999');
+      expect(result.price, 25000);
+      expect(result.returHari, 60);
+      expect(result.type, 'FG');
 
-        expect(result.conv2, 24);
+      expect(result.conv2, 24);
 
-        // Tear 5 × Stack 2 = 10 CTN.
-        expect(result.qtyCtn, 10);
+      // Qty CTN berasal dari Qty SO Excel.
+      // qty_so = 10.
+      // Tear × Stack hanya untuk kondisi fisik.
+      expect(result.qtyCtn, 10);
 
-        // 10 CTN × Conv2 24 = 240 PCS.
-        expect(result.qtyPcs, 240);
+      // Qty PCS = Qty CTN × Conv2.
+      // 10 × 24 = 240 PCS.
+      expect(result.qtyPcs, 240);
 
-        expect(result.stack, 2);
-        expect(result.tear, 5);
+      expect(result.stack, 2);
+      expect(result.tear, 5);
 
-        expect(
-          result.expiredDate,
-          DateTime(2026, 12, 31),
-        );
+      expect(result.expiredDate, DateTime(2026, 12, 31));
 
-        expect(
-          result.inputDate,
-          DateTime(2026, 8, 19, 10, 30),
-        );
+      expect(result.inputDate, DateTime(2026, 8, 19, 10, 30));
 
-        expect(result.operatorNik, '12345678');
+      expect(result.operatorNik, '12345678');
 
-        // Tear dan Stack aktual sama dengan Master Item.
-        expect(result.sesuaiMaster, isTrue);
-      },
-    );
+      // Tear dan Stack aktual sama dengan Master Item.
+      expect(result.sesuaiMaster, isTrue);
+    });
 
-    test(
-      'qtyPcs dihitung dari qtyCtn dikali conv2 Master Item',
-      () {
-        const productConv12 = Product(
-          barcode: '8999999999999',
-          plu: '123456',
-          description: 'Barang Test',
-          price: 25000,
-          returHari: 60,
-          conv2: 12,
-          type: 'FG',
-          masterTear: 5,
-          masterStack: 2,
-        );
+    test('qtyPcs dihitung dari qtyCtn dikali conv2 Master Item', () {
+      const productConv12 = Product(
+        barcode: '8999999999999',
+        plu: '123456',
+        description: 'Barang Test',
+        price: 25000,
+        returHari: 60,
+        conv2: 12,
+        type: 'FG',
+        masterTear: 5,
+        masterStack: 2,
+      );
 
-        final row = validRow()
-          ..['tear_aktual'] = 5
-          ..['stack'] = 2;
+      final row = validRow()
+        ..['tear_aktual'] = 5
+        ..['stack'] = 2;
 
-        final result = mapper.execute(
-          row: row,
-          product: productConv12,
-          operatorNik: '12345678',
-          inputDate: DateTime(2026, 8, 19),
-        );
+      final result = mapper.execute(
+        row: row,
+        product: productConv12,
+        operatorNik: '12345678',
+        inputDate: DateTime(2026, 8, 19),
+      );
 
-        // 5 × 2 = 10 CTN.
-        expect(result.qtyCtn, 10);
+      // Qty CTN berasal dari Qty SO Excel.
+      expect(result.qtyCtn, 10);
 
-        // 10 × 12 = 120 PCS.
-        expect(result.qtyPcs, 120);
-      },
-    );
+      // 10 × 12 = 120 PCS.
+      expect(result.qtyPcs, 120);
+    });
 
-    test(
-      'tanggal expired harus valid',
-      () {
-        final row = validRow()
-          ..['exp_date'] = 'tanggal-salah';
+    test('tanggal expired harus valid', () {
+      final row = validRow()..['exp_date'] = 'tanggal-salah';
 
-        expect(
-          () => mapper.execute(
-            row: row,
-            product: product,
-            operatorNik: '12345678',
-          ),
-          throwsA(isA<FormatException>()),
-        );
-      },
-    );
+      expect(
+        () =>
+            mapper.execute(row: row, product: product, operatorNik: '12345678'),
+        throwsA(isA<FormatException>()),
+      );
+    });
 
-    test(
-      'lokasi wajib diisi',
-      () {
-        final row = validRow()
-          ..['lokasi'] = '';
+    test('lokasi wajib diisi', () {
+      final row = validRow()..['lokasi'] = '';
 
-        expect(
-          () => mapper.execute(
-            row: row,
-            product: product,
-            operatorNik: '12345678',
-          ),
-          throwsA(isA<FormatException>()),
-        );
-      },
-    );
+      expect(
+        () =>
+            mapper.execute(row: row, product: product, operatorNik: '12345678'),
+        throwsA(isA<FormatException>()),
+      );
+    });
 
-    test(
-      'operator NIK diteruskan ke StockPallet',
-      () {
-        final result = mapper.execute(
-          row: validRow(),
-          product: product,
-          operatorNik: '99887766',
-        );
+    test('operator NIK diteruskan ke StockPallet', () {
+      final result = mapper.execute(
+        row: validRow(),
+        product: product,
+        operatorNik: '99887766',
+      );
 
-        expect(result.operatorNik, '99887766');
-      },
-    );
+      expect(result.operatorNik, '99887766');
+    });
 
-    test(
-      'PLU Excel harus sama dengan Master Item',
-      () {
-        final row = validRow()
-          ..['plu'] = '999999';
+    test('PLU Excel harus sama dengan Master Item', () {
+      final row = validRow()..['plu'] = '999999';
 
-        expect(
-          () => mapper.execute(
-            row: row,
-            product: product,
-            operatorNik: '12345678',
-          ),
-          throwsA(isA<FormatException>()),
-        );
-      },
-    );
+      expect(
+        () =>
+            mapper.execute(row: row, product: product, operatorNik: '12345678'),
+        throwsA(isA<FormatException>()),
+      );
+    });
 
     test(
       'tear dan stack berbeda dari master menghasilkan sesuaiMaster false',
@@ -197,9 +165,10 @@ void main() {
         // Hanya status kesesuaian yang menjadi false.
         expect(result.sesuaiMaster, isFalse);
 
-        // Qty tetap dihitung dari kondisi aktual.
-        expect(result.qtyCtn, 8);
-        expect(result.qtyPcs, 192);
+        // Qty tetap berasal dari Qty SO Excel.
+        // Perubahan Tear/Stack TIDAK mengubah Qty Import.
+        expect(result.qtyCtn, 10);
+        expect(result.qtyPcs, 240);
       },
     );
   });
