@@ -252,7 +252,16 @@ class StockPalletDao extends DatabaseAccessor<AppDatabase>
   // ==========================================================
 
   Future<bool> updatePallet(StockPalletsCompanion pallet) async {
-    final count = await update(stockPallets).write(pallet);
+    if (!pallet.id.present) {
+      throw ArgumentError('ID pallet wajib ada saat melakukan update.');
+    }
+
+    final id = pallet.id.value;
+
+    final count = await (update(stockPallets)
+          ..where((tbl) => tbl.id.equals(id)))
+        .write(pallet);
+
     return count > 0;
   }
 
