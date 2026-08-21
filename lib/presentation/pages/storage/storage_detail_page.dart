@@ -1077,20 +1077,20 @@ class _EditPalletFormState extends State<_EditPalletForm> {
   // Edit tanggal saja:
   //   Qty CTN tetap 140.
   //
-  // Edit Tear:
-  //   Tear 12 → 25
-  //   Stack tetap 6
-  //   Qty CTN = 25 × 6 = 150.
+  // Edit Tear/Stack:
+  //   Tear dan Stack berubah sesuai kondisi aktual.
+  //   Qty CTN tetap mengikuti quantity fisik pallet.
+  //   Status kesesuaian Master dihitung ulang.
   // ==========================================================
 
-  bool get _tearStackChanged =>
-      _tear != widget.pallet.tear || _stack != widget.pallet.stack;
-
   int get _qtyCtn {
-    if (_tearStackChanged) {
-      return _tear * _stack;
-    }
-
+    // Qty CTN adalah jumlah fisik aktual pallet.
+    //
+    // Tear dan Stack hanya digunakan untuk validasi
+    // kesesuaian dengan Master Item.
+    //
+    // Mengubah Tear/Stack tidak otomatis mengubah
+    // Qty CTN aktual.
     return widget.pallet.qtyCtn;
   }
 

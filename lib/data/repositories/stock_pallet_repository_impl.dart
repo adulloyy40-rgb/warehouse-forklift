@@ -336,6 +336,23 @@ class StockPalletRepositoryImpl implements StockPalletRepository {
 
       expiredDate: Value(pallet.expiredDate),
 
+      // ------------------------------------------------------
+      // OPERATOR
+      // ------------------------------------------------------
+      //
+      // Operator yang melakukan EDIT tetap disimpan.
+      // ------------------------------------------------------
+      operatorNik: Value(pallet.operatorNik.trim()),
+
+      // ------------------------------------------------------
+      // KESESUAIAN MASTER
+      // ------------------------------------------------------
+      //
+      // Nilai ini sudah dihitung oleh UpdateStockPallet
+      // berdasarkan Tear/Stack aktual vs Master Item.
+      // ------------------------------------------------------
+      sesuaiMaster: Value(pallet.sesuaiMaster),
+
       // createdAt tidak boleh berubah ketika EDIT.
       createdAt: Value(existing.createdAt),
 

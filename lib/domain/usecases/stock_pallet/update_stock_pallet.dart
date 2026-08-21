@@ -131,32 +131,16 @@ class UpdateStockPallet {
     }
 
     // --------------------------------------------------------
-    // QTY CTN AKTUAL
+    // QTY AKTUAL PALLET
     // --------------------------------------------------------
     //
-    // PENTING:
+    // Qty CTN adalah jumlah fisik aktual pallet.
     //
-    // Qty CTN berasal dari jumlah fisik/lapangan.
+    // Tear dan Stack TIDAK digunakan untuk menghitung
+    // Qty CTN.
     //
-    // Tear dan Stack TIDAK digunakan untuk menghitung Qty CTN.
     // Tear dan Stack hanya digunakan untuk membandingkan
-    // kondisi pallet aktual dengan Master Item.
-    //
-    // Contoh:
-    //
-    // Master:
-    //   Tear  = 12
-    //   Stack = 6
-    //
-    // Aktual:
-    //   Tear  = 25
-    //   Stack = 6
-    //   Qty CTN = 150
-    //
-    // Hasil:
-    //   Qty CTN = 150
-    //   Mismatch = true
-    //
+    // kondisi aktual pallet dengan Master Item.
     // --------------------------------------------------------
 
     final qtyCtn = pallet.qtyCtn;
@@ -166,10 +150,10 @@ class UpdateStockPallet {
     }
 
     // --------------------------------------------------------
-    // HITUNG QTY PCS
+    // QTY PCS
     // --------------------------------------------------------
     //
-    // Qty PCS selalu mengikuti Qty CTN aktual.
+    // Qty PCS mengikuti Qty CTN aktual.
     //
     // Rumus:
     //
