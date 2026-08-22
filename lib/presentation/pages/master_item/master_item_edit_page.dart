@@ -89,7 +89,7 @@ class _MasterItemEditPageState extends State<MasterItemEditPage> {
     });
 
     try {
-      final updated = await AppDependencies.instance.updateProduct(product);
+      await AppDependencies.instance.updateProduct(product);
 
       if (!mounted) return;
 
@@ -97,7 +97,7 @@ class _MasterItemEditPageState extends State<MasterItemEditPage> {
         const SnackBar(content: Text('Master Item berhasil diperbarui.')),
       );
 
-      Navigator.of(context).pop(updated);
+      Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
 
