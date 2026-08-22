@@ -1,66 +1,8 @@
-// ============================================================
-// FILE:
-// lib/data/datasources/stock_pallet_excel_data_source.dart
-//
-// FUNGSI:
-// Membaca data pallet/storage yang sudah terisi dari Excel.
-//
-// FORMAT EXCEL YANG DIGUNAKAN:
-//
-// LOKASI | PLU | DESC | CONV2 | QTY SO |
-// STACK | TEAR AKTUAL | EXP DATE
-//
-// PEMETAAN:
-//
-// LOKASI       -> locationCode
-// PLU          -> plu
-// DESC         -> description
-// CONV2        -> conv2
-// QTY SO       -> qtyCtn
-// STACK        -> stack aktual
-// TEAR AKTUAL  -> tear aktual
-// EXP DATE     -> expiredDate
-//
-// CATATAN PENTING:
-//
-// Data Excel BELUM dimasukkan ke database pada tahap ini.
-//
-// Alur:
-//
-// Excel
-//   ↓
-// StockPalletExcelDataSource
-//   ↓
-// Parsing
-//   ↓
-// Data mentah pallet
-//
-// Validasi Master Item dan database akan dibuat
-// pada tahap berikutnya.
-// ============================================================
-
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
 
-// ============================================================
-// CLASS:
-// StockPalletExcelDataSource
-// ============================================================
-
 class StockPalletExcelDataSource {
-  // ==========================================================
-  // HEADER EXCEL YANG WAJIB
-  // ==========================================================
-  //
-  // Nama header akan dinormalisasi terlebih dahulu.
-  //
-  // Contoh:
-  //
-  // "QTY SO"      -> "qty_so"
-  // "TEAR AKTUAL" -> "tear_aktual"
-  // ==========================================================
-
   static const List<String> requiredHeaders = [
     'lokasi',
     'plu',
@@ -72,116 +14,76 @@ class StockPalletExcelDataSource {
     'exp_date',
   ];
 
-  // ==========================================================
-  // READ
-  // ==========================================================
-  //
-  // Membaca Excel dari Uint8List.
-  //
-  // Return:
-  //
-  // List<Map<String, dynamic>>
-  //
-  // Satu Map = satu pallet dari satu baris Excel.
-  // ==========================================================
-
   List<Map<String, dynamic>> read(Uint8List bytes) {
-    // --------------------------------------------------------
-    // Membuka workbook Excel.
-    // --------------------------------------------------------
-
     final excel = Excel.decodeBytes(bytes);
-
-    // --------------------------------------------------------
-    // Pastikan workbook memiliki worksheet.
-    // --------------------------------------------------------
 
     if (excel.tables.isEmpty) {
       throw StateError('File Excel tidak memiliki worksheet.');
     }
 
-    // --------------------------------------------------------
-    // Gunakan worksheet pertama.
-    // --------------------------------------------------------
-
     final sheet = excel.tables.values.first;
+    final rows = sheet.rows;
 
-    // --------------------------------------------------------
-    // Excel kosong.
-    // --------------------------------------------------------
-
-    if (sheet.rows.isEmpty) {
+    if (rows.isEmpty) {
       return <Map<String, dynamic>>[];
     }
 
-    // --------------------------------------------------------
-    // Membaca header dari baris pertama.
-    // --------------------------------------------------------
+    final headerRow = rows.first;
 
-    final headerRow = sheet.rows.first;
-
-    final headers = headerRow
-        .map((cell) => _normalizeHeader(cell?.value?.toString() ?? ''))
-        .toList();
-
-    // --------------------------------------------------------
-    // Validasi header.
-    // --------------------------------------------------------
+    final headers = List<String>.generate(
+      headerRow.length,
+      (index) => _normalizeHeader(
+        _cellToString(headerRow[index]?.value),
+      ),
+      growable: false,
+    );
 
     _validateHeaders(headers);
 
-    // --------------------------------------------------------
-    // Menyimpan hasil parsing.
-    // --------------------------------------------------------
+    // Cari index kolom SATU KALI saja.
+    final lokasiIndex = headers.indexOf('lokasi');
+    final pluIndex = headers.indexOf('plu');
+    final descIndex = headers.indexOf('desc');
+    final conv2Index = headers.indexOf('conv2');
+    final qtySoIndex = headers.indexOf('qty_so');
+    final stackIndex = headers.indexOf('stack');
+    final tearIndex = headers.indexOf('tear_aktual');
+    final expDateIndex = headers.indexOf('exp_date');
 
     final result = <Map<String, dynamic>>[];
 
-    // --------------------------------------------------------
-    // Membaca baris setelah header.
-    // --------------------------------------------------------
+    for (int rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+      final row = rows[rowIndex];
 
-    for (int rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
-      final row = sheet.rows[rowIndex];
-
-      // ------------------------------------------------------
-      // Lewati baris kosong.
-      // ------------------------------------------------------
-
-      if (_isEmptyRow(row)) {
+      // Baris kosong hanya diperiksa pada kolom yang dibutuhkan.
+      if (_isEmptyRequiredRow(
+        row,
+        lokasiIndex,
+        pluIndex,
+        descIndex,
+        conv2Index,
+        qtySoIndex,
+        stackIndex,
+        tearIndex,
+        expDateIndex,
+      )) {
         continue;
       }
 
-      // ------------------------------------------------------
-      // Membuat data pallet dari baris Excel.
-      // ------------------------------------------------------
-
-      final data = <String, dynamic>{
-        'lokasi': _getValue(row, headers, 'lokasi'),
-
-        'plu': _getValue(row, headers, 'plu'),
-
-        'desc': _getValue(row, headers, 'desc'),
-
-        'conv2': _getValue(row, headers, 'conv2'),
-
-        'qty_so': _getValue(row, headers, 'qty_so'),
-
-        'stack': _getValue(row, headers, 'stack'),
-
-        'tear_aktual': _getValue(row, headers, 'tear_aktual'),
-
-        'exp_date': _getValue(row, headers, 'exp_date'),
-      };
-
-      result.add(data);
+      result.add({
+        'lokasi': _getCellValue(row, lokasiIndex),
+        'plu': _getCellValue(row, pluIndex),
+        'desc': _getCellValue(row, descIndex),
+        'conv2': _getCellValue(row, conv2Index),
+        'qty_so': _getCellValue(row, qtySoIndex),
+        'stack': _getCellValue(row, stackIndex),
+        'tear_aktual': _getCellValue(row, tearIndex),
+        'exp_date': _getCellValue(row, expDateIndex),
+      });
     }
 
     return result;
   }
-
-  // ==========================================================
-  // VALIDATE HEADERS
-  // ==========================================================
 
   void _validateHeaders(List<String> headers) {
     final missingHeaders = requiredHeaders
@@ -197,51 +99,22 @@ class StockPalletExcelDataSource {
     }
   }
 
-  // ==========================================================
-  // GET VALUE
-  // ==========================================================
-  //
-  // Mengambil cell berdasarkan nama header.
-  // ==========================================================
-
-  dynamic _getValue(List<Data?> row, List<String> headers, String header) {
-    final columnIndex = headers.indexOf(header);
-
-    if (columnIndex < 0) {
+  dynamic _getCellValue(List<Data?> row, int index) {
+    if (index < 0 || index >= row.length) {
       return null;
     }
 
-    if (columnIndex >= row.length) {
-      return null;
-    }
+    return _cellValue(row[index]?.value);
+  }
 
-    final cell = row[columnIndex];
-
-    if (cell == null) {
-      return null;
-    }
-
-    final value = cell.value;
-
+  dynamic _cellValue(CellValue? value) {
     if (value == null) {
       return null;
     }
 
-    // ========================================================
-    // excel 4.x menggunakan CellValue.
-    //
-    // TextCellValue.value berupa TextSpan.
-    // Kita mengambil text dari TextSpan agar domain aplikasi
-    // menerima String biasa.
-    // ========================================================
-
     if (value is TextCellValue) {
-      return value.value.text;
+      return value.value.text ?? '';
     }
-
-    // ========================================================
-    // Tipe numerik
-    // ========================================================
 
     if (value is IntCellValue) {
       return value.value;
@@ -259,38 +132,90 @@ class StockPalletExcelDataSource {
       return value.asDateTimeUtc();
     }
 
-    // Fallback.
     return value.toString();
   }
 
-  // ==========================================================
-  // NORMALIZE HEADER
-  // ==========================================================
-  //
-  // Contoh:
-  //
-  // " LOKASI "       -> "lokasi"
-  // "QTY SO"         -> "qty_so"
-  // "TEAR AKTUAL"    -> "tear_aktual"
-  // ==========================================================
+  String _cellToString(CellValue? value) {
+    if (value == null) {
+      return '';
+    }
 
-  String _normalizeHeader(String value) {
-    return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+    if (value is TextCellValue) {
+      return value.value.text ?? '';
+    }
+
+    if (value is IntCellValue) {
+      return value.value.toString();
+    }
+
+    if (value is DoubleCellValue) {
+      return value.value.toString();
+    }
+
+    if (value is BoolCellValue) {
+      return value.value.toString();
+    }
+
+    if (value is DateCellValue) {
+      return value.asDateTimeUtc().toIso8601String();
+    }
+
+    return value.toString();
   }
 
-  // ==========================================================
-  // EMPTY ROW
-  // ==========================================================
+  bool _isEmptyRequiredRow(
+    List<Data?> row,
+    int lokasiIndex,
+    int pluIndex,
+    int descIndex,
+    int conv2Index,
+    int qtySoIndex,
+    int stackIndex,
+    int tearIndex,
+    int expDateIndex,
+  ) {
+    final indexes = <int>[
+      lokasiIndex,
+      pluIndex,
+      descIndex,
+      conv2Index,
+      qtySoIndex,
+      stackIndex,
+      tearIndex,
+      expDateIndex,
+    ];
 
-  bool _isEmptyRow(List<Data?> row) {
-    for (final cell in row) {
-      final value = cell?.value;
-
-      if (value != null && value.toString().trim().isNotEmpty) {
-        return false;
+    for (final index in indexes) {
+      if (index < 0 || index >= row.length) {
+        continue;
       }
+
+      final value = row[index]?.value;
+
+      if (value == null) {
+        continue;
+      }
+
+      if (value is TextCellValue) {
+        final text = value.value.text;
+
+        if (text != null && text.trim().isNotEmpty) {
+          return false;
+        }
+
+        continue;
+      }
+
+      return false;
     }
 
     return true;
+  }
+
+  String _normalizeHeader(String value) {
+    return value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '_');
   }
 }
