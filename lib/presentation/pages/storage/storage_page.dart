@@ -43,6 +43,18 @@ import '../../../domain/services/pallet_status_calculator.dart';
 
 import 'storage_detail_page.dart';
 
+enum StorageMonitoringFilter {
+  all,
+  available,
+  occupied,
+  normal,
+  nearReturn,
+  expired,
+  qtyMismatch,
+  tearMismatch,
+  stackMismatch,
+}
+
 // ============================================================
 // STORAGE PAGE
 // ============================================================
@@ -120,6 +132,13 @@ class _StoragePageState extends State<StoragePage> {
   // ==========================================================
 
   int? _selectedRack;
+
+  // ==========================================================
+  // STORAGE MONITORING FILTER
+  // ==========================================================
+
+  StorageMonitoringFilter _selectedMonitoringFilter =
+      StorageMonitoringFilter.all;
 
   // ==========================================================
   // LOADING
@@ -273,6 +292,144 @@ class _StoragePageState extends State<StoragePage> {
   }
 
   // ==========================================================
+  // STORAGE MONITORING STATUS
+  // ==========================================================
+
+  PalletStatusResult? _getPalletStatus(StorageLocation location) {
+    final pallet = _palletByLocation[location.code.trim()];
+
+    if (pallet == null) {
+      return null;
+    }
+
+    final product = _productByPlu[pallet.plu.trim()];
+
+    return const PalletStatusCalculator().calculate(
+      pallet,
+      masterTear: product?.masterTear,
+      masterStack: product?.masterStack,
+    );
+  }
+
+  // ==========================================================
+  // QTY MISMATCH HELPER
+  // ==========================================================
+  //
+  // Qty CTN seharusnya:
+  // tear × stack
+  //
+  // Qty PCS seharusnya:
+  // qtyCtn × conv2
+  //
+  // Helper ini hanya membaca data dan menghitung.
+  // Belum mengubah database atau data pallet.
+  // ==========================================================
+
+  bool _hasQtyMismatch(StorageLocation location) {
+    final pallet = _palletByLocation[location.code.trim()];
+
+    if (pallet == null) {
+      return false;
+    }
+
+    final expectedQtyCtn = pallet.tear * pallet.stack;
+    final expectedQtyPcs = expectedQtyCtn * pallet.conv2;
+
+    final qtyCtnMismatch = pallet.qtyCtn != expectedQtyCtn;
+    final qtyPcsMismatch = pallet.qtyPcs != expectedQtyPcs;
+
+    return qtyCtnMismatch || qtyPcsMismatch;
+  }
+
+
+  // ==========================================================
+  // STORAGE MONITORING FILTER MATCH
+  // ==========================================================
+  //
+  // Menentukan apakah satu location masuk ke filter monitoring.
+  //
+  // FILTER:
+  // - ALL
+  // - AVAILABLE
+  // - OCCUPIED
+  // - NORMAL
+  // - NEAR RETURN
+  // - EXPIRED
+  // - QTY MISMATCH
+  // - TEAR MISMATCH
+  // - STACK MISMATCH
+  //
+  // Helper ini hanya membaca data.
+  // Tidak mengubah database.
+  // ==========================================================
+
+  bool _matchesMonitoringFilter(StorageLocation location) {
+    final pallet = _palletByLocation[location.code.trim()];
+
+    switch (_selectedMonitoringFilter) {
+      case StorageMonitoringFilter.all:
+        return true;
+
+      case StorageMonitoringFilter.available:
+        return pallet == null;
+
+      case StorageMonitoringFilter.occupied:
+        return pallet != null;
+
+      case StorageMonitoringFilter.normal:
+        if (pallet == null) {
+          return false;
+        }
+
+        final status = _getPalletStatus(location);
+
+        return status != null &&
+            status.isNormal &&
+            !_hasQtyMismatch(location);
+
+      case StorageMonitoringFilter.nearReturn:
+        if (pallet == null) {
+          return false;
+        }
+
+        final status = _getPalletStatus(location);
+
+        return status?.expiryStatus == PalletExpiryStatus.nearReturn;
+
+      case StorageMonitoringFilter.expired:
+        if (pallet == null) {
+          return false;
+        }
+
+        final status = _getPalletStatus(location);
+
+        return status?.expiryStatus == PalletExpiryStatus.expired;
+
+      case StorageMonitoringFilter.qtyMismatch:
+        return _hasQtyMismatch(location);
+
+      case StorageMonitoringFilter.tearMismatch:
+        if (pallet == null) {
+          return false;
+        }
+
+        final status = _getPalletStatus(location);
+
+        return status?.tearMismatch == true;
+
+      case StorageMonitoringFilter.stackMismatch:
+        if (pallet == null) {
+          return false;
+        }
+
+        final status = _getPalletStatus(location);
+
+        return status?.stackMismatch == true;
+    }
+  }
+
+
+  // ==========================================================
   // FILTERED LOCATIONS
   // ==========================================================
 
@@ -286,7 +443,12 @@ class _StoragePageState extends State<StoragePage> {
       final matchesRack =
           _selectedRack == null || location.rack == _selectedRack;
 
-      return matchesSearch && matchesRack;
+      final matchesMonitoringFilter =
+          _matchesMonitoringFilter(location);
+
+      return matchesSearch &&
+          matchesRack &&
+          matchesMonitoringFilter;
     }).toList();
   }
 
@@ -398,6 +560,10 @@ class _StoragePageState extends State<StoragePage> {
         const SizedBox(height: 12),
 
         _buildRackFilter(theme),
+
+        const SizedBox(height: 12),
+
+        _buildMonitoringFilter(theme),
 
         const SizedBox(height: 20),
 
@@ -515,6 +681,75 @@ class _StoragePageState extends State<StoragePage> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  // ==========================================================
+  // STORAGE MONITORING FILTER UI
+  // ==========================================================
+
+  Widget _buildMonitoringFilter(ThemeData theme) {
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _monitoringFilterChip(
+            label: 'Semua',
+            filter: StorageMonitoringFilter.all,
+          ),
+          _monitoringFilterChip(
+            label: 'Available',
+            filter: StorageMonitoringFilter.available,
+          ),
+          _monitoringFilterChip(
+            label: 'Occupied',
+            filter: StorageMonitoringFilter.occupied,
+          ),
+          _monitoringFilterChip(
+            label: 'Normal',
+            filter: StorageMonitoringFilter.normal,
+          ),
+          _monitoringFilterChip(
+            label: 'Near Return',
+            filter: StorageMonitoringFilter.nearReturn,
+          ),
+          _monitoringFilterChip(
+            label: 'Expired',
+            filter: StorageMonitoringFilter.expired,
+          ),
+          _monitoringFilterChip(
+            label: 'Qty Mismatch',
+            filter: StorageMonitoringFilter.qtyMismatch,
+          ),
+          _monitoringFilterChip(
+            label: 'Tear Mismatch',
+            filter: StorageMonitoringFilter.tearMismatch,
+          ),
+          _monitoringFilterChip(
+            label: 'Stack Mismatch',
+            filter: StorageMonitoringFilter.stackMismatch,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _monitoringFilterChip({
+    required String label,
+    required StorageMonitoringFilter filter,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: _selectedMonitoringFilter == filter,
+        onSelected: (_) {
+          setState(() {
+            _selectedMonitoringFilter = filter;
+          });
+        },
       ),
     );
   }
