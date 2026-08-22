@@ -638,6 +638,16 @@ class _ExcelImportPageState extends State<ExcelImportPage> {
     required List<Map<String, dynamic>> data,
     required bool valid,
   }) {
+    if (data.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    // Batasi tinggi area preview agar ListView.builder
+    // mempunyai constraint yang jelas.
+    final previewHeight = (screenHeight * 0.55).clamp(320.0, 520.0);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
@@ -647,11 +657,22 @@ class _ExcelImportPageState extends State<ExcelImportPage> {
         subtitle: Text('${data.length} baris'),
         children: [
           const Divider(height: 1),
-          ...List.generate(data.length, (index) {
-            final row = data[index];
+          SizedBox(
+            height: previewHeight,
+            child: ListView.builder(
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final row = data[index];
 
-            return _buildRowPreview(context, index + 1, row, valid);
-          }),
+                return _buildRowPreview(
+                  context,
+                  index + 1,
+                  row,
+                  valid,
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
